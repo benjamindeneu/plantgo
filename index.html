@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PlantGo App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Google Fonts: Roboto -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* Reset */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      padding: 20px;
+      line-height: 1.4;
+      overflow-x: hidden;
+    }
+    h1, h2, h3 {
+      color: #1b5e20;
+      margin-bottom: 12px;
+    }
+    p {
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+    a {
+      color: #388e3c;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    button {
+      background-color: #66bb6a;
+      border: none;
+      color: #fff;
+      padding: 10px 15px;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-top: 6px;
+    }
+    button:hover {
+      background-color: #57a05a;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    /* Badge styles */
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-right: 4px;
+      font-weight: bold;
+    }
+    .tree-badge {
+      background-color: #c8e6c9;
+      color: #2e7d32;
+    }
+    .invasive-badge {
+      background-color: #ffcdd2;
+      color: #c62828;
+    }
+    /* Species card style */
+    .species-item {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      flex-wrap: nowrap;
+    }
+    .species-image-container {
+      flex: 0 0 150px;
+      margin-right: 15px;
+    }
+    .species-image {
+      width: 150px;
+      height: auto;
+      border-radius: 4px;
+    }
+    .species-info {
+      flex: 1;
+      font-size: 13px;
+    }
+    .species-info p {
+      margin: 2px 0;
+    }
+    .validate-species-btn {
+      background-color: #81c784;
+      font-size: 14px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: none;
+      margin-top: 8px;
+    }
+    .validate-species-btn:hover {
+      background-color: #70b97c;
+    }
+    .validation-feedback {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #555;
+    }
+    /* Top section spacing */
+    #locationInfo, #requestresult, #validationResult {
+      margin-bottom: 20px;
+    }
+    /* Ensure items remain in a row on all screens */
+    @media (max-width: 480px) {
+      .species-item {
+        flex-direction: row;
+      }
+      .species-image-container {
+        margin-right: 10px;
+      }
+    }
+    /* Modal styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 400px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>PlantGo App</h1>
+  <button id="getLocationBtn">Get Location &amp; Missions</button>
+  <div id="locationInfo"></div>
+  <div id="suggestions"></div>
+  <div id="requestresult"></div>
+  
+  <hr />
+  
+  <h2>Validate Plant Photo (General)</h2>
+  <input type="file" accept="image/*" capture="environment" id="photoInput" />
+  <button id="validateBtn">Validate Photo</button>
+  <div id="validationResult"></div>
+  
+  <!-- Modal for displaying identification result -->
+  <div id="resultModal" class="modal">
+    <div class="modal-content">
+      <span id="modalClose" class="close">&times;</span>
+      <div id="modalText"></div>
+    </div>
+  </div>
+  
+  <script>
+    // Helper: Extract binomial name (first two words) for Wikipedia lookup.
+    function getBinomialName(fullName) {
+      const parts = fullName.trim().split(" ");
+      return parts.length >= 2 ? parts[0] + " " + parts[1] : fullName;
+    }
+
+    // Modal functions
+    function showModal(content) {
+      document.getElementById("modalText").innerHTML = content;
+      document.getElementById("resultModal").style.display = "block";
+    }
+    function hideModal() {
+      document.getElementById("resultModal").style.display = "none";
+    }
+    document.getElementById("modalClose").addEventListener("click", hideModal);
+    window.addEventListener("click", (event) => {
+      if (event.target == document.getElementById("resultModal")) {
+        hideModal();
+      }
+    });
+
+    // Endpoints on your proxy server.
+    const SPECIES_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/proxy';
+    const IDENTIFY_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/identify';
+
+    const getLocationBtn = document.getElementById('getLocationBtn');
+    const locationInfo = document.getElementById('locationInfo');
+    const suggestionsDiv = document.getElementById('suggestions');
+    const requestresultDiv = document.getElementById('requestresult');
+    const photoInput = document.getElementById('photoInput');
+    const validateBtn = document.getElementById('validateBtn');
+    const validationResult = document.getElementById('validationResult');
+
+    // Get user location and fetch missions (species suggestions).
+    getLocationBtn.addEventListener('click', () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(success, error, {
+          enableHighAccuracy: true,
+          timeout: 20000,
+          maximumAge: 1000
+        });
+      } else {
+        locationInfo.textContent = "Geolocation is not supported by this browser.";
+      }
+    });
+
+    function success(position) {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      locationInfo.innerHTML = `<p>Your location: <strong>Lat:</strong> ${lat.toFixed(6)}, <strong>Lon:</strong> ${lon.toFixed(6)}</p>`;
+      fetchSpecies(lat, lon);
+    }
+
+    function error(err) {
+      locationInfo.textContent = "Error retrieving location: " + err.message;
+    }
+
+    // Fetch missions via proxy.
+    async function fetchSpecies(lat, lon) {
+      suggestionsDiv.innerHTML = `<p>Loading missions...</p>`;
+      const data = { point: { lat: lat, lon: lon } };
+      try {
+        const response = await fetch(SPECIES_PROXY_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error('Network response was not ok');
+        const jsonResponse = await response.json();
+        await displaySpecies(jsonResponse);
+      } catch (err) {
+        suggestionsDiv.innerHTML = `<p>Error fetching missions: ${err.message}</p>`;
+      }
+    }
+
+    // Retrieve Wikipedia thumbnail using the binomial name.
+    async function getWikipediaImage(speciesFullName) {
+      const binomial = getBinomialName(speciesFullName);
+      const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(binomial)}&prop=pageimages&format=json&pithumbsize=150&origin=*`;
+      try {
+        const response = await fetch(url);
+        const data = await response.json();
+        const pages = data.query.pages;
+        for (let pageId in pages) {
+          if (pages[pageId].thumbnail && pages[pageId].thumbnail.source) {
+            return pages[pageId].thumbnail.source;
+          }
+        }
+      } catch (err) {
+        console.error("Wikipedia API error:", err);
+      }
+      return null;
+    }
+
+    // Display missions (species cards).
+    async function displaySpecies(response) {
+      suggestionsDiv.innerHTML = '';
+      if (!response.species || response.species.length === 0) {
+        suggestionsDiv.innerHTML = `<p>No missions found.</p>`;
+        return;
+      }
+      const header = document.createElement('h3');
+      header.textContent = `Missions (${response.species.length})`;
+      suggestionsDiv.appendChild(header);
+      for (const species of response.species) {
+        const item = document.createElement('div');
+        item.classList.add('species-item');
+        
+        // Image container
+        const imageContainer = document.createElement('div');
+        imageContainer.classList.add('species-image-container');
+        const img = document.createElement('img');
+        img.classList.add('species-image');
+        img.alt = species.name;
+        img.src = ''; // initially blank
+        imageContainer.appendChild(img);
+        
+        // Info container
+        const infoContainer = document.createElement('div');
+        infoContainer.classList.add('species-info');
+        
+        // Create badges for tree and invasive status.
+        let statusFlare = "";
+        if (species.is_tree) {
+          statusFlare += `<span class="badge tree-badge">🌳 Tree</span>`;
+        }
+        if (species.is_invasive) {
+          statusFlare += `<span class="badge invasive-badge">⚠️ Invasive</span>`;
+        }
+        
+        // More info link using full species name.
+        const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(species.name)}/data`;
+        infoContainer.innerHTML = `
+          <p><strong>${species.name}</strong></p>
+          <p>${species.common_name || "No common name"}</p>
+          <p>${statusFlare}</p>
+          <p>Points: <strong>100</strong></p>
+          <p><a href="${speciesLink}" target="_blank">More info</a></p>
+          <button class="validate-species-btn">Validate this mission</button>
+          <input type="file" accept="image/*" capture="environment">
+          <div class="validation-feedback"></div>
+        `;
+        
+        item.appendChild(imageContainer);
+        item.appendChild(infoContainer);
+        suggestionsDiv.appendChild(item);
+        
+        // Set up per-mission (species) validation.
+        const validateSpeciesBtn = item.querySelector('.validate-species-btn');
+        const fileInput = item.querySelector('input[type="file"]');
+        const feedbackDiv = item.querySelector('.validation-feedback');
+        validateSpeciesBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', async (event) => {
+          const file = event.target.files[0];
+          if (!file) return;
+          feedbackDiv.innerHTML = `<p>Uploading picture for ${species.name}...</p>`;
+          await validateSpeciesPicture(species, file);
+        });
+        
+        // Fetch and display the Wikipedia image.
+        const wikiImageUrl = await getWikipediaImage(species.name);
+        if (wikiImageUrl) {
+          img.src = wikiImageUrl;
+        } else {
+          imageContainer.style.display = 'none';
+        }
+      }
+    }
+
+    // Validate mission (species) picture using your identification proxy.
+    async function validateSpeciesPicture(species, file) {
+      const formData = new FormData();
+      formData.append('image', file, file.name);
+      try {
+        const response = await fetch(IDENTIFY_PROXY_URL, {
+          method: 'POST',
+          body: formData
+        });
+        if (!response.ok) throw new Error("Validation upload failed");
+        const jsonResponse = await response.json();
+        const bestMatch = jsonResponse.bestMatch;
+        const clickedName = species.name;
+        let modalContent = "";
+        if (clickedName.trim().toLowerCase() === bestMatch.trim().toLowerCase()) {
+          modalContent = `<p>Congratulations! Your photo matches the selected mission: <strong>${clickedName}</strong>.</p>`;
+        } else {
+          const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
+          modalContent = `<p style="color: red;">Sorry, that's not correct.</p>
+                          <p style="color: red;">You selected: <strong>${clickedName}</strong></p>
+                          <p style="color: red;">The plant was identified as: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
+        }
+        showModal(modalContent);
+      } catch (err) {
+        showModal(`<p style="color: red;">Error validating photo for ${species.name}: ${err.message}</p>`);
+      }
+    }
+
+    // Validate general plant photo using your identification proxy.
+    async function validatePlantPhoto() {
+      const file = photoInput.files[0];
+      if (!file) {
+        validationResult.innerHTML = `<p>Please capture or select a photo first.</p>`;
+        return;
+      }
+      validationResult.innerHTML = `<p>Uploading photo...</p>`;
+      const formData = new FormData();
+      formData.append('image', file, file.name);
+      try {
+        const response = await fetch(IDENTIFY_PROXY_URL, {
+          method: 'POST',
+          body: formData
+        });
+        if (!response.ok) throw new Error("Upload failed");
+        const jsonResponse = await response.json();
+        validationResult.innerHTML = `<pre>${JSON.stringify(jsonResponse, null, 2)}</pre>`;
+      } catch (err) {
+        validationResult.innerHTML = `<p>Error validating photo: ${err.message}</p>`;
+      }
+    }
+    validateBtn.addEventListener('click', validatePlantPhoto);
+  </script>
+</body>
+</html>
