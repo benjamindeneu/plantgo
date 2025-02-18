@@ -62,6 +62,17 @@
       text-align: center;
       margin-bottom: 20px;
     }
+    /* Global info icon styling */
+    .global-info-icon {
+      font-size: 20px;
+      color: #388e3c;
+      cursor: pointer;
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+    .global-info-icon:hover {
+      color: #2e7d32;
+    }
     /* Badge styles */
     .badge {
       display: inline-block;
@@ -100,22 +111,6 @@
       font-weight: bold;
       text-align: center;
       margin-bottom: 8px;
-    }
-    /* Global missions header styling */
-    .missions-header {
-      text-align: center;
-      margin-bottom: 20px;
-      font-size: 18px;
-      font-weight: bold;
-    }
-    .global-info-icon {
-      font-size: 20px;
-      color: #388e3c;
-      cursor: pointer;
-      margin-left: 8px;
-    }
-    .global-info-icon:hover {
-      color: #2e7d32;
     }
     /* Species (mission) card style */
     .species-item {
@@ -220,24 +215,21 @@
   <!-- Page title -->
   <h1>PlantGo</h1>
   
-  <!-- Global general validation section (at the top) -->
+  <!-- General validation section (at the top) -->
   <div class="general-validation">
     <input type="file" accept="image/*" capture="environment" id="photoInput" />
     <button id="validateBtn">I found a plant!</button>
     <div id="validationResult"></div>
   </div>
   
-  <!-- GPS and missions header -->
+  <!-- GPS and missions section -->
   <div class="gps-section">
     <button id="getLocationBtn">Get Location & Missions</button>
     <div id="locationInfo"></div>
   </div>
   
-  <!-- Missions header with global info icon -->
-  <div class="missions-header">
-    Missions (<span id="missionCount">0</span>)
-    <span class="global-info-icon" id="globalInfoIcon">🛈</span>
-  </div>
+  <!-- Global info icon placed below GPS section -->
+  <div class="global-info-icon" id="globalInfoIcon">🛈</div>
   
   <div id="suggestions"></div>
   <div id="requestresult"></div>
@@ -276,7 +268,7 @@
 
     // Global info icon event: shows info about missions.
     document.getElementById("globalInfoIcon").addEventListener("click", () => {
-      const infoText = `<h2>Point Details</h2>
+      const infoText = `<h2>About Missions</h2>
                         <p>Missions are suggestions of plant species based on multiple metrics. They help users collect data on potential plant presences.</p>`;
       showModal(infoText);
     });
@@ -292,7 +284,6 @@
     const photoInput = document.getElementById('photoInput');
     const validateBtn = document.getElementById('validateBtn');
     const validationResult = document.getElementById('validationResult');
-    const missionCountSpan = document.getElementById('missionCount');
 
     // General validation: When "I found a plant!" is clicked, trigger the file input.
     validateBtn.addEventListener('click', () => {
@@ -367,14 +358,8 @@
       suggestionsDiv.innerHTML = '';
       if (!response.species || response.species.length === 0) {
         suggestionsDiv.innerHTML = `<p>No missions found.</p>`;
-        missionCountSpan.textContent = 0;
         return;
       }
-      missionCountSpan.textContent = response.species.length;
-      const header = document.createElement('h3');
-      header.textContent = `Missions (${response.species.length})`;
-      // Global info icon already added above in the missions header.
-      suggestionsDiv.appendChild(header);
       for (const species of response.species) {
         const item = document.createElement('div');
         item.classList.add('species-item');
@@ -436,7 +421,7 @@
         item.appendChild(cardContent);
         suggestionsDiv.appendChild(item);
         
-        // Add event listener to the points button to show detailed breakdown in a modal.
+        // Points button event: show detailed breakdown in a modal.
         const pointsBtn = infoContainer.querySelector('.points-btn');
         pointsBtn.addEventListener('click', () => {
           let detail = `<h2>Point details</h2>
