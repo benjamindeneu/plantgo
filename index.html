@@ -192,8 +192,8 @@
   
   <!-- GPS and missions section -->
   <div class="gps-section">
-    <div id="locationInfo"></div>
     <button id="getLocationBtn">Get Location & Missions</button>
+    <div id="locationInfo"></div>
   </div>
   
   <div id="suggestions"></div>
@@ -242,6 +242,17 @@
     const photoInput = document.getElementById('photoInput');
     const validateBtn = document.getElementById('validateBtn');
     const validationResult = document.getElementById('validationResult');
+
+    // When the "I found a plant!" button is clicked, trigger the file input.
+    validateBtn.addEventListener('click', () => {
+      photoInput.click();
+    });
+
+    // When the file input changes (file selected), then validate the photo.
+    photoInput.addEventListener('change', async () => {
+      // Call the general validation function.
+      await validatePlantPhoto();
+    });
 
     // Get user location and fetch missions.
     getLocationBtn.addEventListener('click', () => {
@@ -429,7 +440,6 @@
         validationResult.innerHTML = `<p>Error validating photo: ${err.message}</p>`;
       }
     }
-    validateBtn.addEventListener('click', validatePlantPhoto);
   </script>
 </body>
 </html>
