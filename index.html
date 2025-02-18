@@ -62,17 +62,6 @@
       text-align: center;
       margin-bottom: 20px;
     }
-    /* Global info icon styling */
-    .global-info-icon {
-      font-size: 20px;
-      color: #388e3c;
-      cursor: pointer;
-      display: inline-block;
-      margin-bottom: 20px;
-    }
-    .global-info-icon:hover {
-      color: #2e7d32;
-    }
     /* Badge styles */
     .badge {
       display: inline-block;
@@ -105,7 +94,7 @@
     .points-btn:hover {
       background-color: #2e7d32;
     }
-    /* Mission title styling (inside each card) */
+    /* Mission title styling */
     .mission-title {
       font-size: 20px;
       font-weight: bold;
@@ -217,6 +206,7 @@
   
   <!-- General validation section (at the top) -->
   <div class="general-validation">
+    <!-- File input configured to use the camera capture -->
     <input type="file" accept="image/*" capture="environment" id="photoInput" />
     <button id="validateBtn">I found a plant!</button>
     <div id="validationResult"></div>
@@ -227,9 +217,6 @@
     <button id="getLocationBtn">Get Location & Missions</button>
     <div id="locationInfo"></div>
   </div>
-  
-  <!-- Global info icon placed below GPS section -->
-  <div class="global-info-icon" id="globalInfoIcon">🛈</div>
   
   <div id="suggestions"></div>
   <div id="requestresult"></div>
@@ -264,13 +251,6 @@
       if (event.target == document.getElementById("resultModal")) {
         hideModal();
       }
-    });
-
-    // Global info icon event: shows info about missions.
-    document.getElementById("globalInfoIcon").addEventListener("click", () => {
-      const infoText = `<h2>About Missions</h2>
-                        <p>Missions are suggestions of plant species based on multiple metrics. They help users collect data on potential plant presences.</p>`;
-      showModal(infoText);
     });
 
     // Endpoints on your proxy server.
@@ -308,7 +288,7 @@
     function success(position) {
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
-      // Display location info below the button.
+      // Location info appears below the button.
       locationInfo.innerHTML = `<p>Your location: <strong>Lat:</strong> ${lat.toFixed(6)}, <strong>Lon:</strong> ${lon.toFixed(6)}</p>`;
       fetchSpecies(lat, lon);
     }
@@ -360,6 +340,14 @@
         suggestionsDiv.innerHTML = `<p>No missions found.</p>`;
         return;
       }
+      // Update header to include an info icon button.
+      const header = document.createElement('h3');
+      header.innerHTML = `Missions (${response.species.length}) <button id="infoButton" style="background:none;border:none;color:#388e3c;cursor:pointer;">ℹ️</button>`;
+      suggestionsDiv.appendChild(header);
+      document.getElementById("infoButton").addEventListener("click", () => {
+        showModal("<h2>Mission Information</h2><p><small>Mission: [Species Name]</small></p><p>Missions are suggestions of plant species based on multiple metrics suggested to the user to collect data on some plant potential presences.</p>");
+      });
+      
       for (const species of response.species) {
         const item = document.createElement('div');
         item.classList.add('species-item');
@@ -387,7 +375,7 @@
         const infoContainer = document.createElement('div');
         infoContainer.classList.add('species-info');
         
-        // Compute total points by summing all values in species.points.
+        // Compute total points by summing all values from species.points.
         let totalPoints = 0;
         if (species.points) {
           for (const key in species.points) {
@@ -421,14 +409,17 @@
         item.appendChild(cardContent);
         suggestionsDiv.appendChild(item);
         
-        // Points button event: show detailed breakdown in a modal.
+        // Points button event: show detailed breakdown in a popup.
         const pointsBtn = infoContainer.querySelector('.points-btn');
         pointsBtn.addEventListener('click', () => {
           let detail = `<h2>Point details</h2>
                         <p><small>Mission: ${species.name}</small></p>`;
           if (species.points) {
             for (const key in species.points) {
-              const displayKey = key === 'base' ? 'Species observation' : key;
+              let displayKey = key;
+              if (key === 'base') {
+                displayKey = 'Species observation';
+              }
               detail += `<p>${displayKey}: ${species.points[key]} points</p>`;
             }
           }
@@ -469,7 +460,7 @@
       return await response.json();
     }
 
-    // Validate mission picture (for a selected species) using the identification function.
+    // Validate mission picture (selected species) using the identification function.
     async function validateSpeciesPicture(species, file) {
       try {
         const jsonResponse = await identifyPicture(file);
