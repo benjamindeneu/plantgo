@@ -101,6 +101,17 @@
       text-align: center;
       margin-bottom: 8px;
     }
+    /* Style for the info icon next to mission title */
+    .info-icon {
+      margin-left: 8px;
+      font-size: 20px;
+      vertical-align: middle;
+      color: #388e3c;
+      cursor: pointer;
+    }
+    .info-icon:hover {
+      color: #2e7d32;
+    }
     /* Species (mission) card style */
     .species-item {
       display: flex;
@@ -206,7 +217,7 @@
   
   <!-- General validation section (at the top) -->
   <div class="general-validation">
-    <!-- File input configured to use the camera capture -->
+    <!-- File input configured to use camera capture -->
     <input type="file" accept="image/*" capture="environment" id="photoInput" />
     <button id="validateBtn">I found a plant!</button>
     <div id="validationResult"></div>
@@ -351,6 +362,20 @@
         const missionTitle = document.createElement('div');
         missionTitle.classList.add('mission-title');
         missionTitle.textContent = `Mission: ${species.name}`;
+        // Create an info icon next to the mission title.
+        const infoIcon = document.createElement('span');
+        infoIcon.classList.add('info-icon');
+        infoIcon.innerHTML = ' ℹ️';
+        infoIcon.addEventListener('click', () => {
+          const infoText = `<h2>Point Details</h2>
+                            <p><small>Mission: ${species.name}</small></p>
+                            ${Object.entries(species.points || {}).map(([key, value]) => {
+                              const displayKey = key === 'base' ? 'Species observation' : key;
+                              return `<p>${displayKey}: ${value} points</p>`;
+                            }).join('')}`;
+          showModal(infoText);
+        });
+        missionTitle.appendChild(infoIcon);
         item.appendChild(missionTitle);
         
         // Card content container for image and info.
@@ -370,7 +395,7 @@
         const infoContainer = document.createElement('div');
         infoContainer.classList.add('species-info');
         
-        // Compute total points by summing all values from species.points.
+        // Compute total points by summing all values in species.points.
         let totalPoints = 0;
         if (species.points) {
           for (const key in species.points) {
@@ -403,23 +428,6 @@
         cardContent.appendChild(infoContainer);
         item.appendChild(cardContent);
         suggestionsDiv.appendChild(item);
-        
-        // Points button event: show detailed breakdown in a modal.
-        const pointsBtn = infoContainer.querySelector('.points-btn');
-        pointsBtn.addEventListener('click', () => {
-          let detail = `<h2>Point details</h2>
-                        <p><small>Mission: ${species.name}</small></p>`;
-          if (species.points) {
-            for (const key in species.points) {
-              let displayKey = key;
-              if (key === 'base') {
-                displayKey = 'Species observation';
-              }
-              detail += `<p>${displayKey}: ${species.points[key]} points</p>`;
-            }
-          }
-          showModal(detail);
-        });
         
         // Set up per-mission validation.
         const validateSpeciesBtn = item.querySelector('.validate-species-btn');
@@ -455,7 +463,7 @@
       return await response.json();
     }
 
-    // Validate mission picture (for a selected species) using the identification function.
+    // Validate mission picture (selected species) using the identification function.
     async function validateSpeciesPicture(species, file) {
       try {
         const jsonResponse = await identifyPicture(file);
