@@ -82,6 +82,11 @@
       border-radius: 4px;
       margin-bottom: 6px;
     }
+    /* Center the general validation button */
+    .general-validation {
+      text-align: center;
+      margin-bottom: 20px;
+    }
     /* Species card style */
     .species-item {
       display: flex;
@@ -178,15 +183,18 @@
   <h1>PlantGo App</h1>
   <button id="getLocationBtn">Get Location &amp; Missions</button>
   <div id="locationInfo"></div>
+  
+  <!-- General validation section, moved up and centered -->
+  <div class="general-validation">
+    <input type="file" accept="image/*" capture="environment" id="photoInput" />
+    <button id="validateBtn">I found a plant!</button>
+    <div id="validationResult"></div>
+  </div>
+  
   <div id="suggestions"></div>
   <div id="requestresult"></div>
   
   <hr />
-  
-  <h2>Validate Plant Photo (General)</h2>
-  <input type="file" accept="image/*" capture="environment" id="photoInput" />
-  <button id="validateBtn">Validate Photo</button>
-  <div id="validationResult"></div>
   
   <!-- Modal for displaying identification result -->
   <div id="resultModal" class="modal">
@@ -314,9 +322,10 @@
         img.src = ''; // initially blank
         imageContainer.appendChild(img);
         
-        // Info container with points at top
+        // Info container with points on top
         const infoContainer = document.createElement('div');
         infoContainer.classList.add('species-info');
+        
         // Create badges for tree and invasive status.
         let statusFlare = "";
         if (species.is_tree) {
@@ -325,6 +334,7 @@
         if (species.is_invasive) {
           statusFlare += `<span class="badge invasive-badge">⚠️ Invasive</span>`;
         }
+        
         // More info link using full species name.
         const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(species.name)}/data`;
         infoContainer.innerHTML = `
