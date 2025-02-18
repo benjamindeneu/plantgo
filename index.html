@@ -206,7 +206,7 @@
   
   <!-- General validation section (at the top) -->
   <div class="general-validation">
-    <!-- File input configured to use camera capture -->
+    <!-- File input configured to use the camera capture -->
     <input type="file" accept="image/*" capture="environment" id="photoInput" />
     <button id="validateBtn">I found a plant!</button>
     <div id="validationResult"></div>
@@ -288,6 +288,7 @@
     function success(position) {
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
+      // Display location info below the button.
       locationInfo.innerHTML = `<p>Your location: <strong>Lat:</strong> ${lat.toFixed(6)}, <strong>Lon:</strong> ${lon.toFixed(6)}</p>`;
       fetchSpecies(lat, lon);
     }
@@ -369,10 +370,12 @@
         const infoContainer = document.createElement('div');
         infoContainer.classList.add('species-info');
         
-        // Compute total points from the "points" object.
+        // Compute total points by summing all values from species.points.
         let totalPoints = 0;
         if (species.points) {
-          totalPoints = (species.points.base || 0) + (species.points.tree || 0) + (species.points.invasive || 0);
+          for (const key in species.points) {
+            totalPoints += species.points[key];
+          }
         }
         
         // Create badges for tree and invasive status.
@@ -396,22 +399,25 @@
           <div class="validation-feedback"></div>
         `;
         
-        // Append image and info containers to card content.
         cardContent.appendChild(imageContainer);
         cardContent.appendChild(infoContainer);
         item.appendChild(cardContent);
         suggestionsDiv.appendChild(item);
         
-        // Add event listener to the points button to show details in a popup.
+        // Points button event: show detailed breakdown in a modal.
         const pointsBtn = infoContainer.querySelector('.points-btn');
         pointsBtn.addEventListener('click', () => {
-          const detail = `
-            <h2>Point details</h2>
-            <p><small>Mission: ${species.name}</small></p>
-            <p>Species observation: ${species.points.base || 0} points</p>
-            <p>Tree: ${species.points.tree || 0} points</p>
-            <p>Invasive: ${species.points.invasive || 0} points</p>
-          `;
+          let detail = `<h2>Point details</h2>
+                        <p><small>Mission: ${species.name}</small></p>`;
+          if (species.points) {
+            for (const key in species.points) {
+              let displayKey = key;
+              if (key === 'base') {
+                displayKey = 'Species observation';
+              }
+              detail += `<p>${displayKey}: ${species.points[key]} points</p>`;
+            }
+          }
           showModal(detail);
         });
         
