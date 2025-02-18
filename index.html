@@ -94,7 +94,7 @@
     .points-btn:hover {
       background-color: #2e7d32;
     }
-    /* Mission title styling: bigger and centered at the top of the card */
+    /* Mission title styling */
     .mission-title {
       font-size: 20px;
       font-weight: bold;
@@ -171,6 +171,12 @@
       border-radius: 8px;
       text-align: center;
     }
+    .modal-content h2 {
+      margin-bottom: 8px;
+    }
+    .modal-content p {
+      margin: 4px 0;
+    }
     .close {
       color: #aaa;
       float: right;
@@ -200,7 +206,7 @@
   
   <!-- General validation section (at the top) -->
   <div class="general-validation">
-    <!-- File input configured to use the camera on mobile -->
+    <!-- File input configured to use camera capture -->
     <input type="file" accept="image/*" capture="environment" id="photoInput" />
     <button id="validateBtn">I found a plant!</button>
     <div id="validationResult"></div>
@@ -217,7 +223,7 @@
   
   <hr />
   
-  <!-- Modal for displaying identification result -->
+  <!-- Modal for displaying identification result or points details -->
   <div id="resultModal" class="modal">
     <div class="modal-content">
       <span id="modalClose" class="close">&times;</span>
@@ -282,7 +288,6 @@
     function success(position) {
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
-      // Location info appears below the button.
       locationInfo.innerHTML = `<p>Your location: <strong>Lat:</strong> ${lat.toFixed(6)}, <strong>Lon:</strong> ${lon.toFixed(6)}</p>`;
       fetchSpecies(lat, lon);
     }
@@ -341,7 +346,7 @@
         const item = document.createElement('div');
         item.classList.add('species-item');
         
-        // Create mission title (centered, above card content).
+        // Mission title on top (centered).
         const missionTitle = document.createElement('div');
         missionTitle.classList.add('mission-title');
         missionTitle.textContent = `Mission: ${species.name}`;
@@ -360,7 +365,7 @@
         img.src = ''; // initially blank
         imageContainer.appendChild(img);
         
-        // Info container with points button and other details.
+        // Info container.
         const infoContainer = document.createElement('div');
         infoContainer.classList.add('species-info');
         
@@ -381,7 +386,6 @@
         
         // More info link using full species name.
         const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(species.name)}/data`;
-        
         infoContainer.innerHTML = `
           <button class="points-btn">${totalPoints} points</button>
           <p>${species.common_name || "No common name"}</p>
@@ -395,16 +399,19 @@
         // Append image and info containers to card content.
         cardContent.appendChild(imageContainer);
         cardContent.appendChild(infoContainer);
-        // Append card content to the mission card.
         item.appendChild(cardContent);
         suggestionsDiv.appendChild(item);
         
-        // Add event listener to the points button to show details.
+        // Add event listener to the points button to show details in a popup.
         const pointsBtn = infoContainer.querySelector('.points-btn');
         pointsBtn.addEventListener('click', () => {
-          const detail = `<p>Species observation: ${species.points.base || 0}</p>
-                          <p>Tree: ${species.points.tree || 0}</p>
-                          <p>Invasive: ${species.points.invasive || 0}</p>`;
+          const detail = `
+            <h2>Point details</h2>
+            <p><small>Mission: ${species.name}</small></p>
+            <p>Species observation: ${species.points.base || 0} points</p>
+            <p>Tree: ${species.points.tree || 0} points</p>
+            <p>Invasive: ${species.points.invasive || 0} points</p>
+          `;
           showModal(detail);
         });
         
@@ -442,7 +449,7 @@
       return await response.json();
     }
 
-    // Validate mission picture (selected species) using the identification function.
+    // Validate mission picture (for a selected species) using the identification function.
     async function validateSpeciesPicture(species, file) {
       try {
         const jsonResponse = await identifyPicture(file);
