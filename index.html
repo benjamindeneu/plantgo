@@ -71,6 +71,17 @@
       background-color: #ffcdd2;
       color: #c62828;
     }
+    /* Mission points styling */
+    .mission-points {
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+      background-color: #388e3c;
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+    }
     /* Species card style */
     .species-item {
       display: flex;
@@ -219,7 +230,7 @@
     const validateBtn = document.getElementById('validateBtn');
     const validationResult = document.getElementById('validationResult');
 
-    // Get user location and fetch missions (species suggestions).
+    // Get user location and fetch missions.
     getLocationBtn.addEventListener('click', () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(success, error, {
@@ -280,7 +291,7 @@
       return null;
     }
 
-    // Display missions (species cards).
+    // Display mission cards.
     async function displaySpecies(response) {
       suggestionsDiv.innerHTML = '';
       if (!response.species || response.species.length === 0) {
@@ -303,10 +314,9 @@
         img.src = ''; // initially blank
         imageContainer.appendChild(img);
         
-        // Info container
+        // Info container with points at top
         const infoContainer = document.createElement('div');
         infoContainer.classList.add('species-info');
-        
         // Create badges for tree and invasive status.
         let statusFlare = "";
         if (species.is_tree) {
@@ -315,14 +325,13 @@
         if (species.is_invasive) {
           statusFlare += `<span class="badge invasive-badge">⚠️ Invasive</span>`;
         }
-        
         // More info link using full species name.
         const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(species.name)}/data`;
         infoContainer.innerHTML = `
+          <p class="mission-points">Points: 100</p>
           <p><strong>${species.name}</strong></p>
           <p>${species.common_name || "No common name"}</p>
           <p>${statusFlare}</p>
-          <p>Points: <strong>100</strong></p>
           <p><a href="${speciesLink}" target="_blank">More info</a></p>
           <button class="validate-species-btn">Validate this mission</button>
           <input type="file" accept="image/*" capture="environment">
@@ -333,7 +342,7 @@
         item.appendChild(infoContainer);
         suggestionsDiv.appendChild(item);
         
-        // Set up per-mission (species) validation.
+        // Set up per-mission validation.
         const validateSpeciesBtn = item.querySelector('.validate-species-btn');
         const fileInput = item.querySelector('input[type="file"]');
         const feedbackDiv = item.querySelector('.validation-feedback');
@@ -355,7 +364,7 @@
       }
     }
 
-    // Validate mission (species) picture using your identification proxy.
+    // Validate mission picture using your identification proxy.
     async function validateSpeciesPicture(species, file) {
       const formData = new FormData();
       formData.append('image', file, file.name);
