@@ -91,22 +91,26 @@
       margin-bottom: 6px;
       text-align: center;
     }
-    /* Mission title styling */
+    /* Mission title styling: Bigger & centered on top of the card */
     .mission-title {
-      text-align: center;
-      font-size: 16px;
+      font-size: 20px;
       font-weight: bold;
-      margin-bottom: 4px;
+      text-align: center;
+      margin-bottom: 8px;
     }
     /* Species (mission) card style */
     .species-item {
       display: flex;
-      align-items: center;
+      flex-direction: column;
       background: #fff;
       border-radius: 8px;
       padding: 12px;
       margin-bottom: 12px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .card-content {
+      display: flex;
+      align-items: center;
       flex-wrap: nowrap;
     }
     .species-image-container {
@@ -178,7 +182,7 @@
     }
     /* Responsive adjustments */
     @media (max-width: 480px) {
-      .species-item {
+      .card-content {
         flex-direction: row;
       }
       .species-image-container {
@@ -193,7 +197,6 @@
   
   <!-- General validation section (at the top) -->
   <div class="general-validation">
-    <!-- The file input is configured to use the camera capture on mobile -->
     <input type="file" accept="image/*" capture="environment" id="photoInput" />
     <button id="validateBtn">I found a plant!</button>
     <div id="validationResult"></div>
@@ -272,15 +275,13 @@
         locationInfo.textContent = "Geolocation is not supported by this browser.";
       }
     });
-
     function success(position) {
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
-      // Location info now appears below the "Get Location & Missions" button.
+      // Display location info below the button.
       locationInfo.innerHTML = `<p>Your location: <strong>Lat:</strong> ${lat.toFixed(6)}, <strong>Lon:</strong> ${lon.toFixed(6)}</p>`;
       fetchSpecies(lat, lon);
     }
-
     function error(err) {
       locationInfo.textContent = "Error retrieving location: " + err.message;
     }
@@ -336,6 +337,16 @@
         const item = document.createElement('div');
         item.classList.add('species-item');
         
+        // Create and insert the mission title above the rest of the card.
+        const missionTitle = document.createElement('div');
+        missionTitle.classList.add('mission-title');
+        missionTitle.innerHTML = `Mission: ${species.name}`;
+        item.appendChild(missionTitle);
+        
+        // Card content container for image and info.
+        const cardContent = document.createElement('div');
+        cardContent.classList.add('card-content');
+        
         // Image container
         const imageContainer = document.createElement('div');
         imageContainer.classList.add('species-image-container');
@@ -345,7 +356,7 @@
         img.src = ''; // initially blank
         imageContainer.appendChild(img);
         
-        // Info container with mission title and points at top.
+        // Info container with points and other details.
         const infoContainer = document.createElement('div');
         infoContainer.classList.add('species-info');
         
@@ -361,7 +372,6 @@
         // More info link using full species name.
         const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(species.name)}/data`;
         infoContainer.innerHTML = `
-          <p class="mission-title">Mission: ${species.name}</p>
           <p class="mission-points">100 points</p>
           <p>${species.common_name || "No common name"}</p>
           <p>${statusFlare}</p>
@@ -371,8 +381,9 @@
           <div class="validation-feedback"></div>
         `;
         
-        item.appendChild(imageContainer);
-        item.appendChild(infoContainer);
+        cardContent.appendChild(imageContainer);
+        cardContent.appendChild(infoContainer);
+        item.appendChild(cardContent);
         suggestionsDiv.appendChild(item);
         
         // Set up per-mission validation.
