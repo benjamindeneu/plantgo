@@ -54,6 +54,11 @@
     input[type="file"] {
       display: none;
     }
+    /* Centering containers */
+    .general-validation, .gps-section {
+      text-align: center;
+      margin-bottom: 20px;
+    }
     /* Badge styles */
     .badge {
       display: inline-block;
@@ -82,11 +87,6 @@
       border-radius: 4px;
       margin-bottom: 6px;
     }
-    /* Center the general validation button */
-    .general-validation {
-      text-align: center;
-      margin-bottom: 20px;
-    }
     /* Species card style */
     .species-item {
       display: flex;
@@ -110,6 +110,7 @@
     .species-info {
       flex: 1;
       font-size: 13px;
+      text-align: left;
     }
     .species-info p {
       margin: 2px 0;
@@ -131,7 +132,7 @@
       color: #555;
     }
     /* Top section spacing */
-    #locationInfo, #requestresult, #validationResult {
+    #requestresult {
       margin-bottom: 20px;
     }
     /* Ensure items remain in a row on all screens */
@@ -181,14 +182,18 @@
 </head>
 <body>
   <h1>PlantGo App</h1>
-  <button id="getLocationBtn">Get Location &amp; Missions</button>
-  <div id="locationInfo"></div>
   
-  <!-- General validation section, moved up and centered -->
+  <!-- General validation section -->
   <div class="general-validation">
     <input type="file" accept="image/*" capture="environment" id="photoInput" />
     <button id="validateBtn">I found a plant!</button>
     <div id="validationResult"></div>
+  </div>
+  
+  <!-- GPS and missions section -->
+  <div class="gps-section">
+    <div id="locationInfo"></div>
+    <button id="getLocationBtn">Get Location & Missions</button>
   </div>
   
   <div id="suggestions"></div>
