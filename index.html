@@ -94,22 +94,27 @@
     .points-btn:hover {
       background-color: #2e7d32;
     }
-    /* Mission title styling */
+    /* Mission title styling (inside each card) */
     .mission-title {
       font-size: 20px;
       font-weight: bold;
       text-align: center;
       margin-bottom: 8px;
     }
-    /* Style for the info icon next to mission title */
-    .info-icon {
-      margin-left: 8px;
+    /* Global missions header styling */
+    .missions-header {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .global-info-icon {
       font-size: 20px;
-      vertical-align: middle;
       color: #388e3c;
       cursor: pointer;
+      margin-left: 8px;
     }
-    .info-icon:hover {
+    .global-info-icon:hover {
       color: #2e7d32;
     }
     /* Species (mission) card style */
@@ -215,18 +220,23 @@
   <!-- Page title -->
   <h1>PlantGo</h1>
   
-  <!-- General validation section (at the top) -->
+  <!-- Global general validation section (at the top) -->
   <div class="general-validation">
-    <!-- File input configured to use camera capture -->
     <input type="file" accept="image/*" capture="environment" id="photoInput" />
     <button id="validateBtn">I found a plant!</button>
     <div id="validationResult"></div>
   </div>
   
-  <!-- GPS and missions section -->
+  <!-- GPS and missions header -->
   <div class="gps-section">
     <button id="getLocationBtn">Get Location & Missions</button>
     <div id="locationInfo"></div>
+  </div>
+  
+  <!-- Missions header with global info icon -->
+  <div class="missions-header">
+    Missions (<span id="missionCount">0</span>)
+    <span class="global-info-icon" id="globalInfoIcon">🛈</span>
   </div>
   
   <div id="suggestions"></div>
@@ -264,6 +274,13 @@
       }
     });
 
+    // Global info icon event: shows info about missions.
+    document.getElementById("globalInfoIcon").addEventListener("click", () => {
+      const infoText = `<h2>Point Details</h2>
+                        <p>Missions are suggestions of plant species based on multiple metrics. They help users collect data on potential plant presences.</p>`;
+      showModal(infoText);
+    });
+
     // Endpoints on your proxy server.
     const SPECIES_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/proxy';
     const IDENTIFY_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/identify';
@@ -275,6 +292,7 @@
     const photoInput = document.getElementById('photoInput');
     const validateBtn = document.getElementById('validateBtn');
     const validationResult = document.getElementById('validationResult');
+    const missionCountSpan = document.getElementById('missionCount');
 
     // General validation: When "I found a plant!" is clicked, trigger the file input.
     validateBtn.addEventListener('click', () => {
@@ -349,10 +367,13 @@
       suggestionsDiv.innerHTML = '';
       if (!response.species || response.species.length === 0) {
         suggestionsDiv.innerHTML = `<p>No missions found.</p>`;
+        missionCountSpan.textContent = 0;
         return;
       }
+      missionCountSpan.textContent = response.species.length;
       const header = document.createElement('h3');
       header.textContent = `Missions (${response.species.length})`;
+      // Global info icon already added above in the missions header.
       suggestionsDiv.appendChild(header);
       for (const species of response.species) {
         const item = document.createElement('div');
@@ -362,20 +383,6 @@
         const missionTitle = document.createElement('div');
         missionTitle.classList.add('mission-title');
         missionTitle.textContent = `Mission: ${species.name}`;
-        // Create an info icon next to the mission title.
-        const infoIcon = document.createElement('span');
-        infoIcon.classList.add('info-icon');
-        infoIcon.innerHTML = ' ℹ️';
-        infoIcon.addEventListener('click', () => {
-          const infoText = `<h2>Point Details</h2>
-                            <p><small>Mission: ${species.name}</small></p>
-                            ${Object.entries(species.points || {}).map(([key, value]) => {
-                              const displayKey = key === 'base' ? 'Species observation' : key;
-                              return `<p>${displayKey}: ${value} points</p>`;
-                            }).join('')}`;
-          showModal(infoText);
-        });
-        missionTitle.appendChild(infoIcon);
         item.appendChild(missionTitle);
         
         // Card content container for image and info.
@@ -429,6 +436,20 @@
         item.appendChild(cardContent);
         suggestionsDiv.appendChild(item);
         
+        // Add event listener to the points button to show detailed breakdown in a modal.
+        const pointsBtn = infoContainer.querySelector('.points-btn');
+        pointsBtn.addEventListener('click', () => {
+          let detail = `<h2>Point details</h2>
+                        <p><small>Mission: ${species.name}</small></p>`;
+          if (species.points) {
+            for (const key in species.points) {
+              const displayKey = key === 'base' ? 'Species observation' : key;
+              detail += `<p>${displayKey}: ${species.points[key]} points</p>`;
+            }
+          }
+          showModal(detail);
+        });
+        
         // Set up per-mission validation.
         const validateSpeciesBtn = item.querySelector('.validate-species-btn');
         const fileInput = item.querySelector('input[type="file"]');
@@ -463,7 +484,7 @@
       return await response.json();
     }
 
-    // Validate mission picture (selected species) using the identification function.
+    // Validate mission picture (for a selected species) using the identification function.
     async function validateSpeciesPicture(species, file) {
       try {
         const jsonResponse = await identifyPicture(file);
