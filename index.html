@@ -51,7 +51,6 @@
     button:hover {
       background-color: #57a05a;
     }
-    /* Hide file input */
     input[type="file"] {
       display: none;
     }
@@ -88,7 +87,7 @@
       border-radius: 4px;
       margin-bottom: 6px;
     }
-    /* Species card style */
+    /* Species (mission) card style */
     .species-item {
       display: flex;
       align-items: center;
@@ -171,15 +170,15 @@
 <body>
   <h1>PlantGo App</h1>
   
-  <!-- General validation section (moved to the top and centered) -->
+  <!-- General validation section -->
   <div class="general-validation">
-    <!-- File input configured to use camera capture only -->
+    <!-- The file input is configured with capture="environment" so that on mobile it opens the camera -->
     <input type="file" accept="image/*" capture="environment" id="photoInput" />
     <button id="validateBtn">I found a plant!</button>
     <div id="validationResult"></div>
   </div>
   
-  <!-- GPS and missions section (button above location info) -->
+  <!-- GPS and missions section -->
   <div class="gps-section">
     <button id="getLocationBtn">Get Location & Missions</button>
     <div id="locationInfo"></div>
@@ -232,14 +231,12 @@
     const validateBtn = document.getElementById('validateBtn');
     const validationResult = document.getElementById('validationResult');
 
-    // When the "I found a plant!" button is clicked, trigger the file input.
+    // General validation: when "I found a plant!" is clicked, the file input is triggered.
     validateBtn.addEventListener('click', () => {
       photoInput.click();
     });
-
-    // When the file input changes (a file is captured), validate the photo.
     photoInput.addEventListener('change', async () => {
-      await validatePlantPhoto();
+      await validateGeneralPicture();
     });
 
     // Get user location and fetch missions.
@@ -258,7 +255,7 @@
     function success(position) {
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
-      // Location info appears below the button.
+      // Location info now appears below the button.
       locationInfo.innerHTML = `<p>Your location: <strong>Lat:</strong> ${lat.toFixed(6)}, <strong>Lon:</strong> ${lon.toFixed(6)}</p>`;
       fetchSpecies(lat, lon);
     }
@@ -379,17 +376,22 @@
       }
     }
 
-    // Validate mission picture using your identification proxy.
-    async function validateSpeciesPicture(species, file) {
+    // One function to call IDENTIFY_PROXY_URL.
+    async function identifyPicture(file) {
       const formData = new FormData();
       formData.append('image', file, file.name);
+      const response = await fetch(IDENTIFY_PROXY_URL, {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) throw new Error("Upload failed");
+      return await response.json();
+    }
+
+    // Validate a mission picture (for a selected species).
+    async function validateSpeciesPicture(species, file) {
       try {
-        const response = await fetch(IDENTIFY_PROXY_URL, {
-          method: 'POST',
-          body: formData
-        });
-        if (!response.ok) throw new Error("Validation upload failed");
-        const jsonResponse = await response.json();
+        const jsonResponse = await identifyPicture(file);
         const bestMatch = jsonResponse.bestMatch;
         const clickedName = species.name;
         let modalContent = "";
@@ -407,26 +409,21 @@
       }
     }
 
-    // Validate general plant photo using your identification proxy.
-    async function validatePlantPhoto() {
+    // Validate a general plant picture.
+    async function validateGeneralPicture() {
       const file = photoInput.files[0];
       if (!file) {
         validationResult.innerHTML = `<p>Please capture or select a photo first.</p>`;
         return;
       }
-      validationResult.innerHTML = `<p>Uploading photo...</p>`;
-      const formData = new FormData();
-      formData.append('image', file, file.name);
       try {
-        const response = await fetch(IDENTIFY_PROXY_URL, {
-          method: 'POST',
-          body: formData
-        });
-        if (!response.ok) throw new Error("Upload failed");
-        const jsonResponse = await response.json();
-        validationResult.innerHTML = `<pre>${JSON.stringify(jsonResponse, null, 2)}</pre>`;
+        const jsonResponse = await identifyPicture(file);
+        const bestMatch = jsonResponse.bestMatch;
+        const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
+        const modalContent = `<p>Your plant was identified as: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
+        showModal(modalContent);
       } catch (err) {
-        validationResult.innerHTML = `<p>Error validating photo: ${err.message}</p>`;
+        showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
       }
     }
   </script>
