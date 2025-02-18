@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>PlantGo App</title>
+  <title>PlantGo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Google Fonts: Roboto -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -24,6 +24,9 @@
     h1, h2, h3 {
       color: #1b5e20;
       margin-bottom: 12px;
+    }
+    h1 {
+      text-align: center;
     }
     p {
       margin-bottom: 4px;
@@ -86,6 +89,14 @@
       padding: 4px 8px;
       border-radius: 4px;
       margin-bottom: 6px;
+      text-align: center;
+    }
+    /* Mission title styling */
+    .mission-title {
+      text-align: center;
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 4px;
     }
     /* Species (mission) card style */
     .species-item {
@@ -165,14 +176,24 @@
       color: black;
       text-decoration: none;
     }
+    /* Responsive adjustments */
+    @media (max-width: 480px) {
+      .species-item {
+        flex-direction: row;
+      }
+      .species-image-container {
+        margin-right: 10px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>PlantGo App</h1>
+  <!-- Page title -->
+  <h1>PlantGo</h1>
   
-  <!-- General validation section -->
+  <!-- General validation section (at the top) -->
   <div class="general-validation">
-    <!-- The file input is configured with capture="environment" so that on mobile it opens the camera -->
+    <!-- The file input is configured to use the camera capture on mobile -->
     <input type="file" accept="image/*" capture="environment" id="photoInput" />
     <button id="validateBtn">I found a plant!</button>
     <div id="validationResult"></div>
@@ -231,7 +252,7 @@
     const validateBtn = document.getElementById('validateBtn');
     const validationResult = document.getElementById('validationResult');
 
-    // General validation: when "I found a plant!" is clicked, the file input is triggered.
+    // General validation: When "I found a plant!" is clicked, trigger the file input.
     validateBtn.addEventListener('click', () => {
       photoInput.click();
     });
@@ -255,7 +276,7 @@
     function success(position) {
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
-      // Location info now appears below the button.
+      // Location info now appears below the "Get Location & Missions" button.
       locationInfo.innerHTML = `<p>Your location: <strong>Lat:</strong> ${lat.toFixed(6)}, <strong>Lon:</strong> ${lon.toFixed(6)}</p>`;
       fetchSpecies(lat, lon);
     }
@@ -324,7 +345,7 @@
         img.src = ''; // initially blank
         imageContainer.appendChild(img);
         
-        // Info container with points on top
+        // Info container with mission title and points at top.
         const infoContainer = document.createElement('div');
         infoContainer.classList.add('species-info');
         
@@ -340,8 +361,8 @@
         // More info link using full species name.
         const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(species.name)}/data`;
         infoContainer.innerHTML = `
-          <p class="mission-points">Points: 100</p>
-          <p><strong>${species.name}</strong></p>
+          <p class="mission-title">Mission: ${species.name}</p>
+          <p class="mission-points">100 points</p>
           <p>${species.common_name || "No common name"}</p>
           <p>${statusFlare}</p>
           <p><a href="${speciesLink}" target="_blank">More info</a></p>
@@ -376,7 +397,7 @@
       }
     }
 
-    // One function to call IDENTIFY_PROXY_URL.
+    // Single identification function.
     async function identifyPicture(file) {
       const formData = new FormData();
       formData.append('image', file, file.name);
@@ -388,7 +409,7 @@
       return await response.json();
     }
 
-    // Validate a mission picture (for a selected species).
+    // Validate mission picture (selected species) using the identification function.
     async function validateSpeciesPicture(species, file) {
       try {
         const jsonResponse = await identifyPicture(file);
@@ -409,7 +430,7 @@
       }
     }
 
-    // Validate a general plant picture.
+    // Validate general plant picture using the identification function.
     async function validateGeneralPicture() {
       const file = photoInput.files[0];
       if (!file) {
