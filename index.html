@@ -51,6 +51,7 @@
     button:hover {
       background-color: #57a05a;
     }
+    /* Hide file input */
     input[type="file"] {
       display: none;
     }
@@ -131,19 +132,6 @@
       font-size: 13px;
       color: #555;
     }
-    /* Top section spacing */
-    #requestresult {
-      margin-bottom: 20px;
-    }
-    /* Ensure items remain in a row on all screens */
-    @media (max-width: 480px) {
-      .species-item {
-        flex-direction: row;
-      }
-      .species-image-container {
-        margin-right: 10px;
-      }
-    }
     /* Modal styling */
     .modal {
       display: none;
@@ -183,14 +171,15 @@
 <body>
   <h1>PlantGo App</h1>
   
-  <!-- General validation section -->
+  <!-- General validation section (moved to the top and centered) -->
   <div class="general-validation">
+    <!-- File input configured to use camera capture only -->
     <input type="file" accept="image/*" capture="environment" id="photoInput" />
     <button id="validateBtn">I found a plant!</button>
     <div id="validationResult"></div>
   </div>
   
-  <!-- GPS and missions section -->
+  <!-- GPS and missions section (button above location info) -->
   <div class="gps-section">
     <button id="getLocationBtn">Get Location & Missions</button>
     <div id="locationInfo"></div>
@@ -248,9 +237,8 @@
       photoInput.click();
     });
 
-    // When the file input changes (file selected), then validate the photo.
+    // When the file input changes (a file is captured), validate the photo.
     photoInput.addEventListener('change', async () => {
-      // Call the general validation function.
       await validatePlantPhoto();
     });
 
@@ -270,6 +258,7 @@
     function success(position) {
       const lat = position.coords.latitude;
       const lon = position.coords.longitude;
+      // Location info appears below the button.
       locationInfo.innerHTML = `<p>Your location: <strong>Lat:</strong> ${lat.toFixed(6)}, <strong>Lon:</strong> ${lon.toFixed(6)}</p>`;
       fetchSpecies(lat, lon);
     }
