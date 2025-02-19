@@ -79,6 +79,10 @@
       background-color: #ffcdd2;
       color: #c62828;
     }
+    .flowering-badge {
+      background-color: #c8e6c9; /* Light green background */
+      color: #2e7d32;           /* Dark green text */
+    }
     /* Points button styling */
     .points-btn {
       font-size: 16px;
@@ -392,6 +396,9 @@
         }
         if (species.is_invasive) {
           statusFlare += `<span class="badge invasive-badge">⚠️ Invasive</span>`;
+        }
+        if (species.is_flowering) {
+          statusFlare += `<span class="badge flowering-badge">🌸 Flowering</span>`;
         }
         
         // More info link using full species name.
