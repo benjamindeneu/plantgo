@@ -80,8 +80,8 @@
       color: #c62828;
     }
     .flowering-badge {
-      background-color: #c8e6c9; /* Light green background */
-      color: #2e7d32;           /* Dark green text */
+      background-color: #FFF3E0; /* Light yellowish/orange background */
+      color: #E65100;           /* Dark orange text */
     }
     /* Points button styling */
     .points-btn {
@@ -399,6 +399,9 @@
         }
         if (species.is_flowering) {
           statusFlare += `<span class="badge flowering-badge">🌸 Flowering</span>`;
+        }
+        if (species.is_fruiting) {
+          statusFlare += `<span class="badge flowering-badge">🍎 Flowering</span>`;
         }
         
         // More info link using full species name.
