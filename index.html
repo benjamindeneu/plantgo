@@ -247,6 +247,7 @@
       addDoc,
       setDoc,
       getDoc,
+      serverTimestamp,
       GeoPoint
     } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     
@@ -266,6 +267,46 @@
 
     // Initialize Firestore
     const db = getFirestore(app);
+
+    // Function to add an observation and, if needed, a discovery for a species.
+    async function addObservation(userId, speciesName, lat, lng, photoUrl = null) {
+      try {
+        // Create an observation object
+        const observationData = {
+          speciesName: speciesName,
+          observedAt: serverTimestamp(),
+          location: new GeoPoint(lat, lng),
+          photoUrl: photoUrl // optional
+        };
+
+        // Reference to the user's "observations" subcollection
+        const observationsRef = collection(db, 'users', userId, 'observations');
+
+        // Add a new observation document
+        const observationDoc = await addDoc(observationsRef, observationData);
+        console.log("Observation added with ID:", observationDoc.id);
+
+        // Reference to the "discoveries" subcollection using speciesName as the document ID
+        const discoveryRef = doc(db, 'users', userId, 'discoveries', speciesName);
+
+        // Check if this species has already been discovered by the user
+        const discoverySnap = await getDoc(discoveryRef);
+        if (!discoverySnap.exists()) {
+          // If not, add a new discovery document
+          const discoveryData = {
+            speciesName: speciesName,
+            discoveredAt: serverTimestamp(),
+            location: new GeoPoint(lat, lng)
+          };
+          await setDoc(discoveryRef, discoveryData);
+          console.log("Discovery added for species:", speciesName);
+        } else {
+          console.log("Species already discovered.");
+        }
+      } catch (error) {
+        console.error("Error adding observation/discovery:", error);
+      }
+    }
   </script>
   
   <script>
@@ -542,50 +583,6 @@
         showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
       }
     }
-
-    // Function to add an observation and, if needed, a discovery for a species.
-    async function addObservation(userId, speciesName, lat, lng, photoUrl = null) {
-      try {
-        // Get the current local time using new Date()
-        const now = new Date();
-        // Create an observation object
-        const observationData = {
-          speciesName: speciesName,
-          observedAt: now,
-          location: new GeoPoint(lat, lng),
-          photoUrl: photoUrl // optional
-        };
-
-        // Reference to the user's "observations" subcollection
-        const observationsRef = collection(db, 'users', userId, 'observations');
-
-        // Add a new observation document
-        const observationDoc = await addDoc(observationsRef, observationData);
-        console.log("Observation added with ID:", observationDoc.id);
-
-        // Reference to the "discoveries" subcollection using speciesName as the document ID
-        const discoveryRef = doc(db, 'users', userId, 'discoveries', speciesName);
-
-        // Check if this species has already been discovered by the user
-        const discoverySnap = await getDoc(discoveryRef);
-        if (!discoverySnap.exists()) {
-          // If not, add a new discovery document
-          const discoveryData = {
-            speciesName: speciesName,
-            discoveredAt: serverTimestamp(),
-            location: new GeoPoint(lat, lng)
-          };
-          await setDoc(discoveryRef, discoveryData);
-          console.log("Discovery added for species:", speciesName);
-        } else {
-          console.log("Species already discovered.");
-        }
-      } catch (error) {
-        console.error("Error adding observation/discovery:", error);
-      }
-    }
-
-
   </script>
   
   <!-- SVG added at the bottom -->
