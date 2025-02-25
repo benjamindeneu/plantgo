@@ -238,13 +238,20 @@
   </div>
 
   <script type="module">
-    // Import the functions you need from the SDKs you need
+    // Import only the functions we need from the Firebase SDK
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-analytics.js";
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
-    // Your web app's Firebase configuration
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    import {
+      getFirestore,
+      collection,
+      doc,
+      addDoc,
+      setDoc,
+      getDoc,
+      serverTimestamp,
+      GeoPoint
+    } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    
+    // Your Firebase configuration object (replace with your actual config)
     const firebaseConfig = {
       apiKey: "AIzaSyAEXFV3KjuunlvLJZsHIxvQlOjIYFZVId4",
       authDomain: "plantgo-8f557.firebaseapp.com",
@@ -254,9 +261,12 @@
       appId: "1:1046559028126:web:97fec457d846caa8609c8f",
       measurementId: "G-2TKNK2LGJ5"
     };
-    // Initialize Firebase
+
+    // Initialize Firebase app
     const app = initializeApp(firebaseConfig);
-    var db = app.firestore();
+
+    // Initialize Firestore
+    const db = getFirestore(app);
   </script>
   
   <script>
@@ -534,41 +544,46 @@
       }
     }
 
-    async function addObservation(userId, speciesName, lat, lng) {
-      // Data for the observation
-      const observationData = {
-        speciesName,
-        observedAt: app.firestore.FieldValue.serverTimestamp(),
-        location: new app.firestore.GeoPoint(lat, lng)
-      };
-    
-      const userRef = db.collection("users").doc(userId);
-      const observationsRef = userRef.collection("observations");
-      const discoveriesRef = userRef.collection("discoveries");
-    
+    // Function to add an observation and, if needed, a discovery for a species.
+    async function addObservation(userId, speciesName, lat, lng, photoUrl = null) {
       try {
-        // 1. Add the observation to the "observations" subcollection.
-        await observationsRef.add(observationData);
-        console.log("Observation added successfully.");
-    
-        // 2. Check if the species is already in the "discoveries" subcollection.
-        const discoveryDoc = await discoveriesRef.doc(speciesName).get();
-        if (!discoveryDoc.exists) {
-          // If not, add this observation as a new discovery.
+        // Create an observation object
+        const observationData = {
+          speciesName: speciesName,
+          observedAt: serverTimestamp(),
+          location: new GeoPoint(lat, lng),
+          photoUrl: photoUrl // optional
+        };
+
+        // Reference to the user's "observations" subcollection
+        const observationsRef = collection(db, 'users', userId, 'observations');
+
+        // Add a new observation document
+        const observationDoc = await addDoc(observationsRef, observationData);
+        console.log("Observation added with ID:", observationDoc.id);
+
+        // Reference to the "discoveries" subcollection using speciesName as the document ID
+        const discoveryRef = doc(db, 'users', userId, 'discoveries', speciesName);
+
+        // Check if this species has already been discovered by the user
+        const discoverySnap = await getDoc(discoveryRef);
+        if (!discoverySnap.exists()) {
+          // If not, add a new discovery document
           const discoveryData = {
-            speciesName,
-            discoveredAt: firebase.firestore.FieldValue.serverTimestamp(),
-            location: new firebase.firestore.GeoPoint(lat, lng)
+            speciesName: speciesName,
+            discoveredAt: serverTimestamp(),
+            location: new GeoPoint(lat, lng)
           };
-          await discoveriesRef.doc(speciesName).set(discoveryData);
-          console.log("Discovery added successfully.");
+          await setDoc(discoveryRef, discoveryData);
+          console.log("Discovery added for species:", speciesName);
         } else {
-          console.log("Species already discovered. No new discovery entry added.");
+          console.log("Species already discovered.");
         }
       } catch (error) {
         console.error("Error adding observation/discovery:", error);
       }
     }
+
 
   </script>
   
