@@ -247,7 +247,6 @@
       addDoc,
       setDoc,
       getDoc,
-      serverTimestamp,
       GeoPoint
     } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
     
@@ -547,10 +546,12 @@
     // Function to add an observation and, if needed, a discovery for a species.
     async function addObservation(userId, speciesName, lat, lng, photoUrl = null) {
       try {
+        // Get the current local time using new Date()
+        const now = new Date();
         // Create an observation object
         const observationData = {
           speciesName: speciesName,
-          observedAt: serverTimestamp(),
+          observedAt: now,
           location: new GeoPoint(lat, lng),
           photoUrl: photoUrl // optional
         };
