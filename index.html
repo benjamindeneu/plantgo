@@ -328,6 +328,7 @@
 
     // Fetch missions via proxy.
     async function fetchSpecies(lat, lon) {
+      addObservation("user123", "Red Maple", 37.7749, -122.4194);
       suggestionsDiv.innerHTML = `<p>Loading missions...</p>`;
       const data = { point: { lat: lat, lon: lon } };
       try {
@@ -534,6 +535,43 @@
         showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
       }
     }
+
+    async function addObservation(userId, speciesName, lat, lng) {
+      // Data for the observation
+      const observationData = {
+        speciesName,
+        observedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        location: new firebase.firestore.GeoPoint(lat, lng)
+      };
+    
+      const userRef = db.collection("users").doc(userId);
+      const observationsRef = userRef.collection("observations");
+      const discoveriesRef = userRef.collection("discoveries");
+    
+      try {
+        // 1. Add the observation to the "observations" subcollection.
+        await observationsRef.add(observationData);
+        console.log("Observation added successfully.");
+    
+        // 2. Check if the species is already in the "discoveries" subcollection.
+        const discoveryDoc = await discoveriesRef.doc(speciesName).get();
+        if (!discoveryDoc.exists) {
+          // If not, add this observation as a new discovery.
+          const discoveryData = {
+            speciesName,
+            discoveredAt: firebase.firestore.FieldValue.serverTimestamp(),
+            location: new firebase.firestore.GeoPoint(lat, lng)
+          };
+          await discoveriesRef.doc(speciesName).set(discoveryData);
+          console.log("Discovery added successfully.");
+        } else {
+          console.log("Species already discovered. No new discovery entry added.");
+        }
+      } catch (error) {
+        console.error("Error adding observation/discovery:", error);
+      }
+    }
+
   </script>
   
   <!-- SVG added at the bottom -->
