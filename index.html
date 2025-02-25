@@ -548,7 +548,7 @@
       try {
         const jsonResponse = await identifyPicture(file);
         const bestMatch = jsonResponse.bestMatch;
-        const plantnetImageId = "https://bs.plantnet.org/image/o/" + jsonResponse.query.images[0];
+        //const plantnetImageId = "https://bs.plantnet.org/image/o/" + jsonResponse.query.images[0];
         const clickedName = species.name;
         let modalContent = "";
         if (clickedName.trim().toLowerCase() === bestMatch.trim().toLowerCase()) {
@@ -566,7 +566,7 @@
         const date_time = new Date().toISOString();
         
         // Upload the observation
-        await addObservation("testuser", bestMatch, lat, lon, photoUrl = plantnetImageId);
+        await addObservation("testuser", bestMatch, lat, lon);
       } catch (err) {
         showModal(`<p style="color: red;">Error validating photo for ${species.name}: ${err.message}</p>`);
       }
