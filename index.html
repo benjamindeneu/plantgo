@@ -236,8 +236,78 @@
       <div id="modalText"></div>
     </div>
   </div>
-  
-  <script>
+
+  <script type="module">
+    // Import only the functions we need from the Firebase SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      doc,
+      addDoc,
+      setDoc,
+      getDoc,
+      serverTimestamp,
+      GeoPoint
+    } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+    
+    // Your Firebase configuration object (replace with your actual config)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAEXFV3KjuunlvLJZsHIxvQlOjIYFZVId4",
+      authDomain: "plantgo-8f557.firebaseapp.com",
+      projectId: "plantgo-8f557",
+      storageBucket: "plantgo-8f557.firebasestorage.app",
+      messagingSenderId: "1046559028126",
+      appId: "1:1046559028126:web:97fec457d846caa8609c8f",
+      measurementId: "G-2TKNK2LGJ5"
+    };
+
+    // Initialize Firebase app
+    const app = initializeApp(firebaseConfig);
+
+    // Initialize Firestore
+    const db = getFirestore(app);
+
+    // Function to add an observation and, if needed, a discovery for a species.
+    async function addObservation(userId, speciesName, lat, lng, photoUrl = null) {
+      try {
+        // Create an observation object
+        const observationData = {
+          speciesName: speciesName,
+          observedAt: serverTimestamp(),
+          location: new GeoPoint(lat, lng),
+          photoUrl: photoUrl // optional
+        };
+
+        // Reference to the user's "observations" subcollection
+        const observationsRef = collection(db, 'users', userId, 'observations');
+
+        // Add a new observation document
+        const observationDoc = await addDoc(observationsRef, observationData);
+        console.log("Observation added with ID:", observationDoc.id);
+
+        // Reference to the "discoveries" subcollection using speciesName as the document ID
+        const discoveryRef = doc(db, 'users', userId, 'discoveries', speciesName);
+
+        // Check if this species has already been discovered by the user
+        const discoverySnap = await getDoc(discoveryRef);
+        if (!discoverySnap.exists()) {
+          // If not, add a new discovery document
+          const discoveryData = {
+            speciesName: speciesName,
+            discoveredAt: serverTimestamp(),
+            location: new GeoPoint(lat, lng)
+          };
+          await setDoc(discoveryRef, discoveryData);
+          console.log("Discovery added for species:", speciesName);
+        } else {
+          console.log("Species already discovered.");
+        }
+      } catch (error) {
+        console.error("Error adding observation/discovery:", error);
+      }
+    }
+    
     // Helper: Extract binomial name (first two words) for Wikipedia lookup.
     function getBinomialName(fullName) {
       const parts = fullName.trim().split(" ");
@@ -304,6 +374,7 @@
 
     // Fetch missions via proxy.
     async function fetchSpecies(lat, lon) {
+      addObservation("user123", "Red Maple", 37.7749, -122.4194);
       suggestionsDiv.innerHTML = `<p>Loading missions...</p>`;
       const data = { point: { lat: lat, lon: lon } };
       try {
@@ -477,17 +548,25 @@
       try {
         const jsonResponse = await identifyPicture(file);
         const bestMatch = jsonResponse.bestMatch;
+        const plantnetImageId = "https://bs.plantnet.org/image/o/" + jsonResponse.query.images[0];
         const clickedName = species.name;
         let modalContent = "";
         if (clickedName.trim().toLowerCase() === bestMatch.trim().toLowerCase()) {
           modalContent = `<p>Congratulations! Your photo matches the selected mission: <strong>${clickedName}</strong>.</p>`;
         } else {
           const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
-          modalContent = `<p style="color: red;">Sorry, that's not correct.</p>
-                          <p style="color: red;">You selected: <strong>${clickedName}</strong></p>
-                          <p style="color: red;">The plant was identified as: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
+          modalContent = `<p style="color: red;">This was not the right species !</p>
+                          <p style="color: red;">Your selected mission was: <strong>${clickedName}</strong></p>
+                          <p style="color: red;">Instead, you made a new observation of: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
         }
         showModal(modalContent);
+        // Get the device's current GPS coordinates
+        const { lat, lon } = await getCoordinates();
+        // Get the current date and time in ISO format
+        const date_time = new Date().toISOString();
+        
+        // Upload the observation
+        await addObservation("testuser", bestMatch, lat, lon, photoUrl = plantnetImageId);
       } catch (err) {
         showModal(`<p style="color: red;">Error validating photo for ${species.name}: ${err.message}</p>`);
       }
@@ -503,12 +582,38 @@
       try {
         const jsonResponse = await identifyPicture(file);
         const bestMatch = jsonResponse.bestMatch;
+        const plantnetImageId = "https://bs.plantnet.org/image/o/" + jsonResponse.query.images[0];
         const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
         const modalContent = `<p>Your plant was identified as: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
         showModal(modalContent);
+
+        // Get the device's current GPS coordinates
+        const { lat, lon } = await getCoordinates();
+        // Get the current date and time in ISO format
+        const date_time = new Date().toISOString();
+        
+        // Upload the observation
+        await addObservation("testuser", bestMatch, lat, lon, photoUrl = plantnetImageId);
       } catch (err) {
         showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
       }
+    }
+
+    function getCoordinates() {
+      return new Promise((resolve, reject) => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const lat = position.coords.latitude;
+              const lon = position.coords.longitude;
+              resolve({ lat, lon });
+            },
+            (error) => reject(new Error("Error getting location: " + error.message))
+          );
+        } else {
+          reject(new Error("Geolocation is not supported by this browser."));
+        }
+      });
     }
   </script>
   
