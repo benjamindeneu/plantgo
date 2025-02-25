@@ -548,17 +548,25 @@
       try {
         const jsonResponse = await identifyPicture(file);
         const bestMatch = jsonResponse.bestMatch;
+        const plantnetImageId = "https://bs.plantnet.org/image/o/" + jsonResponse.query.images[0];
         const clickedName = species.name;
         let modalContent = "";
         if (clickedName.trim().toLowerCase() === bestMatch.trim().toLowerCase()) {
           modalContent = `<p>Congratulations! Your photo matches the selected mission: <strong>${clickedName}</strong>.</p>`;
         } else {
           const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
-          modalContent = `<p style="color: red;">Sorry, that's not correct.</p>
-                          <p style="color: red;">You selected: <strong>${clickedName}</strong></p>
-                          <p style="color: red;">The plant was identified as: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
+          modalContent = `<p style="color: red;">This was not the right species !</p>
+                          <p style="color: red;">Your selected mission was: <strong>${clickedName}</strong></p>
+                          <p style="color: red;">Instead, you made a new observation of: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
         }
         showModal(modalContent);
+        // Get the device's current GPS coordinates
+        const { lat, lon } = await getCoordinates();
+        // Get the current date and time in ISO format
+        const date_time = new Date().toISOString();
+        
+        // Upload the observation
+        await addObservation("user123", bestMatch, lat, lon, photoUrl = plantnetImageId);
       } catch (err) {
         showModal(`<p style="color: red;">Error validating photo for ${species.name}: ${err.message}</p>`);
       }
@@ -574,12 +582,38 @@
       try {
         const jsonResponse = await identifyPicture(file);
         const bestMatch = jsonResponse.bestMatch;
+        const plantnetImageId = "https://bs.plantnet.org/image/o/" + jsonResponse.query.images[0];
         const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
         const modalContent = `<p>Your plant was identified as: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
         showModal(modalContent);
+
+        // Get the device's current GPS coordinates
+        const { lat, lon } = await getCoordinates();
+        // Get the current date and time in ISO format
+        const date_time = new Date().toISOString();
+        
+        // Upload the observation
+        await addObservation("user123", bestMatch, lat, lon, photoUrl = plantnetImageId);
       } catch (err) {
         showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
       }
+    }
+
+    function getCoordinates() {
+      return new Promise((resolve, reject) => {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const lat = position.coords.latitude;
+              const lon = position.coords.longitude;
+              resolve({ lat, lon });
+            },
+            (error) => reject(new Error("Error getting location: " + error.message))
+          );
+        } else {
+          reject(new Error("Geolocation is not supported by this browser."));
+        }
+      });
     }
   </script>
   
