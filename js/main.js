@@ -247,7 +247,6 @@ async function validateSpeciesPicture(species, file) {
     const bestMatch = jsonResponse.bestMatch;
     const plantnetImageId = jsonResponse.query.images[0];
     const identification_score = jsonResponse.results[0].score;
-    console.log(identification_score);
     const clickedName = species.name;
     var points = 0;
     let modalContent = "";
@@ -285,7 +284,6 @@ async function validateGeneralPicture() {
     const bestMatch = jsonResponse.bestMatch;
     const plantnetImageId = jsonResponse.query.images[0];
     const identification_score = jsonResponse.results[0].score;
-    console.log(identification_score);
     var points = 0;
     const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
     const modalContent = `<p>Your plant was identified as: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
