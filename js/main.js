@@ -27,6 +27,10 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   }
 });
 
+document.getElementById('plantDexBtn').addEventListener('click', () => {
+  window.location.href = "plantdex.html";
+});
+
 // Proxy server endpoints
 const SPECIES_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/proxy';
 const IDENTIFY_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/identify';
