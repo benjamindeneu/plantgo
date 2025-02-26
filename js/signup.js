@@ -1,6 +1,9 @@
 // signup.js
-
-import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+import { 
+  createUserWithEmailAndPassword, 
+  updateProfile, 
+  sendEmailVerification 
+} from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 import { auth, db } from "./firebase-config.js";
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
@@ -31,8 +34,17 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
       email: email
     });
     
-    // Redirect to your main page after successful signup
-    window.location.href = "index.html";
+    // Send the email verification
+    await sendEmailVerification(user);
+    
+    // Inform the user to verify their email address
+    document.getElementById('signupMessage').textContent = "A verification email has been sent. Please check your inbox.";
+    
+    // Optionally, you might want to sign the user out until they verify their email
+    // await signOut(auth);
+    
+    // Alternatively, you can redirect to a dedicated page that explains the next steps
+    // window.location.href = "verify-email.html";
   } catch (error) {
     document.getElementById('signupMessage').textContent = error.message;
   }
