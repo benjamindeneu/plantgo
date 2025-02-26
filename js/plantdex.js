@@ -51,7 +51,7 @@ async function fetchDiscoveries(userId) {
               </div>
               <div class="species-info">
                   <h3>${speciesName}</h3>
-                  <p><strong>Discovered:</strong> ${discovery.discoveredAt.toDate().toLocaleDateString()}</p>
+                  <p><strong>Discovered:</strong> ${discovery.discoveredAt.toDate().toLocaleDateString('en-GB')}</p>
                   <p><a href="https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(speciesName)}/data" target="_blank">More info</a></p>
               </div>
           </div>
