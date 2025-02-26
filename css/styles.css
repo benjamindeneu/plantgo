@@ -202,33 +202,41 @@ header {
   padding: 10px 20px;
   background-color: #e8f5e9;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
-
-/* User info and logout button */
 #userInfo {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   gap: 10px;
 }
-
-#welcomeMessage {
-  font-size: 16px;
-  font-weight: 500;
-  color: #2e7d32;
+#userMenu {
+  display: none;
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  text-align: center;
 }
-
-#logoutBtn {
+#userMenu button {
+  display: block;
+  width: 100%;
+  padding: 6px 12px;
+  margin-top: 5px;
   background-color: #66bb6a;
   border: none;
   color: white;
-  padding: 6px 12px;
-  font-size: 14px;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
 }
-
-#logoutBtn:hover {
+#userMenu button:hover {
   background-color: #57a05a;
 }
 
