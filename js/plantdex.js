@@ -5,16 +5,20 @@ import { db } from './firebase-config.js';
 // DOM reference
 const discoveriesList = document.getElementById("discoveriesList");
 
-// Ensure user is authenticated before fetching discoveries
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        await fetchDiscoveries(user.uid); // Pass user ID once authenticated
-    } else {
-        discoveriesList.innerHTML = "<p>You need to be logged in to see your discoveries.</p>";
-    }
+// Check auth state and wait until Firebase loads
+document.addEventListener("DOMContentLoaded", () => {
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            console.log("User is logged in:", user.uid); // Debugging log
+            await fetchDiscoveries(user.uid); // Pass user ID once authenticated
+        } else {
+            console.log("User is NOT logged in"); // Debugging log
+            discoveriesList.innerHTML = "<p>You need to be logged in to see your discoveries.</p>";
+        }
+    });
 });
 
-// Fetch user's discoveries
+// Fetch user's discoveries from Firestore
 async function fetchDiscoveries(userId) {
     discoveriesList.innerHTML = "<p>Loading...</p>";
 
