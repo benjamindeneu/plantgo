@@ -246,10 +246,13 @@ async function validateSpeciesPicture(species, file) {
     const jsonResponse = await identifyPicture(file);
     const bestMatch = jsonResponse.bestMatch;
     const plantnetImageId = jsonResponse.query.images[0];
+    const identification_score = jsonResponse.results[0].score;
     const clickedName = species.name;
+    var points = 0;
     let modalContent = "";
     if (clickedName.trim().toLowerCase() === bestMatch.trim().toLowerCase()) {
       modalContent = `<p>Congratulations! Your photo matches the selected mission: <strong>${clickedName}</strong>.</p>`;
+      points = species.total_points;
     } else {
       const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
       modalContent = `<p style="color: red;">This was not the right species!</p>
@@ -280,6 +283,8 @@ async function validateGeneralPicture() {
     const jsonResponse = await identifyPicture(file);
     const bestMatch = jsonResponse.bestMatch;
     const plantnetImageId = jsonResponse.query.images[0];
+    const identification_score = jsonResponse.results[0].score;
+    var points = 0;
     const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
     const modalContent = `<p>Your plant was identified as: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
     showModal(modalContent);
