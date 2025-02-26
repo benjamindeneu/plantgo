@@ -6,17 +6,15 @@ import { db } from './firebase-config.js';
 // DOM reference
 const discoveriesList = document.getElementById("discoveriesList");
 
-// Wait until the DOM is fully loaded
-document.addEventListener("DOMContentLoaded", () => {
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            console.log("User is logged in:", user.uid);
-            await fetchDiscoveries(user.uid);
-        } else {
-            console.log("User is NOT logged in");
-            discoveriesList.innerHTML = "<p>You need to be logged in to see your discoveries.</p>";
-        }
-    });
+// --- Authentication check ---
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // User is signed in.
+    await fetchDiscoveries(user.uid);
+  } else {
+    // No user is signed in; redirect to login page.
+    discoveriesList.innerHTML = "<p>You need to be logged in to see your discoveries.</p>";
+  }
 });
 
 // Fetch user's discoveries from Firestore
