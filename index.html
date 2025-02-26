@@ -269,14 +269,14 @@
     const db = getFirestore(app);
 
     // Function to add an observation and, if needed, a discovery for a species.
-    async function addObservation(userId, speciesName, lat, lng, photoUrl = null) {
+    async function addObservation(userId, speciesName, lat, lng, plantnetImageCode) {
       try {
         // Create an observation object
         const observationData = {
           speciesName: speciesName,
           observedAt: serverTimestamp(),
           location: new GeoPoint(lat, lng),
-          photoUrl: photoUrl // optional
+          plantnetImageCode: plantnetImageCode
         };
 
         // Reference to the user's "observations" subcollection
@@ -548,7 +548,7 @@
       try {
         const jsonResponse = await identifyPicture(file);
         const bestMatch = jsonResponse.bestMatch;
-        //const plantnetImageId = "https://bs.plantnet.org/image/o/" + jsonResponse.query.images[0];
+        const plantnetImageId = jsonResponse.query.images[0];
         const clickedName = species.name;
         let modalContent = "";
         if (clickedName.trim().toLowerCase() === bestMatch.trim().toLowerCase()) {
@@ -566,7 +566,7 @@
         const date_time = new Date().toISOString();
         
         // Upload the observation
-        await addObservation("testuser", bestMatch, lat, lon);
+        await addObservation("testuser", bestMatch, lat, lon, plantnetImageId);
       } catch (err) {
         showModal(`<p style="color: red;">Error validating photo for ${species.name}: ${err.message}</p>`);
       }
@@ -582,7 +582,7 @@
       try {
         const jsonResponse = await identifyPicture(file);
         const bestMatch = jsonResponse.bestMatch;
-        const plantnetImageId = "https://bs.plantnet.org/image/o/" + jsonResponse.query.images[0];
+        const plantnetImageId = jsonResponse.query.images[0];
         const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
         const modalContent = `<p>Your plant was identified as: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
         showModal(modalContent);
@@ -593,7 +593,7 @@
         const date_time = new Date().toISOString();
         
         // Upload the observation
-        await addObservation("testuser", bestMatch, lat, lon, photoUrl = plantnetImageId);
+        await addObservation("testuser", bestMatch, lat, lon, plantnetImageId);
       } catch (err) {
         showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
       }
