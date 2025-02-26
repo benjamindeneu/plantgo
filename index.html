@@ -10,12 +10,15 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <!-- Header with user info and logout -->
+  <!-- Header with user info and dropdown menu -->
   <header>
     <h1>PlantGo</h1>
     <div id="userInfo">
-      <span id="welcomeMessage">Welcome, User</span>
-      <button id="logoutBtn">Logout</button>
+      <button id="userBtn">User</button>
+      <div id="userMenu">
+        <button id="plantDexBtn">PlantDex</button>
+        <button id="logoutBtn">Logout</button>
+      </div>
     </div>
   </header>
   
@@ -51,5 +54,18 @@
 
   <!-- External JavaScript -->
   <script type="module" src="js/main.js"></script>
+  <script>
+    document.getElementById("userBtn").addEventListener("click", function() {
+      const menu = document.getElementById("userMenu");
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    });
+    document.addEventListener("click", function(event) {
+      const menu = document.getElementById("userMenu");
+      const userBtn = document.getElementById("userBtn");
+      if (!userBtn.contains(event.target) && !menu.contains(event.target)) {
+        menu.style.display = "none";
+      }
+    });
+  </script>
 </body>
 </html>
