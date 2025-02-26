@@ -49,7 +49,7 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
       // Optionally, remove the Firestore document as well
       await deleteDoc(doc(db, 'users', user.uid));
       
-      document.getElementById('signupMessage').textContent = "Failed to send verification email. Your account has been removed. Error: " + emailError.message;
+      document.getElementById('signupMessage').textContent = "Failed to send verification email";
     }
     
   } catch (error) {
