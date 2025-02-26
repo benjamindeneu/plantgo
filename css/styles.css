@@ -193,3 +193,42 @@ input[type="file"] {
     margin-right: 10px;
   }
 }
+
+/* Header styling */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #e8f5e9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* User info and logout button */
+#userInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#welcomeMessage {
+  font-size: 16px;
+  font-weight: 500;
+  color: #2e7d32;
+}
+
+#logoutBtn {
+  background-color: #66bb6a;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#logoutBtn:hover {
+  background-color: #57a05a;
+}
+
