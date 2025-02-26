@@ -8,7 +8,7 @@ import { db } from './firebase-config.js';
 onAuthStateChanged(auth, (user) => {
   if (user) {
     // User is signed in.
-    document.getElementById('userBtn').textContent = `${user.displayName || user.email}!`;
+    document.getElementById('userBtn').textContent = `${user.displayName || user.email}`;
     // Continue initializing the app.
     initializeAppFeatures();
   } else {
