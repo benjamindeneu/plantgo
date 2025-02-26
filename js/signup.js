@@ -45,6 +45,7 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
     
     // Alternatively, you can redirect to a dedicated page that explains the next steps
     // window.location.href = "verify-email.html";
+    document.getElementById('signupForm').remove();
   } catch (error) {
     document.getElementById('signupMessage').textContent = error.message;
   }
