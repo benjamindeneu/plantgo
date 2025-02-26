@@ -250,8 +250,13 @@ async function validateSpeciesPicture(species, file) {
                       <p style="color: red;">Instead, you made a new observation of: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
     }
     showModal(modalContent);
+    
+    // Get the device's current GPS coordinates
     const { lat, lon } = await getCoordinates();
-    await addObservation("testuser", bestMatch, lat, lon, plantnetImageId);
+    
+    // Use the authenticated user's UID instead of a hardcoded value.
+    const currentUserId = auth.currentUser.uid;
+    await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId);
   } catch (err) {
     showModal(`<p style="color: red;">Error validating photo for ${species.name}: ${err.message}</p>`);
   }
@@ -271,8 +276,13 @@ async function validateGeneralPicture() {
     const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
     const modalContent = `<p>Your plant was identified as: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
     showModal(modalContent);
+    
+    // Get the device's current GPS coordinates
     const { lat, lon } = await getCoordinates();
-    await addObservation("testuser", bestMatch, lat, lon, plantnetImageId);
+    
+    // Use the authenticated user's UID
+    const currentUserId = auth.currentUser.uid;
+    await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId);
   } catch (err) {
     showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
   }
