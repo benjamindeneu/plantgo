@@ -9,8 +9,6 @@ onAuthStateChanged(auth, (user) => {
   if (user) {
     // User is signed in.
     document.getElementById('userBtn').textContent = `${user.displayName || user.email}`;
-    // Continue initializing the app.
-    initializeAppFeatures();
   } else {
     // No user is signed in; redirect to login page.
     window.location.href = "login.html";
