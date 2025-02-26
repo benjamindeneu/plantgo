@@ -1,18 +1,19 @@
 import { auth } from './firebase-config.js';
-import { collection, getDocs, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 import { db } from './firebase-config.js';
 
 // DOM reference
 const discoveriesList = document.getElementById("discoveriesList");
 
-// Check auth state and wait until Firebase loads
+// Wait until the DOM is fully loaded
 document.addEventListener("DOMContentLoaded", () => {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            console.log("User is logged in:", user.uid); // Debugging log
-            await fetchDiscoveries(user.uid); // Pass user ID once authenticated
+            console.log("User is logged in:", user.uid);
+            await fetchDiscoveries(user.uid);
         } else {
-            console.log("User is NOT logged in"); // Debugging log
+            console.log("User is NOT logged in");
             discoveriesList.innerHTML = "<p>You need to be logged in to see your discoveries.</p>";
         }
     });
@@ -58,7 +59,6 @@ async function fetchDiscoveries(userId) {
 
             discoveriesList.appendChild(discoveryDiv);
         }
-
     } catch (error) {
         console.error("Error fetching discoveries:", error);
         discoveriesList.innerHTML = "<p>Error loading discoveries.</p>";
