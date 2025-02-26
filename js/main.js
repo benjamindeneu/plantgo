@@ -247,6 +247,7 @@ async function validateSpeciesPicture(species, file) {
     const bestMatch = jsonResponse.bestMatch;
     const plantnetImageId = jsonResponse.query.images[0];
     const identification_score = jsonResponse.results[0].score;
+    console.log(identification_score);
     const clickedName = species.name;
     var points = 0;
     let modalContent = "";
