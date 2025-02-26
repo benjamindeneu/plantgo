@@ -1,22 +1,24 @@
 import { auth } from './firebase-config.js';
-import { collection, getDocs, doc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { collection, getDocs, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 import { db } from './firebase-config.js';
 
 // DOM reference
 const discoveriesList = document.getElementById("discoveriesList");
 
+// Ensure user is authenticated before fetching discoveries
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        await fetchDiscoveries(user.uid); // Pass user ID once authenticated
+    } else {
+        discoveriesList.innerHTML = "<p>You need to be logged in to see your discoveries.</p>";
+    }
+});
+
 // Fetch user's discoveries
-async function fetchDiscoveries() {
-    discoveriesList.innerHTML = "Loading...";
+async function fetchDiscoveries(userId) {
+    discoveriesList.innerHTML = "<p>Loading...</p>";
 
     try {
-        const user = auth.currentUser;
-        if (!user) {
-            discoveriesList.innerHTML = "<p>You need to be logged in to see your discoveries.</p>";
-            return;
-        }
-
-        const userId = user.uid;
         const discoveriesRef = collection(db, 'users', userId, 'discoveries');
         const querySnapshot = await getDocs(discoveriesRef);
 
@@ -36,11 +38,13 @@ async function fetchDiscoveries() {
 
             // Create discovery card
             const discoveryDiv = document.createElement("div");
-            discoveryDiv.classList.add("discovery-item");
+            discoveryDiv.classList.add("species-item");
             discoveryDiv.innerHTML = `
-                <div class="discovery-card">
-                    <img src="${wikiImageUrl || 'placeholder.jpg'}" alt="${speciesName}" class="discovery-image">
-                    <div class="discovery-info">
+                <div class="card-content">
+                    <div class="species-image-container">
+                        <img src="${wikiImageUrl || 'placeholder.jpg'}" alt="${speciesName}" class="species-image">
+                    </div>
+                    <div class="species-info">
                         <h3>${speciesName}</h3>
                         <p><strong>Discovered:</strong> ${discovery.discoveredAt.toDate().toLocaleDateString()}</p>
                         <p><a href="https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(speciesName)}/data" target="_blank">More info</a></p>
@@ -76,6 +80,3 @@ async function getWikipediaImage(speciesFullName) {
     }
     return null;
 }
-
-// Run on load
-document.addEventListener("DOMContentLoaded", fetchDiscoveries);
