@@ -15,33 +15,6 @@ const suggestionsDiv = document.getElementById('suggestions');
 const photoInput = document.getElementById('photoInput');
 const validateBtn = document.getElementById('validateBtn');
 const validationResult = document.getElementById('validationResult');
-const getLocationBtn = document.getElementById('getLocationBtn');
-const locationInfo = document.getElementById('locationInfo');
-
-// Get user location and fetch missions.
-getLocationBtn.addEventListener('click', () => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(success, error, {
-      enableHighAccuracy: true,
-      timeout: 20000,
-      maximumAge: 1000
-    });
-  } else {
-    locationInfo.textContent = "Geolocation is not supported by this browser.";
-  }
-});
-
-function success(position) {
-  const lat = position.coords.latitude;
-  const lon = position.coords.longitude;
-  // Location info appears below the button.
-  locationInfo.innerHTML = `<p>Your location: <strong>Lat:</strong> ${lat.toFixed(6)}, <strong>Lon:</strong> ${lon.toFixed(6)}</p>`;
-  fetchSpecies(lat, lon);
-}
-
-function error(err) {
-  locationInfo.textContent = "Error retrieving location: " + err.message;
-}
 
 // Modal functions
 function showModal(content) {
