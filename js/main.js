@@ -1,8 +1,31 @@
 // main.js
-
-// Import Firestore (db) from firebase-config.js
-import { db } from './firebase-config.js';
+import { auth } from './firebase-config.js';
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 import { collection, doc, addDoc, setDoc, getDoc, serverTimestamp, GeoPoint } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { db } from './firebase-config.js';
+
+// --- Authentication check ---
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // User is signed in.
+    document.getElementById('welcomeMessage').textContent = `Welcome, ${user.displayName || user.email}!`;
+    // Continue initializing the app.
+    initializeAppFeatures();
+  } else {
+    // No user is signed in; redirect to login page.
+    window.location.href = "login.html";
+  }
+});
+
+// Logout functionality
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  try {
+    await signOut(auth);
+    window.location.href = "login.html";
+  } catch (error) {
+    console.error("Error during logout:", error);
+  }
+});
 
 // Proxy server endpoints
 const SPECIES_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/proxy';
