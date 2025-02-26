@@ -10,10 +10,16 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <!-- Page title -->
-  <h1>PlantGo</h1>
+  <!-- Header with user info and logout -->
+  <header>
+    <h1>PlantGo</h1>
+    <div id="userInfo">
+      <span id="welcomeMessage"></span>
+      <button id="logoutBtn">Logout</button>
+    </div>
+  </header>
   
-  <!-- General validation section -->
+  <!-- Your main content (validation, GPS, missions, etc.) -->
   <div class="general-validation">
     <input type="file" accept="image/*" capture="environment" id="photoInput" />
     <button id="validateBtn">I found a plant!</button>
@@ -22,7 +28,6 @@
 
   <hr />
 
-  <!-- GPS and missions section -->
   <div class="gps-section">
     <button id="getLocationBtn">Get Location & Missions</button>
     <div id="locationInfo"></div>
@@ -33,7 +38,6 @@
   
   <hr />
 
-  <!-- Modal for displaying identification result or points details -->
   <div id="resultModal" class="modal">
     <div class="modal-content">
       <span id="modalClose" class="close">&times;</span>
@@ -41,7 +45,6 @@
     </div>
   </div>
 
-  <!-- SVG at the bottom -->
   <div style="text-align: center; margin-top: 20px;">
     <img src="https://my.plantnet.org/images/powered-by-plantnet-dark.svg" alt="Powered by PlantNet" style="max-width: 200px;">
   </div>
