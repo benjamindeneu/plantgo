@@ -57,13 +57,15 @@ window.addEventListener("click", (event) => {
 });
 
 // Add observation (and discovery if needed) to Firestore
-async function addObservation(userId, speciesName, lat, lng, plantnetImageCode) {
+async function addObservation(userId, speciesName, lat, lng, plantnetImageCode, points, plantnet_identify_score) {
   try {
     const observationData = {
       speciesName,
       observedAt: serverTimestamp(),
       location: new GeoPoint(lat, lng),
-      plantnetImageCode
+      plantnetImageCode,
+      points,                     // integer value
+      plantnet_identify_score     // float value
     };
 
     const observationsRef = collection(db, 'users', userId, 'observations');
@@ -76,7 +78,9 @@ async function addObservation(userId, speciesName, lat, lng, plantnetImageCode) 
       const discoveryData = {
         speciesName,
         discoveredAt: serverTimestamp(),
-        location: new GeoPoint(lat, lng)
+        location: new GeoPoint(lat, lng),
+        points,                     // optionally add here as well
+        plantnet_identify_score     // optionally add here as well
       };
       await setDoc(discoveryRef, discoveryData);
       console.log("Discovery added for species:", speciesName);
@@ -87,6 +91,7 @@ async function addObservation(userId, speciesName, lat, lng, plantnetImageCode) 
     console.error("Error adding observation/discovery:", error);
   }
 }
+
 
 // Helper: Extract binomial name for Wikipedia lookup
 function getBinomialName(fullName) {
