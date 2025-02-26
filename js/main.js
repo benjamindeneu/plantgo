@@ -72,21 +72,30 @@ async function addObservation(userId, speciesName, lat, lng, plantnetImageCode, 
     const observationDoc = await addDoc(observationsRef, observationData);
     console.log("Observation added with ID:", observationDoc.id);
 
+    // Create or check discovery document
     const discoveryRef = doc(db, 'users', userId, 'discoveries', speciesName);
     const discoverySnap = await getDoc(discoveryRef);
     if (!discoverySnap.exists()) {
+      // Discovery data now includes the observation ID instead of points and plantnet_identify_score
       const discoveryData = {
         speciesName,
         discoveredAt: serverTimestamp(),
         location: new GeoPoint(lat, lng),
-        points,                     // optionally add here as well
-        plantnet_identify_score     // optionally add here as well
+        observationId: observationDoc.id  // reference to the original observation
       };
       await setDoc(discoveryRef, discoveryData);
       console.log("Discovery added for species:", speciesName);
     } else {
       console.log("Species already discovered.");
     }
+
+    // Update the user's total_points field atomically.
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      total_points: increment(points)
+    });
+    console.log("User's total_points updated.");
+    
   } catch (error) {
     console.error("Error adding observation/discovery:", error);
   }
