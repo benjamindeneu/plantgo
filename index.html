@@ -374,7 +374,6 @@
 
     // Fetch missions via proxy.
     async function fetchSpecies(lat, lon) {
-      addObservation("user123", "Red Maple", 37.7749, -122.4194);
       suggestionsDiv.innerHTML = `<p>Loading missions...</p>`;
       const data = { point: { lat: lat, lon: lon } };
       try {
