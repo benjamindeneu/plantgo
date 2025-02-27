@@ -3,22 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <title>Validation Results</title>
+  <!-- Responsive meta tag -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="css/styles.css" />
   <style>
-    /* Loading Spinner */
-    .spinner {
-      border: 16px solid #f3f3f3;
-      border-top: 16px solid #388e3c;
-      border-radius: 50%;
-      width: 120px;
-      height: 120px;
-      animation: spin 2s linear infinite;
-      margin: 50px auto;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
     /* Container for the content */
     #resultsContainer {
       max-width: 600px;
@@ -28,6 +16,21 @@
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
+
+    /* Responsive adjustments for mobile devices */
+    @media (max-width: 480px) {
+      #resultsContainer {
+        margin: 10px;
+        padding: 15px;
+        width: calc(100% - 20px);
+      }
+      header h1 {
+        font-size: 1.5em;
+      }
+      #resultsContainer p {
+        font-size: 14px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -35,12 +38,10 @@
     <h1>Validation Results</h1>
   </header>
   <div id="resultsContainer">
-    <!-- Intro text will go here -->
+    <!-- Intro text -->
     <div id="intro"></div>
-    <!-- Spinner animation -->
-    <div id="loading" class="spinner"></div>
-    <!-- Final results (hidden initially) -->
-    <div id="results" style="display: none;"></div>
+    <!-- Final results -->
+    <div id="results"></div>
   </div>
 
   <script>
@@ -49,15 +50,9 @@
       var introText = sessionStorage.getItem('introText') || "<p>Validation complete!</p>";
       var resultsHTML = sessionStorage.getItem('resultsHTML') || "<p>No results available.</p>";
 
-      // Set the intro text
+      // Immediately set the intro text and results without a loading spinner delay
       document.getElementById('intro').innerHTML = introText;
-
-      // Simulate a delay to show the loading spinner; you can remove or adjust this delay if needed
-      setTimeout(function(){
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('results').innerHTML = resultsHTML;
-        document.getElementById('results').style.display = 'block';
-      }, 2000);
+      document.getElementById('results').innerHTML = resultsHTML;
     });
   </script>
 </body>
