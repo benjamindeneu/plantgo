@@ -42,9 +42,6 @@ button {
   transition: background-color 0.3s ease;
   margin-top: 6px;
 }
-button:hover {
-  background-color: #57a05a;
-}
 input[type="file"] {
   display: none;
 }
