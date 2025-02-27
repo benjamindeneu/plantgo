@@ -197,12 +197,35 @@ async function displaySpecies(response) {
     // Points button event listener to show breakdown
     pointsBtn.addEventListener('click', () => {
       let detail = `<h2>Point details</h2><p><small>Mission: ${species.name}</small></p>`;
+    
+      // Determine mission level
+      let missionLevel = "";
+      let levelClass = "";
+    
+      if (totalPoints >= 500 && totalPoints < 700) {
+        missionLevel = "Common";
+        levelClass = "common-points";
+      } else if (totalPoints >= 700 && totalPoints < 1000) {
+        missionLevel = "Rare";
+        levelClass = "rare-points";
+      } else if (totalPoints >= 1000 && totalPoints < 1500) {
+        missionLevel = "Epic";
+        levelClass = "epic-points";
+      } else if (totalPoints >= 1500) {
+        missionLevel = "Legendary";
+        levelClass = "legendary-points";
+      }
+    
+      // Add the mission level tag
+      detail += `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
+    
       if (species.points) {
         for (const key in species.points) {
           let displayKey = key === 'base' ? 'Species observation' : key;
           detail += `<p>${displayKey}: ${species.points[key]} points</p>`;
         }
       }
+    
       showModal(detail);
     });
 
