@@ -1,7 +1,7 @@
 // main.js
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-import { collection, doc, addDoc, setDoc, getDoc, serverTimestamp, GeoPoint } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { collection, doc, addDoc, setDoc, getDoc, serverTimestamp, GeoPoint, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 import { db } from './firebase-config.js';
 
 // --- Authentication check ---
