@@ -351,7 +351,7 @@ async function validateSpeciesPicture(species, file) {
     
     // Use the authenticated user's UID instead of a hardcoded value.
     const currentUserId = auth.currentUser.uid;
-    await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, points, identification_score);
+    await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
   } catch (err) {
     showModal(`<p style="color: red;">Error validating photo for ${species.name}: ${err.message}</p>`);
   }
