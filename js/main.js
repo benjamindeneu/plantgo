@@ -490,9 +490,12 @@ async function validateGeneralPicture() {
       levelClass = "legendary-points";
     }
 
+    // Construct species info link
+    const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
+
     // Construct points breakdown
     let pointsBreakdown = `<h2>Identification Results</h2>`;
-    pointsBreakdown += `<p><strong>Species Identified:</strong> ${bestMatch}</p>`;
+    pointsBreakdown += `<p><strong>Species Identified:</strong> <a href="${speciesLink}" target="_blank">${bestMatch}</a></p>`;
     pointsBreakdown += `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
     pointsBreakdown += `<h3>Total Points: ${total_points}</h3>`;
     pointsBreakdown += `<h4>Points Breakdown:</h4>`;
