@@ -331,15 +331,14 @@ async function validateSpeciesPicture(species, file) {
     const plantnetImageId = jsonResponse.query.images[0];
     const identification_score = jsonResponse.results[0].score;
     const clickedName = species.name;
-    var points = 0;
     let modalContent = "";
     // Get the device's current GPS coordinates
     const { lat, lon } = await getCoordinates();
     
     if (clickedName.trim().toLowerCase() === bestMatch.trim().toLowerCase()) {
       modalContent = `<p>Congratulations! Your photo matches the selected mission: <strong>${clickedName}</strong>.</p>`;
-      total_points = species.total_points;
-      points = species.points;
+      const total_points = species.total_points;
+      const points = species.points;
     } else {
       const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
       modalContent = `<p style="color: red;">This was not the right species!</p>
