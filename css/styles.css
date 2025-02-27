@@ -322,3 +322,33 @@ header {
   background-color: #D32F2F; /* Red */
   color: white;
 }
+
+#levelProgressContainer {
+  width: 100%;
+  height: 6px;
+  background: #ddd;
+  border-radius: 5px;
+  overflow: hidden;
+  position: absolute;
+  bottom: -6px;
+  left: 0;
+}
+
+#levelProgressBar {
+  height: 100%;
+  width: 0%;
+  transition: width 0.5s ease-in-out;
+}
+
+/* Colors for different levels */
+.beginner-level + #levelProgressContainer #levelProgressBar {
+  background-color: #4CAF50; /* Green */
+}
+
+.intermediate-level + #levelProgressContainer #levelProgressBar {
+  background-color: #FF9800; /* Orange */
+}
+
+.expert-level + #levelProgressContainer #levelProgressBar {
+  background-color: #D32F2F; /* Red */
+}
