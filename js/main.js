@@ -271,7 +271,8 @@ async function validateSpeciesPicture(species, file) {
       modalContent = `<p style="color: red;">This was not the right species!</p>
                       <p style="color: red;">Your selected mission was: <strong>${clickedName}</strong></p>
                       <p style="color: red;">Instead, you made a new observation of: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
-      const { points, points_list } = await getPoints(lat, lon, bestMatch);
+      const { total_points, points_list } = await getPoints(lat, lon, bestMatch);
+      points = total_points;
     }
     showModal(modalContent);
     
@@ -295,7 +296,6 @@ async function validateGeneralPicture() {
     const bestMatch = jsonResponse.bestMatch;
     const plantnetImageId = jsonResponse.query.images[0];
     const identification_score = jsonResponse.results[0].score;
-    var points = 0;
     const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
     const modalContent = `<p>Your plant was identified as: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
     showModal(modalContent);
