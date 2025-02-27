@@ -240,3 +240,46 @@ header {
   background-color: #57a05a;
 }
 
+/* Points button color variations */
+.common-points {
+  background-color: #808080; /* Grey for common */
+}
+.rare-points {
+  background-color: #2196f3; /* Blue for rare */
+}
+.epic-points {
+  background-color: #9c27b0; /* Purple for epic */
+  /* Apply the shine effect */
+  animation: shine 2s infinite ease-in-out;
+}
+.legendary-points {
+  background-color: #FFD700; /* Golden for legendary */
+  /* Apply the shine effect */
+  animation: shine 2s infinite ease-in-out;
+}
+
+/* Optional: Change hover effects for these buttons */
+.common-points:hover,
+.rare-points:hover,
+.epic-points:hover,
+.legendary-points:hover {
+  opacity: 0.9;
+}
+
+/* Keyframes for the shine effect */
+@keyframes shine {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+    filter: brightness(1.2);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
+    filter: brightness(1);
+  }
+}
+
+
