@@ -335,19 +335,23 @@ async function validateSpeciesPicture(species, file) {
     // Get the device's current GPS coordinates
     const { lat, lon } = await getCoordinates();
     
+    // Declare the variables in a broader scope
+    let total_points, points;
+
     if (clickedName.trim().toLowerCase() === bestMatch.trim().toLowerCase()) {
       modalContent = `<p>Congratulations! Your photo matches the selected mission: <strong>${clickedName}</strong>.</p>`;
-      const total_points = species.total_points;
-      const points = species.points;
+      total_points = species.total_points;
+      points = species.points;
     } else {
       const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
       modalContent = `<p style="color: red;">This was not the right species!</p>
                       <p style="color: red;">Your selected mission was: <strong>${clickedName}</strong></p>
                       <p style="color: red;">Instead, you made a new observation of: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
-      const { total_points, points } = await getPoints(lat, lon, bestMatch);
+      const result = await getPoints(lat, lon, bestMatch);
+      total_points = result.total_points;
+      points = result.points;
     }
     showModal(modalContent);
-    consol.log(total_points);
     // Use the authenticated user's UID instead of a hardcoded value.
     const currentUserId = auth.currentUser.uid;
     await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
