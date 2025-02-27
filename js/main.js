@@ -470,6 +470,11 @@ async function validateSpeciesPicture(species, file) {
 
 // Validate general plant picture
 async function validateGeneralPicture() {
+  const file = photoInput.files[0];
+  if (!file) {
+    validationResult.innerHTML = `<p>Please capture or select a photo first.</p>`;
+    return;
+  }
   validatePicture({ file });
 }
 
