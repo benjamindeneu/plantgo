@@ -190,42 +190,7 @@ async function displaySpecies(response) {
     } else if (totalPoints > 1000 && totalPoints <= 1500) {
       pointsBtn.classList.add('epic-points'); // Purple
     } else if (totalPoints > 1500) {
-      // Add sparkles only for legendary points (totalPoints > 1500)
-      const sides = ['top', 'right', 'bottom', 'left'];
-      // Create, for example, 5 sparkles
-      for (let i = 0; i < 5; i++) {
-        const sparkle = document.createElement('span');
-        sparkle.classList.add('sparkle');
-        sparkle.textContent = "★";
-        
-        // Randomly choose one of the four sides to place the sparkle along the edge
-        const side = sides[Math.floor(Math.random() * sides.length)];
-        // Clear any previously set positions
-        sparkle.style.top = "";
-        sparkle.style.right = "";
-        sparkle.style.bottom = "";
-        sparkle.style.left = "";
-        
-        if (side === 'top') {
-          sparkle.style.top = "0%";
-          sparkle.style.left = Math.random() * 100 + "%";
-        } else if (side === 'bottom') {
-          sparkle.style.bottom = "0%";
-          sparkle.style.left = Math.random() * 100 + "%";
-        } else if (side === 'left') {
-          sparkle.style.left = "0%";
-          sparkle.style.top = Math.random() * 100 + "%";
-        } else if (side === 'right') {
-          sparkle.style.right = "0%";
-          sparkle.style.top = Math.random() * 100 + "%";
-        }
-        
-        // Set a random animation delay for more organic effect
-        sparkle.style.animationDelay = Math.random() * 2 + "s";
-        
-        // Append the sparkle to the points button (which already has position: relative)
-        pointsBtn.appendChild(sparkle);
-      }
+      pointsBtn.classList.add('legendary-points'); // Golden
     }
 
 
