@@ -179,32 +179,21 @@ async function displaySpecies(response) {
       }
     }
 
-    // Build status badges
-    let statusFlare = "";
-    if (species.is_tree) statusFlare += `<span class="badge tree-badge">🌳 Tree</span>`;
-    if (species.is_invasive) statusFlare += `<span class="badge invasive-badge">⚠️ Invasive</span>`;
-    if (species.is_flowering) statusFlare += `<span class="badge flowering-badge">🌸 Flowering</span>`;
-    if (species.is_fruiting) statusFlare += `<span class="badge flowering-badge">🍎 Fruiting</span>`;
-
-    // More info link
-    const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(species.name)}/data`;
-    infoContainer.innerHTML = `
-      <button class="points-btn">${totalPoints} points</button>
-      <p>${species.common_name || "No common name"}</p>
-      <p>${statusFlare}</p>
-      <p><a href="${speciesLink}" target="_blank">More info</a></p>
-      <button class="validate-species-btn">Validate this mission</button>
-      <input type="file" accept="image/*" capture="environment">
-      <div class="validation-feedback"></div>
-    `;
-
-    cardContent.appendChild(imageContainer);
-    cardContent.appendChild(infoContainer);
-    item.appendChild(cardContent);
-    suggestionsDiv.appendChild(item);
+    // Create the points button and assign a color class based on points value
+    const pointsBtn = document.createElement('button');
+    pointsBtn.classList.add('points-btn');
+    pointsBtn.textContent = `${totalPoints} points`;
+    if (totalPoints >= 500 && totalPoints <= 700) {
+      pointsBtn.classList.add('common-points'); // Grey
+    } else if (totalPoints > 700 && totalPoints <= 1000) {
+      pointsBtn.classList.add('rare-points'); // Blue
+    } else if (totalPoints > 1000 && totalPoints <= 1500) {
+      pointsBtn.classList.add('epic-points'); // Purple
+    } else if (totalPoints > 1500) {
+      pointsBtn.classList.add('legendary-points'); // Golden
+    }
 
     // Points button event listener to show breakdown
-    const pointsBtn = infoContainer.querySelector('.points-btn');
     pointsBtn.addEventListener('click', () => {
       let detail = `<h2>Point details</h2><p><small>Mission: ${species.name}</small></p>`;
       if (species.points) {
@@ -215,6 +204,30 @@ async function displaySpecies(response) {
       }
       showModal(detail);
     });
+
+    // More info link
+    const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(species.name)}/data`;
+
+    // Build remaining info elements
+    infoContainer.appendChild(pointsBtn);
+    infoContainer.innerHTML += `
+      <p>${species.common_name || "No common name"}</p>
+      <p>${(
+        (species.is_tree ? `<span class="badge tree-badge">🌳 Tree</span>` : '') +
+        (species.is_invasive ? `<span class="badge invasive-badge">⚠️ Invasive</span>` : '') +
+        (species.is_flowering ? `<span class="badge flowering-badge">🌸 Flowering</span>` : '') +
+        (species.is_fruiting ? `<span class="badge flowering-badge">🍎 Fruiting</span>` : '')
+      )}</p>
+      <p><a href="${speciesLink}" target="_blank">More info</a></p>
+      <button class="validate-species-btn">Validate this mission</button>
+      <input type="file" accept="image/*" capture="environment">
+      <div class="validation-feedback"></div>
+    `;
+
+    cardContent.appendChild(imageContainer);
+    cardContent.appendChild(infoContainer);
+    item.appendChild(cardContent);
+    suggestionsDiv.appendChild(item);
 
     // Set up per-mission validation
     const validateSpeciesBtn = item.querySelector('.validate-species-btn');
@@ -237,6 +250,7 @@ async function displaySpecies(response) {
     }
   }
 }
+
 
 // Identify picture using the proxy server
 async function identifyPicture(file) {
