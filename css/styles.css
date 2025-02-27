@@ -247,39 +247,53 @@ header {
 .rare-points {
   background-color: #2196f3; /* Blue for rare */
 }
-.epic-points {
-  background-color: #9c27b0; /* Purple for epic */
-  /* Apply the shine effect */
-  animation: shine 2s infinite ease-in-out;
-}
+
+/* Epic and Legendary buttons with shining effect */
+.epic-points,
 .legendary-points {
-  background-color: #FFD700; /* Golden for legendary */
-  /* Apply the shine effect */
-  animation: shine 2s infinite ease-in-out;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Optional: Change hover effects for these buttons */
+.epic-points {
+  background-color: #9c27b0; /* Purple for epic */
+}
+
+.legendary-points {
+  background-color: #FFD700; /* Golden for legendary */
+}
+
+/* Pseudo-element for the shine effect */
+.epic-points::after,
+.legendary-points::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  transform: skewX(-20deg);
+  animation: metalShine 2s infinite;
+}
+
+/* Keyframes for diagonal metal shining effect */
+@keyframes metalShine {
+  0% {
+    left: -100%;
+  }
+  50% {
+    left: 100%;
+  }
+  100% {
+    left: -100%;
+  }
+}
+
+/* Optional hover effect to slightly reduce opacity */
 .common-points:hover,
 .rare-points:hover,
 .epic-points:hover,
 .legendary-points:hover {
   opacity: 0.9;
 }
-
-/* Keyframes for the shine effect */
-@keyframes shine {
-  0% {
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
-    filter: brightness(1);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
-    filter: brightness(1.2);
-  }
-  100% {
-    box-shadow: 0 0 5px rgba(255, 255, 255, 0.4);
-    filter: brightness(1);
-  }
-}
-
-
