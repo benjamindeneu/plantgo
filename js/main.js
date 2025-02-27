@@ -338,14 +338,14 @@ async function validateSpeciesPicture(species, file) {
     
     if (clickedName.trim().toLowerCase() === bestMatch.trim().toLowerCase()) {
       modalContent = `<p>Congratulations! Your photo matches the selected mission: <strong>${clickedName}</strong>.</p>`;
-      points = species.total_points;
+      total_points = species.total_points;
+      points = species.points;
     } else {
       const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
       modalContent = `<p style="color: red;">This was not the right species!</p>
                       <p style="color: red;">Your selected mission was: <strong>${clickedName}</strong></p>
                       <p style="color: red;">Instead, you made a new observation of: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
-      const { total_points, points_list } = await getPoints(lat, lon, bestMatch);
-      points = total_points;
+      const { total_points, points } = await getPoints(lat, lon, bestMatch);
     }
     showModal(modalContent);
     
