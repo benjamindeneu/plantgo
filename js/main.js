@@ -193,7 +193,6 @@ async function displaySpecies(response) {
       pointsBtn.classList.add('legendary-points'); // Golden
     }
 
-
     // Points button event listener to show breakdown
     pointsBtn.addEventListener('click', () => {
       let detail = `<h2>Point details</h2><p><small>Mission: ${species.name}</small></p>`;
@@ -206,34 +205,91 @@ async function displaySpecies(response) {
       showModal(detail);
     });
 
-    // More info link
-    const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(species.name)}/data`;
-
-    // Build remaining info elements
+    // Append the points button to the info container
     infoContainer.appendChild(pointsBtn);
-    infoContainer.innerHTML += `
-      <p>${species.common_name || "No common name"}</p>
-      <p>${(
-        (species.is_tree ? `<span class="badge tree-badge">🌳 Tree</span>` : '') +
-        (species.is_invasive ? `<span class="badge invasive-badge">⚠️ Invasive</span>` : '') +
-        (species.is_flowering ? `<span class="badge flowering-badge">🌸 Flowering</span>` : '') +
-        (species.is_fruiting ? `<span class="badge flowering-badge">🍎 Fruiting</span>` : '')
-      )}</p>
-      <p><a href="${speciesLink}" target="_blank">More info</a></p>
-      <button class="validate-species-btn">Validate this mission</button>
-      <input type="file" accept="image/*" capture="environment">
-      <div class="validation-feedback"></div>
-    `;
+
+    // If legendary, add sparkle elements
+    if (totalPoints >= 1500) {
+      const sides = ['top', 'right', 'bottom', 'left'];
+      // Create 5 sparkles for a random effect
+      for (let i = 0; i < 5; i++) {
+        const sparkle = document.createElement('span');
+        sparkle.classList.add('sparkle');
+        sparkle.textContent = "★";
+        const side = sides[Math.floor(Math.random() * sides.length)];
+        // Reset positions
+        sparkle.style.top = "";
+        sparkle.style.right = "";
+        sparkle.style.bottom = "";
+        sparkle.style.left = "";
+        if (side === 'top') {
+          sparkle.style.top = "0%";
+          sparkle.style.left = Math.random() * 100 + "%";
+        } else if (side === 'bottom') {
+          sparkle.style.bottom = "0%";
+          sparkle.style.left = Math.random() * 100 + "%";
+        } else if (side === 'left') {
+          sparkle.style.left = "0%";
+          sparkle.style.top = Math.random() * 100 + "%";
+        } else if (side === 'right') {
+          sparkle.style.right = "0%";
+          sparkle.style.top = Math.random() * 100 + "%";
+        }
+        sparkle.style.animationDelay = Math.random() * 2 + "s";
+        pointsBtn.appendChild(sparkle);
+      }
+    }
+
+    // Build remaining info elements using DOM methods
+
+    // Common name
+    const commonNameP = document.createElement('p');
+    commonNameP.textContent = species.common_name || "No common name";
+    infoContainer.appendChild(commonNameP);
+
+    // Badges
+    const badgesP = document.createElement('p');
+    badgesP.innerHTML =
+      (species.is_tree ? `<span class="badge tree-badge">🌳 Tree</span>` : '') +
+      (species.is_invasive ? `<span class="badge invasive-badge">⚠️ Invasive</span>` : '') +
+      (species.is_flowering ? `<span class="badge flowering-badge">🌸 Flowering</span>` : '') +
+      (species.is_fruiting ? `<span class="badge flowering-badge">🍎 Fruiting</span>` : '');
+    infoContainer.appendChild(badgesP);
+
+    // More info link
+    const moreInfoP = document.createElement('p');
+    const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(species.name)}/data`;
+    const moreInfoLink = document.createElement('a');
+    moreInfoLink.href = speciesLink;
+    moreInfoLink.target = "_blank";
+    moreInfoLink.textContent = "More info";
+    moreInfoP.appendChild(moreInfoLink);
+    infoContainer.appendChild(moreInfoP);
+
+    // Validation button
+    const validateSpeciesBtn = document.createElement('button');
+    validateSpeciesBtn.classList.add('validate-species-btn');
+    validateSpeciesBtn.textContent = "Validate this mission";
+    infoContainer.appendChild(validateSpeciesBtn);
+
+    // File input for validation
+    const fileInput = document.createElement('input');
+    fileInput.type = "file";
+    fileInput.accept = "image/*";
+    fileInput.capture = "environment";
+    infoContainer.appendChild(fileInput);
+
+    // Feedback div
+    const feedbackDiv = document.createElement('div');
+    feedbackDiv.classList.add('validation-feedback');
+    infoContainer.appendChild(feedbackDiv);
 
     cardContent.appendChild(imageContainer);
     cardContent.appendChild(infoContainer);
     item.appendChild(cardContent);
     suggestionsDiv.appendChild(item);
 
-    // Set up per-mission validation
-    const validateSpeciesBtn = item.querySelector('.validate-species-btn');
-    const fileInput = item.querySelector('input[type="file"]');
-    const feedbackDiv = item.querySelector('.validation-feedback');
+    // Set up per-mission validation events
     validateSpeciesBtn.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', async (event) => {
       const file = event.target.files[0];
@@ -251,6 +307,7 @@ async function displaySpecies(response) {
     }
   }
 }
+
 
 
 // Identify picture using the proxy server
