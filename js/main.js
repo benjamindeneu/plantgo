@@ -30,7 +30,8 @@ document.getElementById('plantDexBtn').addEventListener('click', () => {
 });
 
 // Proxy server endpoints
-const SPECIES_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/proxy';
+const SPECIES_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/missions';
+const POINTS_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/points';
 const IDENTIFY_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/identify';
 
 // DOM elements
@@ -259,6 +260,9 @@ async function validateSpeciesPicture(species, file) {
     const clickedName = species.name;
     var points = 0;
     let modalContent = "";
+    // Get the device's current GPS coordinates
+    const { lat, lon } = await getCoordinates();
+    
     if (clickedName.trim().toLowerCase() === bestMatch.trim().toLowerCase()) {
       modalContent = `<p>Congratulations! Your photo matches the selected mission: <strong>${clickedName}</strong>.</p>`;
       points = species.total_points;
@@ -267,11 +271,9 @@ async function validateSpeciesPicture(species, file) {
       modalContent = `<p style="color: red;">This was not the right species!</p>
                       <p style="color: red;">Your selected mission was: <strong>${clickedName}</strong></p>
                       <p style="color: red;">Instead, you made a new observation of: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
+      {points, points_list} = await getPoints(lat, lon, bestMatch);
     }
     showModal(modalContent);
-    
-    // Get the device's current GPS coordinates
-    const { lat, lon } = await getCoordinates();
     
     // Use the authenticated user's UID instead of a hardcoded value.
     const currentUserId = auth.currentUser.uid;
@@ -300,6 +302,8 @@ async function validateGeneralPicture() {
     
     // Get the device's current GPS coordinates
     const { lat, lon } = await getCoordinates();
+
+    {points, points_list} = await getPoints(lat, lon, bestMatch);
     
     // Use the authenticated user's UID
     const currentUserId = auth.currentUser.uid;
@@ -370,5 +374,21 @@ async function fetchSpecies(lat, lon) {
     await displaySpecies(jsonResponse);
   } catch (err) {
     suggestionsDiv.innerHTML = `<p>Error fetching missions: ${err.message}</p>`;
+  }
+}
+
+// Fetch species missions via proxy
+async function getPoints(lat, lon, species) {
+  const data = { point: { lat, lon }, species_name: species };
+  try {
+    const response = await fetch(POINTS_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+  } catch (err) {
+    return { total_points: 0, points: {} };
   }
 }
