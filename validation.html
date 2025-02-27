@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Validation Results</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Loading Spinner */
+    .spinner {
+      border: 16px solid #f3f3f3;
+      border-top: 16px solid #388e3c;
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      animation: spin 2s linear infinite;
+      margin: 50px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    /* Container for the content */
+    #resultsContainer {
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Validation Results</h1>
+  </header>
+  <div id="resultsContainer">
+    <!-- Intro text will go here -->
+    <div id="intro"></div>
+    <!-- Spinner animation -->
+    <div id="loading" class="spinner"></div>
+    <!-- Final results (hidden initially) -->
+    <div id="results" style="display: none;"></div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Read data passed via session storage
+      var introText = sessionStorage.getItem('introText') || "<p>Validation complete!</p>";
+      var resultsHTML = sessionStorage.getItem('resultsHTML') || "<p>No results available.</p>";
+
+      // Set the intro text
+      document.getElementById('intro').innerHTML = introText;
+
+      // Simulate a delay to show the loading spinner; you can remove or adjust this delay if needed
+      setTimeout(function(){
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('results').innerHTML = resultsHTML;
+        document.getElementById('results').style.display = 'block';
+      }, 2000);
+    });
+  </script>
+</body>
+</html>
