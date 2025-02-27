@@ -385,34 +385,65 @@ async function validateSpeciesPicture(species, file) {
     const plantnetImageId = jsonResponse.query.images[0];
     const identification_score = jsonResponse.results[0].score;
     const clickedName = species.name;
-    let modalContent = "";
+
     // Get the device's current GPS coordinates
     const { lat, lon } = await getCoordinates();
     
-    // Declare the variables in a broader scope
     let total_points, points;
 
     if (clickedName.trim().toLowerCase() === bestMatch.trim().toLowerCase()) {
-      modalContent = `<p>Congratulations! Your photo matches the selected mission: <strong>${clickedName}</strong>.</p>`;
       total_points = species.total_points;
       points = species.points;
     } else {
-      const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
-      modalContent = `<p style="color: red;">This was not the right species!</p>
-                      <p style="color: red;">Your selected mission was: <strong>${clickedName}</strong></p>
-                      <p style="color: red;">Instead, you made a new observation of: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
       const result = await getPoints(lat, lon, bestMatch);
       total_points = result.total_points;
       points = result.points;
     }
-    showModal(modalContent);
-    // Use the authenticated user's UID instead of a hardcoded value.
+
+    // Determine mission level
+    let missionLevel = "Common";
+    let levelClass = "common-points";
+    
+    if (total_points >= 500 && total_points < 1000) {
+      missionLevel = "Common";
+      levelClass = "common-points";
+    } else if (total_points >= 1000 && total_points < 1500) {
+      missionLevel = "Rare";
+      levelClass = "rare-points";
+    } else if (total_points >= 1500 && total_points < 2000) {
+      missionLevel = "Epic";
+      levelClass = "epic-points";
+    } else if (total_points >= 2000) {
+      missionLevel = "Legendary";
+      levelClass = "legendary-points";
+    }
+
+    // Construct points breakdown
+    let pointsBreakdown = `<h2>Identification Results</h2>`;
+    pointsBreakdown += `<p><strong>Species Identified:</strong> ${bestMatch}</p>`;
+    pointsBreakdown += `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
+    pointsBreakdown += `<h3>Total Points: ${total_points}</h3>`;
+    pointsBreakdown += `<h4>Points Breakdown:</h4><ul>`;
+
+    for (const key in points) {
+      let displayKey = key === 'base' ? 'Species observation' : key;
+      pointsBreakdown += `<li>${displayKey}: ${points[key]} points</li>`;
+    }
+
+    pointsBreakdown += `</ul>`;
+
+    // Show results in a modal
+    showModal(pointsBreakdown);
+
+    // Store observation in Firestore
     const currentUserId = auth.currentUser.uid;
     await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
+
   } catch (err) {
     showModal(`<p style="color: red;">Error validating photo for ${species.name}: ${err.message}</p>`);
   }
 }
+
 
 // Validate general plant picture
 async function validateGeneralPicture() {
@@ -426,22 +457,57 @@ async function validateGeneralPicture() {
     const bestMatch = jsonResponse.bestMatch;
     const plantnetImageId = jsonResponse.query.images[0];
     const identification_score = jsonResponse.results[0].score;
-    const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
-    const modalContent = `<p>Your plant was identified as: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
-    showModal(modalContent);
-    
+
     // Get the device's current GPS coordinates
     const { lat, lon } = await getCoordinates();
 
+    // Fetch points from the backend
     const { total_points, points } = await getPoints(lat, lon, bestMatch);
+
+    // Determine mission level
+    let missionLevel = "Common";
+    let levelClass = "common-points";
     
-    // Use the authenticated user's UID
+    if (total_points >= 500 && total_points < 1000) {
+      missionLevel = "Common";
+      levelClass = "common-points";
+    } else if (total_points >= 1000 && total_points < 1500) {
+      missionLevel = "Rare";
+      levelClass = "rare-points";
+    } else if (total_points >= 1500 && total_points < 2000) {
+      missionLevel = "Epic";
+      levelClass = "epic-points";
+    } else if (total_points >= 2000) {
+      missionLevel = "Legendary";
+      levelClass = "legendary-points";
+    }
+
+    // Construct points breakdown
+    let pointsBreakdown = `<h2>Identification Results</h2>`;
+    pointsBreakdown += `<p><strong>Species Identified:</strong> ${bestMatch}</p>`;
+    pointsBreakdown += `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
+    pointsBreakdown += `<h3>Total Points: ${total_points}</h3>`;
+    pointsBreakdown += `<h4>Points Breakdown:</h4><ul>`;
+
+    for (const key in points) {
+      let displayKey = key === 'base' ? 'Species observation' : key;
+      pointsBreakdown += `<li>${displayKey}: ${points[key]} points</li>`;
+    }
+
+    pointsBreakdown += `</ul>`;
+
+    // Show results in a modal
+    showModal(pointsBreakdown);
+
+    // Store observation in Firestore
     const currentUserId = auth.currentUser.uid;
     await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
+
   } catch (err) {
     showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
   }
 }
+
 
 // Get GPS coordinates as a promise
 function getCoordinates() {
