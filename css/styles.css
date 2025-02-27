@@ -353,7 +353,7 @@ header {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(232,245,233, 0.8); /* semi-transparent background */
+  background-color: rgba(232,245,233, 1.0); /* semi-transparent background */
   display: flex;
   justify-content: center;
   align-items: center;
