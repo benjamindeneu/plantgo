@@ -7,7 +7,6 @@ import { db } from './firebase-config.js';
 // --- Authentication check ---
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    // Update user name
     document.getElementById('userName').textContent = `${user.displayName || user.email}`;
 
     // Get user reference
@@ -19,14 +18,18 @@ onAuthStateChanged(auth, async (user) => {
         const userData = docSnap.data();
         const totalPoints = userData.total_points || 0;
 
-        // Calculate level dynamically
+        // Calculate level and progress
         const level = Math.floor(1 + (totalPoints / 11000));
+        const nextLevelThreshold = level * 11000;
+        const prevLevelThreshold = (level - 1) * 11000;
+        const progress = ((totalPoints - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold)) * 100;
 
-        // Update the UI with the level
-        const levelBadge = document.getElementById('userLevel');
-        levelBadge.textContent = `Lv. ${level}`;
+        // Update the UI
+        document.getElementById('userLevel').textContent = `Lv. ${level}`;
+        document.getElementById('levelProgressBar').style.width = `${progress}%`;
 
         // Add dynamic color based on level range
+        const levelBadge = document.getElementById('userLevel');
         levelBadge.className = "level-badge"; // Reset class first
         if (level < 5) {
           levelBadge.classList.add("beginner-level");
