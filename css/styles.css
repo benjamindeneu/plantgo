@@ -291,11 +291,3 @@ header {
   }
 }
 
-/* Optional hover effect to slightly reduce opacity */
-.common-points:hover,
-.rare-points:hover,
-.epic-points:hover,
-.legendary-points:hover {
-  opacity: 0.9;
-}
-
