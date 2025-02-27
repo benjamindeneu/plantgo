@@ -296,15 +296,37 @@ header {
   }
 }
 
+/* Style for the level badge */
 .level-badge {
-  display: inline-block;
-  padding: 5px 10px;
-  margin-left: 10px;
-  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 6px 12px;
+  font-size: 12px;
   font-weight: bold;
-  border-radius: 12px;
+  border-radius: 15px;
   background-color: #ddd;
   color: #333;
+  overflow: hidden;
+}
+
+/* Progress bar inside the level badge */
+#levelProgressContainer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px; /* Small progress bar inside */
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+#levelProgressBar {
+  height: 100%;
+  width: 0%;
+  transition: width 0.5s ease-in-out;
 }
 
 /* Different level colors */
@@ -323,32 +345,15 @@ header {
   color: white;
 }
 
-#levelProgressContainer {
-  width: 100%;
-  height: 6px;
-  background: #ddd;
-  border-radius: 5px;
-  overflow: hidden;
-  position: absolute;
-  bottom: -6px;
-  left: 0;
+/* Colors for the progress bar */
+.beginner-level #levelProgressBar {
+  background-color: #66bb6a; /* Light green */
 }
 
-#levelProgressBar {
-  height: 100%;
-  width: 0%;
-  transition: width 0.5s ease-in-out;
+.intermediate-level #levelProgressBar {
+  background-color: #ffa726; /* Light orange */
 }
 
-/* Colors for different levels */
-.beginner-level + #levelProgressContainer #levelProgressBar {
-  background-color: #4CAF50; /* Green */
-}
-
-.intermediate-level + #levelProgressContainer #levelProgressBar {
-  background-color: #FF9800; /* Orange */
-}
-
-.expert-level + #levelProgressContainer #levelProgressBar {
-  background-color: #D32F2F; /* Red */
+.expert-level #levelProgressBar {
+  background-color: #ef5350; /* Light red */
 }
