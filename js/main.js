@@ -271,7 +271,7 @@ async function validateSpeciesPicture(species, file) {
       modalContent = `<p style="color: red;">This was not the right species!</p>
                       <p style="color: red;">Your selected mission was: <strong>${clickedName}</strong></p>
                       <p style="color: red;">Instead, you made a new observation of: <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
-      {points, points_list} = await getPoints(lat, lon, bestMatch);
+      const { points, points_list } = await getPoints(lat, lon, bestMatch);
     }
     showModal(modalContent);
     
@@ -303,7 +303,7 @@ async function validateGeneralPicture() {
     // Get the device's current GPS coordinates
     const { lat, lon } = await getCoordinates();
 
-    {points, points_list} = await getPoints(lat, lon, bestMatch);
+    const { points, points_list } = await getPoints(lat, lon, bestMatch);
     
     // Use the authenticated user's UID
     const currentUserId = auth.currentUser.uid;
