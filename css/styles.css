@@ -296,3 +296,29 @@ header {
   }
 }
 
+.level-badge {
+  display: inline-block;
+  padding: 5px 10px;
+  margin-left: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 12px;
+  background-color: #ddd;
+  color: #333;
+}
+
+/* Different level colors */
+.beginner-level {
+  background-color: #4CAF50; /* Green */
+  color: white;
+}
+
+.intermediate-level {
+  background-color: #FF9800; /* Orange */
+  color: white;
+}
+
+.expert-level {
+  background-color: #D32F2F; /* Red */
+  color: white;
+}
