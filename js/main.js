@@ -334,8 +334,6 @@ async function validateSpeciesPicture(species, file) {
     let modalContent = "";
     // Get the device's current GPS coordinates
     const { lat, lon } = await getCoordinates();
-
-    console.log(species);
     
     if (clickedName.trim().toLowerCase() === bestMatch.trim().toLowerCase()) {
       modalContent = `<p>Congratulations! Your photo matches the selected mission: <strong>${clickedName}</strong>.</p>`;
@@ -349,7 +347,7 @@ async function validateSpeciesPicture(species, file) {
       const { total_points, points } = await getPoints(lat, lon, bestMatch);
     }
     showModal(modalContent);
-    
+    consol.log(total_points);
     // Use the authenticated user's UID instead of a hardcoded value.
     const currentUserId = auth.currentUser.uid;
     await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
