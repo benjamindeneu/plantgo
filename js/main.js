@@ -183,13 +183,13 @@ async function displaySpecies(response) {
     const pointsBtn = document.createElement('button');
     pointsBtn.classList.add('points-btn');
     pointsBtn.textContent = `${totalPoints} points`;
-    if (totalPoints >= 500 && totalPoints <= 700) {
+    if (totalPoints >= 500 && totalPoints < 700) {
       pointsBtn.classList.add('common-points'); // Grey
-    } else if (totalPoints > 700 && totalPoints <= 1000) {
+    } else if (totalPoints >= 700 && totalPoints < 1000) {
       pointsBtn.classList.add('rare-points'); // Blue
-    } else if (totalPoints > 1000 && totalPoints <= 1500) {
+    } else if (totalPoints >= 1000 && totalPoints < 1500) {
       pointsBtn.classList.add('epic-points'); // Purple
-    } else if (totalPoints > 1500) {
+    } else if (totalPoints >= 1500) {
       pointsBtn.classList.add('legendary-points'); // Golden
     }
 
