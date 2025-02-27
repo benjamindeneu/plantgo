@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Google Fonts: Roboto -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-k5/dh4kS/dqkK7/WpX2m/ETRr5e5NvxP9M6jXCVZmqtx9XHdK8AYe9AKj9+1dPZCbY/svGpBv9T3bzrwHIcMZA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <!-- External CSS -->
   <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -25,14 +27,18 @@
   <!-- Your main content (validation, GPS, missions, etc.) -->
   <div class="general-validation">
     <input type="file" accept="image/*" capture="environment" id="photoInput" multiple />
-    <button id="validateBtn">I found a plant!</button>
+    <button id="validateBtn">
+      <i class="fa-solid fa-camera"></i> I found a plant!
+    </button>
     <div id="validationResult"></div>
   </div>
 
   <hr />
 
   <div class="gps-section">
-    <button id="getLocationBtn">Get Location & Missions</button>
+    <button id="getLocationBtn">
+      <i class="fa-solid fa-location-dot"></i> Get Location & Missions
+    </button>
     <div id="locationInfo"></div>
   </div>
   
