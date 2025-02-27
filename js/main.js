@@ -495,11 +495,11 @@ async function validateGeneralPicture() {
     pointsBreakdown += `<p><strong>Species Identified:</strong> ${bestMatch}</p>`;
     pointsBreakdown += `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
     pointsBreakdown += `<h3>Total Points: ${total_points}</h3>`;
-    pointsBreakdown += `<h4>Points Breakdown:</h4>;
+    pointsBreakdown += `<h4>Points Breakdown:</h4>`;
 
     for (const key in points) {
       let displayKey = key === 'base' ? 'Species observation' : key;
-      pointsBreakdown += <p>${displayKey}: ${points[key]} points</p>`;
+      pointsBreakdown += `<p>${displayKey}: ${points[key]} points</p>`;
     }
 
     // Show results in a modal
