@@ -58,13 +58,14 @@ window.addEventListener("click", (event) => {
 });
 
 // Add observation (and discovery if needed) to Firestore
-async function addObservation(userId, speciesName, lat, lng, plantnetImageCode, points, plantnet_identify_score) {
+async function addObservation(userId, speciesName, lat, lng, plantnetImageCode, total_points, points, plantnet_identify_score) {
   try {
     const observationData = {
       speciesName,
       observedAt: serverTimestamp(),
       location: new GeoPoint(lat, lng),
       plantnetImageCode,
+      total_points,
       points,                     // integer value
       plantnet_identify_score     // float value
     };
@@ -93,7 +94,7 @@ async function addObservation(userId, speciesName, lat, lng, plantnetImageCode, 
     // Update the user's total_points field atomically.
     const userRef = doc(db, 'users', userId);
     await updateDoc(userRef, {
-      total_points: increment(points)
+      total_points: increment(total_points)
     });
     console.log("User's total_points updated.");
     
@@ -375,11 +376,11 @@ async function validateGeneralPicture() {
     // Get the device's current GPS coordinates
     const { lat, lon } = await getCoordinates();
 
-    const { points, points_list } = await getPoints(lat, lon, bestMatch);
+    const { total_points, points } = await getPoints(lat, lon, bestMatch);
     
     // Use the authenticated user's UID
     const currentUserId = auth.currentUser.uid;
-    await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, points, identification_score);
+    await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
   } catch (err) {
     showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
   }
