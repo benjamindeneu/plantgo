@@ -25,7 +25,7 @@ onAuthStateChanged(auth, async (user) => {
         const progress = ((totalPoints - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold)) * 100;
 
         // Update the UI
-        document.getElementById('userLevel').textContent = `Lv. ${level}`;
+        document.getElementById('levelNumber').textContent = level;
         document.getElementById('levelProgressBar').style.width = `${progress}%`;
 
         // Add dynamic color based on level range
