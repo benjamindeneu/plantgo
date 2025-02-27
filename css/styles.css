@@ -239,6 +239,17 @@ header {
 
 
 /* Points button color variations */
+.mission-level {
+  border: none;
+  color: #fff;
+  padding: 10px 15px;
+  font-size: 16px;
+  border-radius: 4px;
+  margin-top: 6px;
+  display: inline-block;
+  cursor: default;
+}
+
 .common-points {
   background-color: #808080; /* Grey for common */
 }
