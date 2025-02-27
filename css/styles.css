@@ -333,3 +333,28 @@ header {
 .legendary-points:hover {
   opacity: 0.9;
 }
+
+/* Sparkle styling for legendary button stars */
+.sparkle {
+  position: absolute;
+  color: white;
+  font-size: 10px; /* Adjust for desired star size */
+  opacity: 0;
+  pointer-events: none;
+  animation: sparkleAnim 2s infinite;
+}
+
+@keyframes sparkleAnim {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(45deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.5) rotate(0deg);
+  }
+}
