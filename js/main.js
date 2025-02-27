@@ -380,6 +380,9 @@ async function identifyPicture(file) {
 // Validate mission picture
 async function validateSpeciesPicture(species, file) {
   try {
+    // Show full-screen loading overlay immediately
+    document.getElementById("fullscreenLoading").style.display = "flex";
+
     const jsonResponse = await identifyPicture(file);
     const bestMatch = jsonResponse.bestMatch;
     const plantnetImageId = jsonResponse.query.images[0];
@@ -401,6 +404,7 @@ async function validateSpeciesPicture(species, file) {
       points = result.points;
     }
 
+    // Determine mission level
     let missionLevel = "Common";
     let levelClass = "common-points";
     
@@ -436,21 +440,20 @@ async function validateSpeciesPicture(species, file) {
     }
 
     // Set an intro text specific to species validation
-    const introText = `<p><strong>Species Validation in Progress...</strong></p>`;
+    const introText = `<p><strong>Species Validation Complete!</strong></p>`;
 
-    // Store data in session storage
+    // Store results in session storage
     sessionStorage.setItem('introText', introText);
     sessionStorage.setItem('resultsHTML', pointsBreakdown);
 
-    // Redirect to the results page
+    // Redirect to the results page (validation.html)
     window.location.href = "validation.html";
 
-    // Store observation in Firestore
+    // Store observation in Firestore (this can happen in background)
     const currentUserId = auth.currentUser.uid;
     await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
 
   } catch (err) {
-    // Optionally, store error info and redirect to an error page or display on the same page
     sessionStorage.setItem('introText', `<p style="color: red;">Error validating photo for ${species.name}</p>`);
     sessionStorage.setItem('resultsHTML', `<p style="color: red;">${err.message}</p>`);
     window.location.href = "validation.html";
@@ -465,6 +468,9 @@ async function validateGeneralPicture() {
     return;
   }
   try {
+    // Show full-screen loading overlay immediately
+    document.getElementById("fullscreenLoading").style.display = "flex";
+
     const jsonResponse = await identifyPicture(file);
     const bestMatch = jsonResponse.bestMatch;
     const plantnetImageId = jsonResponse.query.images[0];
@@ -474,6 +480,7 @@ async function validateGeneralPicture() {
 
     const { total_points, points } = await getPoints(lat, lon, bestMatch);
 
+    // Determine mission level
     let missionLevel = "Common";
     let levelClass = "common-points";
     
@@ -504,7 +511,7 @@ async function validateGeneralPicture() {
     }
 
     // Set an intro text specific to general picture validation
-    const introText = `<p><strong>General Plant Picture Validation in Progress...</strong></p>`;
+    const introText = `<p><strong>General Plant Picture Validation Complete!</strong></p>`;
 
     sessionStorage.setItem('introText', introText);
     sessionStorage.setItem('resultsHTML', pointsBreakdown);
