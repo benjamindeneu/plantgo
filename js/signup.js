@@ -31,7 +31,8 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
     // Create a Firestore document for the new user
     await setDoc(doc(db, 'users', user.uid), {
       name: username,
-      email: email
+      email: email,
+      total_points: 0
     });
     
     try {
