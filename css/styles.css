@@ -264,70 +264,34 @@ header {
   background-color: #FFD700; /* Golden for legendary */
 }
 
-/* Diagonal shine effect for epic and legendary */
+/* Pseudo-element for the shine effect */
 .epic-points::after,
 .legendary-points::after {
   content: "";
   position: absolute;
   top: 0;
-  left: 0;
-  width: 100%;
+  left: -100%;
+  width: 50%;
   height: 100%;
-  /* Create a diagonal gradient that tilts to the right */
-  background: linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0) 100%);
-  background-size: 200% 200%;
-  animation: shine 2s infinite;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  transform: skewX(-20deg);
+  animation: metalShine 2s infinite;
 }
 
-/* Keyframes for the shine effect using background-position */
-@keyframes shine {
+/* Keyframes for diagonal metal shining effect */
+@keyframes metalShine {
   0% {
-    background-position: -100% -100%;
+    left: -100%;
   }
   50% {
-    background-position: 100% 100%;
+    left: 100%;
   }
   100% {
-    background-position: -100% -100%;
+    left: -100%;
   }
 }
 
-/* Sparkle effect for legendary button */
-.legendary-points::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  /* Using multiple box-shadows to simulate sparkles */
-  box-shadow: 
-    2px 2px 5px rgba(255, 255, 255, 0.8),
-    -2px -2px 5px rgba(255, 255, 255, 0.8),
-    2px -2px 5px rgba(255, 255, 255, 0.8),
-    -2px 2px 5px rgba(255, 255, 255, 0.8);
-  opacity: 0;
-  animation: legendarySparkle 2s infinite;
-}
-
-/* Keyframes for the legendary sparkle effect */
-@keyframes legendarySparkle {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-}
-
-/* Optional: Hover effect to slightly reduce opacity */
+/* Optional hover effect to slightly reduce opacity */
 .common-points:hover,
 .rare-points:hover,
 .epic-points:hover,
