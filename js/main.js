@@ -334,6 +334,8 @@ async function validateSpeciesPicture(species, file) {
     let modalContent = "";
     // Get the device's current GPS coordinates
     const { lat, lon } = await getCoordinates();
+
+    console.log(species);
     
     if (clickedName.trim().toLowerCase() === bestMatch.trim().toLowerCase()) {
       modalContent = `<p>Congratulations! Your photo matches the selected mission: <strong>${clickedName}</strong>.</p>`;
