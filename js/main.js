@@ -390,10 +390,12 @@ async function validateSpeciesPicture(species, file) {
     const { lat, lon } = await getCoordinates();
     
     let total_points, points;
+    let isMissionValidated = false;
 
     if (clickedName.trim().toLowerCase() === bestMatch.trim().toLowerCase()) {
       total_points = species.total_points;
       points = species.points;
+      isMissionValidated = true;
     } else {
       const result = await getPoints(lat, lon, bestMatch);
       total_points = result.total_points;
@@ -418,9 +420,16 @@ async function validateSpeciesPicture(species, file) {
       levelClass = "legendary-points";
     }
 
-    // Construct points breakdown
+    // Construct message
     let pointsBreakdown = `<h2>Identification Results</h2>`;
-    pointsBreakdown += `<p><strong>Species Identified:</strong> ${bestMatch}</p>`;
+    
+    if (isMissionValidated) {
+      pointsBreakdown += `<p style="color: green;"><strong>Mission validated!</strong> You successfully identified <strong>${clickedName}</strong>.</p>`;
+    } else {
+      const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
+      pointsBreakdown += `<p style="color: red;"><strong>Mission NOT validated!</strong> Your selected mission was <strong>${clickedName}</strong>, but the plant identified was <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
+    }
+
     pointsBreakdown += `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
     pointsBreakdown += `<h3>Total Points: ${total_points}</h3>`;
     pointsBreakdown += `<h4>Points Breakdown:</h4><ul>`;
@@ -443,6 +452,7 @@ async function validateSpeciesPicture(species, file) {
     showModal(`<p style="color: red;">Error validating photo for ${species.name}: ${err.message}</p>`);
   }
 }
+
 
 
 // Validate general plant picture
