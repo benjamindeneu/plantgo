@@ -499,7 +499,7 @@ async function validateGeneralPicture() {
 
     for (const key in points) {
       let displayKey = key === 'base' ? 'Species observation' : key;
-      pointsBreakdown += `<p>${displayKey}: ${points[key]} points</p>`;
+      pointsBreakdown += <p>${displayKey}: ${points[key]} points</p>`;
     }
 
     // Show results in a modal
