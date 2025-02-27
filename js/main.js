@@ -1,36 +1,42 @@
 // main.js
 import { auth } from './firebase-config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-import { collection, doc, addDoc, setDoc, getDoc, serverTimestamp, GeoPoint, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { collection, doc, addDoc, setDoc, getDoc, serverTimestamp, GeoPoint, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 import { db } from './firebase-config.js';
 
 // --- Authentication check ---
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    // User is signed in, update UI
-    document.getElementById('userBtn').textContent = `${user.displayName || user.email}`;
-    
-    // Get user level from Firestore
-    const userRef = doc(db, 'users', user.uid);
-    const userSnap = await getDoc(userRef);
-    
-    if (userSnap.exists()) {
-      const userData = userSnap.data();
-      const level = userData.level || 1; // Default to level 1 if not found
+    // Update user name
+    document.getElementById('userName').textContent = `${user.displayName || user.email}`;
 
-      // Update the UI with the level
-      const levelBadge = document.getElementById('userLevel');
-      levelBadge.textContent = `Level ${level}`;
-      
-      // Add dynamic color based on level range
-      if (level < 5) {
-        levelBadge.classList.add("beginner-level");
-      } else if (level < 10) {
-        levelBadge.classList.add("intermediate-level");
-      } else {
-        levelBadge.classList.add("expert-level");
+    // Get user reference
+    const userRef = doc(db, 'users', user.uid);
+
+    // Subscribe to real-time updates on total_points
+    onSnapshot(userRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        const totalPoints = userData.total_points || 0;
+
+        // Calculate level dynamically
+        const level = Math.floor(1 + (totalPoints / 11000));
+
+        // Update the UI with the level
+        const levelBadge = document.getElementById('userLevel');
+        levelBadge.textContent = `Lv. ${level}`;
+
+        // Add dynamic color based on level range
+        levelBadge.className = "level-badge"; // Reset class first
+        if (level < 5) {
+          levelBadge.classList.add("beginner-level");
+        } else if (level < 10) {
+          levelBadge.classList.add("intermediate-level");
+        } else {
+          levelBadge.classList.add("expert-level");
+        }
       }
-    }
+    });
   } else {
     window.location.href = "login.html"; // Redirect if not logged in
   }
