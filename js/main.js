@@ -386,7 +386,6 @@ async function validateSpeciesPicture(species, file) {
     const identification_score = jsonResponse.results[0].score;
     const clickedName = species.name;
 
-    // Get the device's current GPS coordinates
     const { lat, lon } = await getCoordinates();
     
     let total_points, points;
@@ -402,7 +401,6 @@ async function validateSpeciesPicture(species, file) {
       points = result.points;
     }
 
-    // Determine mission level
     let missionLevel = "Common";
     let levelClass = "common-points";
     
@@ -420,7 +418,6 @@ async function validateSpeciesPicture(species, file) {
       levelClass = "legendary-points";
     }
 
-    // Construct message
     let pointsBreakdown = `<h2>Identification Results</h2>`;
     
     if (isMissionValidated) {
@@ -433,25 +430,32 @@ async function validateSpeciesPicture(species, file) {
     pointsBreakdown += `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
     pointsBreakdown += `<h3>Total Points: ${total_points}</h3>`;
     pointsBreakdown += `<h4>Points Breakdown:</h4>`;
-
     for (const key in points) {
       let displayKey = key === 'base' ? 'Species observation' : key;
       pointsBreakdown += `<p>${displayKey}: ${points[key]} points</p>`;
     }
 
-    // Show results in a modal
-    showModal(pointsBreakdown);
+    // Set an intro text specific to species validation
+    const introText = `<p><strong>Species Validation in Progress...</strong></p>`;
+
+    // Store data in session storage
+    sessionStorage.setItem('introText', introText);
+    sessionStorage.setItem('resultsHTML', pointsBreakdown);
+
+    // Redirect to the results page
+    window.location.href = "validation.html";
 
     // Store observation in Firestore
     const currentUserId = auth.currentUser.uid;
     await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
 
   } catch (err) {
-    showModal(`<p style="color: red;">Error validating photo for ${species.name}: ${err.message}</p>`);
+    // Optionally, store error info and redirect to an error page or display on the same page
+    sessionStorage.setItem('introText', `<p style="color: red;">Error validating photo for ${species.name}</p>`);
+    sessionStorage.setItem('resultsHTML', `<p style="color: red;">${err.message}</p>`);
+    window.location.href = "validation.html";
   }
 }
-
-
 
 // Validate general plant picture
 async function validateGeneralPicture() {
@@ -466,13 +470,10 @@ async function validateGeneralPicture() {
     const plantnetImageId = jsonResponse.query.images[0];
     const identification_score = jsonResponse.results[0].score;
 
-    // Get the device's current GPS coordinates
     const { lat, lon } = await getCoordinates();
 
-    // Fetch points from the backend
     const { total_points, points } = await getPoints(lat, lon, bestMatch);
 
-    // Determine mission level
     let missionLevel = "Common";
     let levelClass = "common-points";
     
@@ -490,30 +491,33 @@ async function validateGeneralPicture() {
       levelClass = "legendary-points";
     }
 
-    // Construct species info link
     const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
 
-    // Construct points breakdown
     let pointsBreakdown = `<h2>Identification Results</h2>`;
     pointsBreakdown += `<p><strong>Species Identified:</strong> <a href="${speciesLink}" target="_blank">${bestMatch}</a></p>`;
     pointsBreakdown += `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
     pointsBreakdown += `<h3>Total Points: ${total_points}</h3>`;
     pointsBreakdown += `<h4>Points Breakdown:</h4>`;
-
     for (const key in points) {
       let displayKey = key === 'base' ? 'Species observation' : key;
       pointsBreakdown += `<p>${displayKey}: ${points[key]} points</p>`;
     }
 
-    // Show results in a modal
-    showModal(pointsBreakdown);
+    // Set an intro text specific to general picture validation
+    const introText = `<p><strong>General Plant Picture Validation in Progress...</strong></p>`;
+
+    sessionStorage.setItem('introText', introText);
+    sessionStorage.setItem('resultsHTML', pointsBreakdown);
+    window.location.href = "validation.html";
 
     // Store observation in Firestore
     const currentUserId = auth.currentUser.uid;
     await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
 
   } catch (err) {
-    showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
+    sessionStorage.setItem('introText', `<p style="color: red;">Error validating photo</p>`);
+    sessionStorage.setItem('resultsHTML', `<p style="color: red;">${err.message}</p>`);
+    window.location.href = "validation.html";
   }
 }
 
