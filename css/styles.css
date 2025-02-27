@@ -83,9 +83,6 @@ input[type="file"] {
   margin-bottom: 6px;
   cursor: pointer;
 }
-.points-btn:hover {
-  background-color: #2e7d32;
-}
 /* Mission title styling */
 .mission-title {
   font-size: 20px;
