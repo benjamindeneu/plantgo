@@ -233,12 +233,9 @@ async function displaySpecies(response) {
       pointsBtn.classList.add('legendary-points');
     }
     pointsBtn.addEventListener('click', () => {
-      let detail = `<h2>Point Details</h2>`;
-      detail += `<p><small>Mission: ${species.name}</small></p>`;
-      
+      let detail = `<h2>Point details</h2><p><small>Mission: ${species.name}</small></p>`;
       let missionLevel = "";
       let levelClass = "";
-      
       if (totalPoints >= 500 && totalPoints < 1000) {
         missionLevel = "Common";
         levelClass = "common-points";
@@ -252,14 +249,14 @@ async function displaySpecies(response) {
         missionLevel = "Legendary";
         levelClass = "legendary-points";
       }
-    
       detail += `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
-    
-      // Clear previous content
-      document.getElementById("missionModalText").innerHTML = detail;
-    
-      // Show the mission modal
-      document.getElementById("missionModal").style.display = "block";
+      if (species.points) {
+        for (const key in species.points) {
+          let displayKey = key === 'base' ? 'Species observation' : key;
+          detail += `<p>${displayKey}: ${species.points[key]} points</p>`;
+        }
+      }
+      showModal(detail);
     });
 
     infoContainer.appendChild(pointsBtn);
