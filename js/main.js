@@ -421,15 +421,15 @@ async function validateGeneralPicture() {
     const newProgress = ((newTotalPoints - newPrevLevelThreshold) / (newNextLevelThreshold - newPrevLevelThreshold)) * 100;
 
     // Build identification result UI
-    let resultHtml = `<h1><strong><a href="${speciesLink}" target="_blank">${bestMatch}</a></strong></h1>`;
+    let resultHtml = `<h3><strong><a href="${speciesLink}" target="_blank">${bestMatch}</a></strong></h3>`;
     if (isMissionValidated) {
       resultHtml += `<p style="color: green;"><strong>Mission validated!</strong></p>`;
     }
     // Show user-uploaded image instead
     resultHtml += `
-    <h1 style="text-align: center;">Points: 
+    <h3 style="text-align: center;">Points: 
       <span id="totalPoints">0</span>
-    </h1>
+    </h3>
     <div style="text-align: center;">
       <h4>Your observation:</h4>
       <img src="${uploadedImageUrl}" alt="Uploaded plant image" 
