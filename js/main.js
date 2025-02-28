@@ -452,10 +452,10 @@ async function validateSpeciesPicture(species, file) {
     );
 
     // Set an intro text specific to species validation
-    const introText = `<p><strong>Species Validation Complete!</strong></p>`;
+    //const introText = `<p><strong>Species Validation Complete!</strong></p>`;
 
     // Store results in session storage
-    sessionStorage.setItem('introText', introText);
+    //sessionStorage.setItem('introText', introText);
     sessionStorage.setItem('resultsHTML', pointsBreakdown);
 
     // Instead of redirecting, load the validation view in the iframe
@@ -534,9 +534,9 @@ async function validateGeneralPicture() {
     );
 
     // Set an intro text specific to general picture validation
-    const introText = `<p><strong>General Plant Picture Validation Complete!</strong></p>`;
+    //const introText = `<p><strong>General Plant Picture Validation Complete!</strong></p>`;
 
-    sessionStorage.setItem('introText', introText);
+    //sessionStorage.setItem('introText', introText);
     sessionStorage.setItem('resultsHTML', pointsBreakdown);
     
     // Load the validation view in the iframe instead of redirecting
