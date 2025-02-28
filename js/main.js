@@ -323,7 +323,7 @@ async function validateGeneralPicture() {
   }
 
   // Lock the progress bar to prevent unwanted updates
-  document.getElementById('resultProgressBar').dataset.locked = "true";
+  document.getElementById('resultLevelProgressBar').dataset.locked = "true";
   console.log("[validateGeneralPicture] Progress bar LOCKED from updates.");
 
   const spinner = document.getElementById('spinner');
