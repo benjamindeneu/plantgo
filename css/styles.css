@@ -430,3 +430,7 @@ header {
     transform: translateY(0);
   }
 }
+
+#modalConfetti {
+  z-index: 1000; /* Ensures it appears above other elements */
+}
