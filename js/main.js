@@ -4,6 +4,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { collection, doc, addDoc, setDoc, getDoc, serverTimestamp, GeoPoint, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 import { db } from './firebase-config.js';
 
+const missionPoints = 500;
 let missionsList = [];
 
 let currentUserProgress = {
@@ -238,29 +239,29 @@ async function displaySpecies(response) {
     const pointsBtn = document.createElement('button');
     pointsBtn.classList.add('points-btn');
     pointsBtn.textContent = `${totalPoints} points`;
-    if (totalPoints >= 500 && totalPoints < 1000) {
+    if (totalPoints >= 0 && totalPoints < 500) {
       pointsBtn.classList.add('common-points');
-    } else if (totalPoints >= 1000 && totalPoints < 1500) {
+    } else if (totalPoints >= 500 && totalPoints < 1000) {
       pointsBtn.classList.add('rare-points');
-    } else if (totalPoints >= 1500 && totalPoints < 2000) {
+    } else if (totalPoints >= 1000 && totalPoints < 1500) {
       pointsBtn.classList.add('epic-points');
-    } else if (totalPoints >= 2000) {
+    } else if (totalPoints >= 1500) {
       pointsBtn.classList.add('legendary-points');
     }
     pointsBtn.addEventListener('click', () => {
       let detail = `<h2>Point details</h2><p><small>Mission: ${species.name}</small></p>`;
       let missionLevel = "";
       let levelClass = "";
-      if (totalPoints >= 500 && totalPoints < 1000) {
+      if (totalPoints >= 0 && totalPoints < 500) {
         missionLevel = "Common";
         levelClass = "common-points";
-      } else if (totalPoints >= 1000 && totalPoints < 1500) {
+      } else if (totalPoints >= 500 && totalPoints < 1000) {
         missionLevel = "Rare";
         levelClass = "rare-points";
-      } else if (totalPoints >= 1500 && totalPoints < 2000) {
+      } else if (totalPoints >= 1000 && totalPoints < 1500) {
         missionLevel = "Epic";
         levelClass = "epic-points";
-      } else if (totalPoints >= 2000) {
+      } else if (totalPoints >= 1500) {
         missionLevel = "Legendary";
         levelClass = "legendary-points";
       }
@@ -377,7 +378,7 @@ async function validateGeneralPicture() {
     if (missionsList && missionsList.length > 0) {
       const missionMatch = missionsList.find(m => m.name.trim().toLowerCase() === bestMatch.trim().toLowerCase());
       if (missionMatch) {
-        total_points = missionMatch.total_points + 500;
+        total_points = missionMatch.total_points + missionPoints;
         points = missionMatch.points;
         isMissionValidated = true;
       } else {
@@ -450,7 +451,7 @@ async function validateGeneralPicture() {
     // If mission validated, show bonus points
     if (isMissionValidated) {
       setTimeout(() => {
-        const bonusHtml = `<h4>Bonus Points:</h4><p class="fade-in">Mission validated: 500 points</p>`;
+        const bonusHtml = `<h4>Bonus Points:</h4><p class="fade-in">Mission validated: ${missionPoints} points</p>`;
         document.getElementById("pointsContainer").insertAdjacentHTML("beforeend", bonusHtml);
       }, delay);
       delay += 300;
