@@ -392,8 +392,9 @@ async function validateGeneralPicture() {
       points = result.points;
     }
 
-    // Fetch Wikipedia Image
-    const wikiImageUrl = await getWikipediaImage(bestMatch);
+    // Use the user-uploaded image instead of fetching from Wikipedia
+    const uploadedImageUrl = URL.createObjectURL(file);
+
 
     // Add observation to Firestore
     await addObservation(
@@ -424,9 +425,12 @@ async function validateGeneralPicture() {
     if (isMissionValidated) {
       resultHtml += `<p style="color: green;"><strong>Mission validated!</strong></p>`;
     }
-    if (wikiImageUrl) {
-      resultHtml += `<img src="${wikiImageUrl}" alt="${bestMatch}" style="max-width: 150px; display: block; margin: 10px auto;">`;
-    }
+    // Show user-uploaded image instead
+    resultHtml += `
+      <div style="text-align: center;">
+        <h4>Your Uploaded Image:</h4>
+        <img src="${uploadedImageUrl}" alt="Uploaded plant image" style="max-width: 200px; border-radius: 10px; display: block; margin: 10px auto;">
+      </div>`;
     // Compute total observation points alone (excluding mission bonus)
     let observationPointsTotal = 0;
     if (points) {
