@@ -312,21 +312,33 @@ async function validateGeneralPicture() {
     return;
   }
   
-  // Show spinner
+  // Show the spinner while processing
   const spinner = document.getElementById('spinner');
   spinner.style.display = 'block';
 
   try {
+    // Capture the current progress before identification starts
+    const oldProgress = currentUserProgress.progress;
+    const oldLevel = currentUserProgress.level;
+    
+    // Optionally, open the result modal and display the current (old) progress first
+    document.getElementById('resultLevelNumber').textContent = oldLevel;
+    document.getElementById('resultLevelProgressBar').style.width = `${oldProgress}%`;
+    document.getElementById('resultDetails').innerHTML = `<p>Processing identification...</p>`;
+    showModal(''); // Open modal (you may pass empty content if updating elements manually)
+
+    // Identify the picture using your identifyPicture function
     const jsonResponse = await identifyPicture(file);
     const bestMatch = jsonResponse.bestMatch;
     const plantnetImageId = jsonResponse.query.images[0];
     const identification_score = jsonResponse.results[0].score;
 
+    // Get the user's current GPS coordinates
     const { lat, lon } = await getCoordinates();
 
+    // Determine mission points
     let total_points, points;
     let isMissionValidated = false;
-
     if (missionsList && missionsList.length > 0) {
       const missionMatch = missionsList.find(m => m.name.trim().toLowerCase() === bestMatch.trim().toLowerCase());
       if (missionMatch) {
@@ -344,55 +356,51 @@ async function validateGeneralPicture() {
       points = result.points;
     }
 
-    // Determine mission level
-    let missionLevel = "Common";
-    let levelClass = "common-points";
-    if (total_points >= 500 && total_points < 1000) {
-      missionLevel = "Common";
-      levelClass = "common-points";
-    } else if (total_points >= 1000 && total_points < 1500) {
-      missionLevel = "Rare";
-      levelClass = "rare-points";
-    } else if (total_points >= 1500 && total_points < 2000) {
-      missionLevel = "Epic";
-      levelClass = "epic-points";
-    } else if (total_points >= 2000) {
-      missionLevel = "Legendary";
-      levelClass = "legendary-points";
-    }
-
-    // Construct species info link
-    const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
-
-    // Build the results modal content
-    let pointsBreakdown = `<h2>Identification Results</h2>`;
-    pointsBreakdown += `<p>Identified species: <strong>${bestMatch}</strong>.</p>`;
+    // Build the identification result details HTML
+    let resultHtml = `<p>Identified species: <strong>${bestMatch}</strong></p>`;
     if (isMissionValidated) {
-      pointsBreakdown += `<p style="color: green;"><strong>Mission validated!</strong> The identified species matches one of your missions.</p>`;
+      resultHtml += `<p style="color: green;"><strong>Mission validated!</strong></p>`;
     }
-    pointsBreakdown += `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
-    pointsBreakdown += `<h3>Total Points: ${total_points}</h3>`;
-    pointsBreakdown += `<h4>Observation points:</h4>`;
+    resultHtml += `<h3>Total Points: ${total_points}</h3>`;
+    resultHtml += `<h4>Observation Points:</h4>`;
     for (const key in points) {
-      let displayKey = key;
-      if (key !== "mission validated"){
-        pointsBreakdown += `<p>${displayKey}: ${points[key]} points</p>`;
+      if (key !== "mission validated") {
+        resultHtml += `<p>${key}: ${points[key]} points</p>`;
       }
     }
-    if (isMissionValidated) {
-      pointsBreakdown += `<h4>Bonus points:</h4>`;
-      const mission_key = "mission validated"
-      pointsBreakdown += `<p>${mission_key}: ${points[mission_key]} points</p>`;
+    if (isMissionValidated && points["mission validated"]) {
+      resultHtml += `<h4>Bonus Points:</h4>`;
+      resultHtml += `<p>mission validated: ${points["mission validated"]} points</p>`;
     }
-    showModal(pointsBreakdown);
+    document.getElementById('resultDetails').innerHTML = resultHtml;
 
-    // Store observation in Firestore
+    // Store the observation (this will update Firestore and in turn update currentUserProgress via onSnapshot)
     const currentUserId = auth.currentUser.uid;
-    await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
+    await addObservation(
+      currentUserId,
+      bestMatch,
+      lat,
+      lon,
+      plantnetImageId,
+      total_points,
+      points,
+      identification_score
+    );
+
+    // Wait briefly for Firestore to update the user document,
+    // then update the modal with the new level and progress.
+    setTimeout(() => {
+      // currentUserProgress is updated by the onSnapshot listener
+      const newLevel = currentUserProgress.level;
+      const newProgress = currentUserProgress.progress;
+      document.getElementById('resultLevelNumber').textContent = newLevel;
+      document.getElementById('resultLevelProgressBar').style.width = `${newProgress}%`;
+      // Optionally, add more final details here if needed.
+    }, 1500); // Adjust delay as needed based on your update speed
+
   } catch (err) {
     showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
   } finally {
-    // Hide spinner regardless of success or error
     spinner.style.display = 'none';
   }
 }
