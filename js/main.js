@@ -19,25 +19,35 @@ onAuthStateChanged(auth, async (user) => {
     
     // Listen for real-time updates on the user's points
     onSnapshot(userRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const userData = docSnap.data();
-        currentUserProgress.total_points = userData.total_points || 0;
-        currentUserProgress.level = Math.floor(1 + (currentUserProgress.total_points / 11000));
-        const nextLevelThreshold = currentUserProgress.level * 11000;
-        const prevLevelThreshold = (currentUserProgress.level - 1) * 11000;
-        currentUserProgress.progress = ((currentUserProgress.total_points - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold)) * 100;
-        
-        // Update your main UI
-        document.getElementById('levelNumber').textContent = currentUserProgress.level;
-        document.getElementById('levelProgressBar').style.width = `${currentUserProgress.progress}%`;
-
-        // Also update the result modal if it is open
-        if (document.getElementById('resultModal')?.style.display === 'block') {
-          document.getElementById('resultLevelNumber').textContent = currentUserProgress.level;
-          document.getElementById('resultLevelProgressBar').style.width = `${currentUserProgress.progress}%`;
-        }
+      console.log("[onSnapshot] Triggered - Checking if the progress bar should update");
+    
+      if (!docSnap.exists()) return;
+    
+      const userData = docSnap.data();
+      console.log("[onSnapshot] User data received:", userData);
+    
+      // Calculate new progress
+      const newTotalPoints = userData.total_points || 0;
+      const newLevel = Math.floor(1 + (newTotalPoints / 11000));
+      const nextLevelThreshold = newLevel * 11000;
+      const prevLevelThreshold = (newLevel - 1) * 11000;
+      const newProgress = ((newTotalPoints - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold)) * 100;
+    
+      console.log("[onSnapshot] Calculated Level:", newLevel, "Progress:", newProgress);
+    
+      // Check if the progress bar has been manually set already
+      if (document.getElementById('resultProgressBar')?.dataset.locked === "true") {
+        console.log("[onSnapshot] Progress bar update BLOCKED.");
+        return;
       }
+    
+      // Apply updates
+      document.getElementById('levelNumber').textContent = newLevel;
+      document.getElementById('levelProgressBar').style.width = `${newProgress}%`;
+    
+      console.log("[onSnapshot] Progress bar updated from Firestore.");
     });
+
   } else {
     window.location.href = "login.html";
   }
@@ -311,8 +321,11 @@ async function validateGeneralPicture() {
     validationResult.innerHTML = `<p>Please capture or select a photo first.</p>`;
     return;
   }
-  
-  // Show the spinner while processing
+
+  // Lock the progress bar to prevent unwanted updates
+  document.getElementById('resultProgressBar').dataset.locked = "true";
+  console.log("[validateGeneralPicture] Progress bar LOCKED from updates.");
+
   const spinner = document.getElementById('spinner');
   spinner.style.display = 'block';
 
@@ -325,16 +338,16 @@ async function validateGeneralPicture() {
     if (!userSnap.exists()) throw new Error("User document not found.");
 
     const userData = userSnap.data();
-    const oldLevel = Math.floor(1 + (userData.total_points / 11000));
+    const oldTotalPoints = userData.total_points || 0;
+    const oldLevel = Math.floor(1 + (oldTotalPoints / 11000));
     const prevLevelThreshold = (oldLevel - 1) * 11000;
     const nextLevelThreshold = oldLevel * 11000;
-    const oldProgress = ((userData.total_points - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold)) * 100;
+    const oldProgress = ((oldTotalPoints - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold)) * 100;
 
-    // Open the modal with old values
+    // Display initial values
     document.getElementById('resultLevelNumber').textContent = oldLevel;
     document.getElementById('resultLevelProgressBar').style.width = `${oldProgress}%`;
-    document.getElementById('modalText').innerHTML = `<p>Processing identification...</p>`;
-    showModal('');
+    showModal(`<p>Processing identification...</p>`);
 
     // Identify the picture
     const jsonResponse = await identifyPicture(file);
@@ -346,7 +359,7 @@ async function validateGeneralPicture() {
     // Get user's location
     const { lat, lon } = await getCoordinates();
 
-    // Check if the species is part of the current mission list
+    // Determine mission points
     let total_points, points, isMissionValidated = false;
     if (missionsList && missionsList.length > 0) {
       const missionMatch = missionsList.find(m => m.name.trim().toLowerCase() === bestMatch.trim().toLowerCase());
@@ -368,7 +381,7 @@ async function validateGeneralPicture() {
     // Fetch Wikipedia Image
     const wikiImageUrl = await getWikipediaImage(bestMatch);
 
-    // Add observation in Firestore (triggers onSnapshot)
+    // Add observation to Firestore
     await addObservation(
       currentUserId,
       bestMatch,
@@ -380,18 +393,19 @@ async function validateGeneralPicture() {
       identification_score
     );
 
-    // Wait briefly to ensure Firestore updates and `onSnapshot` triggers
+    // Wait for Firestore update
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     // Fetch updated user data
     const newUserSnap = await getDoc(userRef);
     const newUserData = newUserSnap.data();
-    const newLevel = Math.floor(1 + (newUserData.total_points / 11000));
+    const newTotalPoints = newUserData.total_points || 0;
+    const newLevel = Math.floor(1 + (newTotalPoints / 11000));
     const newPrevLevelThreshold = (newLevel - 1) * 11000;
     const newNextLevelThreshold = newLevel * 11000;
-    const newProgress = ((newUserData.total_points - newPrevLevelThreshold) / (newNextLevelThreshold - newPrevLevelThreshold)) * 100;
+    const newProgress = ((newTotalPoints - newPrevLevelThreshold) / (newNextLevelThreshold - newPrevLevelThreshold)) * 100;
 
-    // Build identification result
+    // Build identification result UI
     let resultHtml = `<p>Identified species: <strong><a href="${speciesLink}" target="_blank">${bestMatch}</a></strong></p>`;
     if (isMissionValidated) {
       resultHtml += `<p style="color: green;"><strong>Mission validated!</strong></p>`;
@@ -435,9 +449,16 @@ async function validateGeneralPicture() {
       document.getElementById('resultLevelNumber').textContent = newLevel;
       document.getElementById('resultLevelProgressBar').style.width = `${newProgress}%`;
 
+      console.log(`[validateGeneralPicture] Updated Level: ${newLevel}, Progress: ${newProgress}`);
+
       if (newLevel > oldLevel) {
         triggerLevelUpAnimation(newLevel);
       }
+
+      // Unlock the progress bar only after confirming updates
+      document.getElementById('resultProgressBar').dataset.locked = "false";
+      console.log("[validateGeneralPicture] Progress bar UNLOCKED.");
+
     }, totalAnimationDuration);
 
   } catch (err) {
