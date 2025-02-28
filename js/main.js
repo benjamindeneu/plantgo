@@ -413,7 +413,7 @@ async function validateGeneralPicture() {
       document.getElementById('resultLevelNumber').textContent = newLevel;
       document.getElementById('resultLevelProgressBar').style.width = `${newProgress}%`;
       // Optionally, add more final details here if needed.
-    }, 1500); // Adjust delay as needed based on your update speed
+    }, 3000); // Adjust delay as needed based on your update speed
 
   } catch (err) {
     showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
