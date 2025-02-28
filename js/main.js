@@ -368,17 +368,19 @@ async function validateGeneralPicture() {
 
     // Build the results modal content
     let pointsBreakdown = `<h2>Identification Results</h2>`;
-    if (isMissionValidated) {
-      pointsBreakdown += `<p style="color: green;"><strong>Mission validated!</strong> The identified species <strong>${bestMatch}</strong> matches one of your missions.</p>`;
-    } else {
-      pointsBreakdown += `<p style="color: red;"><strong>Mission NOT validated!</strong> The identified species is <strong><a href="${speciesLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
-    }
     pointsBreakdown += `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
     pointsBreakdown += `<h3>Total Points: ${total_points}</h3>`;
     pointsBreakdown += `<h4>Points Breakdown:</h4>`;
     for (const key in points) {
-      let displayKey = key === 'base' ? 'Species observation' : key;
-      pointsBreakdown += `<p>${displayKey}: ${points[key]} points</p>`;
+      let displayKey = key;
+      if (key !== "mission validated"){
+        pointsBreakdown += `<p>${displayKey}: ${points[key]} points</p>`;
+      }
+    }
+    if (isMissionValidated) {
+      pointsBreakdown += `<h4>Bonus points:</h4>`;
+      const mission_key = "mission validated"
+      pointsBreakdown += `<p>${mission_key}: ${points[mission_key]} points</p>`;
     }
     showModal(pointsBreakdown);
 
