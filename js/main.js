@@ -624,7 +624,7 @@ function animateValue(id, start, end, duration) {
 
 function triggerLevelUpAnimation(newLevel) {
   const levelBadge = document.getElementById('currentLevelText');
-  const modalText = document.getElementById("modalText");
+  const modalText = document.getElementById("progressSection");
 
   // Add glowing and pop-up effects
   levelBadge.classList.add("level-up-glow", "level-up-pop");
