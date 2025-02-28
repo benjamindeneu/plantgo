@@ -96,6 +96,21 @@ window.addEventListener("click", (event) => {
   }
 });
 
+// Modal functions
+function showModalMission(content) {
+  document.getElementById("missionModalText").innerHTML = content;
+  document.getElementById("missionModal").style.display = "block";
+}
+function hideModalMission() {
+  document.getElementById("missionModal").style.display = "none";
+}
+document.getElementById("missionModalClose").addEventListener("click", hideModalMission);
+window.addEventListener("click", (event) => {
+  if (event.target === document.getElementById("missionModalClose")) {
+    hideModalMission();
+  }
+});
+
 // Add observation (and discovery if needed) to Firestore
 async function addObservation(userId, speciesName, lat, lng, plantnetImageCode, total_points, points, plantnet_identify_score) {
   try {
@@ -256,7 +271,7 @@ async function displaySpecies(response) {
           detail += `<p>${displayKey}: ${species.points[key]} points</p>`;
         }
       }
-      showModal(detail);
+      showModalMission(detail);
     });
 
     infoContainer.appendChild(pointsBtn);
