@@ -486,3 +486,18 @@ async function getPoints(lat, lon, species) {
     return { total_points: 0, points: {} };
   }
 }
+
+function animateValue(id, start, end, duration) {
+  const obj = document.getElementById(id);
+  const range = end - start;
+  const increment = range / (duration / 50); // update every 50ms
+  let current = start;
+  const timer = setInterval(() => {
+    current += increment;
+    if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+      current = end;
+      clearInterval(timer);
+    }
+    obj.textContent = Math.floor(current);
+  }, 50);
+}
