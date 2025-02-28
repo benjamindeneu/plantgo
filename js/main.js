@@ -311,7 +311,7 @@ async function validateGeneralPicture() {
     validationResult.innerHTML = `<p>Please capture or select a photo first.</p>`;
     return;
   }
-
+  
   // Show the spinner while processing
   const spinner = document.getElementById('spinner');
   spinner.style.display = 'block';
@@ -333,18 +333,42 @@ async function validateGeneralPicture() {
     // Open the modal with old values
     document.getElementById('resultLevelNumber').textContent = oldLevel;
     document.getElementById('resultLevelProgressBar').style.width = `${oldProgress}%`;
-    showModal(`<p>Processing identification...</p>`);
+    document.getElementById('modalText').innerHTML = `<p>Processing identification...</p>`;
+    showModal('');
 
-    // Identify the plant
+    // Identify the picture
     const jsonResponse = await identifyPicture(file);
     const bestMatch = jsonResponse.bestMatch;
     const plantnetImageId = jsonResponse.query.images[0];
     const identification_score = jsonResponse.results[0].score;
+    const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
 
+    // Get user's location
     const { lat, lon } = await getCoordinates();
-    const { total_points, points } = await getPoints(lat, lon, bestMatch);
 
-    // Add the observation to Firestore (this will trigger onSnapshot)
+    // Check if the species is part of the current mission list
+    let total_points, points, isMissionValidated = false;
+    if (missionsList && missionsList.length > 0) {
+      const missionMatch = missionsList.find(m => m.name.trim().toLowerCase() === bestMatch.trim().toLowerCase());
+      if (missionMatch) {
+        total_points = missionMatch.total_points;
+        points = missionMatch.points;
+        isMissionValidated = true;
+      } else {
+        const result = await getPoints(lat, lon, bestMatch);
+        total_points = result.total_points;
+        points = result.points;
+      }
+    } else {
+      const result = await getPoints(lat, lon, bestMatch);
+      total_points = result.total_points;
+      points = result.points;
+    }
+
+    // Fetch Wikipedia Image
+    const wikiImageUrl = await getWikipediaImage(bestMatch);
+
+    // Add observation in Firestore (triggers onSnapshot)
     await addObservation(
       currentUserId,
       bestMatch,
@@ -359,7 +383,7 @@ async function validateGeneralPicture() {
     // Wait briefly to ensure Firestore updates and `onSnapshot` triggers
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Get updated user data again **after** points update
+    // Fetch updated user data
     const newUserSnap = await getDoc(userRef);
     const newUserData = newUserSnap.data();
     const newLevel = Math.floor(1 + (newUserData.total_points / 11000));
@@ -367,19 +391,26 @@ async function validateGeneralPicture() {
     const newNextLevelThreshold = newLevel * 11000;
     const newProgress = ((newUserData.total_points - newPrevLevelThreshold) / (newNextLevelThreshold - newPrevLevelThreshold)) * 100;
 
-    // Build the identification result details
-    let resultHtml = `<p>Identified species: <strong>${bestMatch}</strong></p>`;
+    // Build identification result
+    let resultHtml = `<p>Identified species: <strong><a href="${speciesLink}" target="_blank">${bestMatch}</a></strong></p>`;
+    if (isMissionValidated) {
+      resultHtml += `<p style="color: green;"><strong>Mission validated!</strong></p>`;
+    }
+    if (wikiImageUrl) {
+      resultHtml += `<img src="${wikiImageUrl}" alt="${bestMatch}" style="max-width: 150px; display: block; margin: 10px auto;">`;
+    }
     resultHtml += `<h3>Total Points: <span id="totalPoints">0</span></h3>`;
     resultHtml += `<h4>Observation Points:</h4>`;
     resultHtml += `<div id="pointsContainer"></div>`;
     document.getElementById('modalText').innerHTML = resultHtml;
 
-    // Animate the total points counter
+    // Animate total points
     animateValue("totalPoints", 0, total_points, 2000);
 
-    // Animate each point row with a delay
+    // Animate each point row
     let delay = 0;
-    for (const key in points) {
+    const keys = Object.keys(points).filter(key => key !== "mission validated");
+    keys.forEach(key => {
       setTimeout(() => {
         const p = document.createElement("p");
         p.textContent = `${key}: ${points[key]} points`;
@@ -387,9 +418,18 @@ async function validateGeneralPicture() {
         document.getElementById("pointsContainer").appendChild(p);
       }, delay);
       delay += 300;
+    });
+
+    // If mission validated, show bonus points
+    if (isMissionValidated && points["mission validated"]) {
+      setTimeout(() => {
+        const bonusHtml = `<h4>Bonus Points:</h4><p class="fade-in">Mission validated: ${points["mission validated"]} points</p>`;
+        document.getElementById("pointsContainer").insertAdjacentHTML("beforeend", bonusHtml);
+      }, delay);
+      delay += 300;
     }
 
-    // Delay before updating progress bar and level
+    // Wait before updating progress bar and level
     const totalAnimationDuration = Math.max(2000, delay) + 1000;
     setTimeout(() => {
       document.getElementById('resultLevelNumber').textContent = newLevel;
@@ -399,7 +439,7 @@ async function validateGeneralPicture() {
         triggerLevelUpAnimation(newLevel);
       }
     }, totalAnimationDuration);
-  
+
   } catch (err) {
     showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
   } finally {
