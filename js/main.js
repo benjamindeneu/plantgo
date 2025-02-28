@@ -357,22 +357,39 @@ async function validateGeneralPicture() {
     }
 
     // Build the identification result details HTML
+    // Build the basic modal HTML first
     let resultHtml = `<p>Identified species: <strong>${bestMatch}</strong></p>`;
     if (isMissionValidated) {
       resultHtml += `<p style="color: green;"><strong>Mission validated!</strong></p>`;
     }
-    resultHtml += `<h3>Total Points: ${total_points}</h3>`;
+    resultHtml += `<h3>Total Points: <span id="totalPoints">0</span></h3>`;
     resultHtml += `<h4>Observation Points:</h4>`;
-    for (const key in points) {
-      if (key !== "mission validated") {
-        resultHtml += `<p>${key}: ${points[key]} points</p>`;
-      }
-    }
-    if (isMissionValidated && points["mission validated"]) {
-      resultHtml += `<h4>Bonus Points:</h4>`;
-      resultHtml += `<p>mission validated: ${points["mission validated"]} points</p>`;
-    }
+    resultHtml += `<div id="pointsContainer"></div>`;
     document.getElementById('modalText').innerHTML = resultHtml;
+    
+    // Animate the total points counter from 0 to total_points over 1.5 seconds
+    animateValue("totalPoints", 0, total_points, 1500);
+    
+    // Animate each point row
+    const keys = Object.keys(points).filter(key => key !== "mission validated");
+    let delay = 0;
+    keys.forEach(key => {
+      setTimeout(() => {
+        const p = document.createElement("p");
+        p.textContent = `${key}: ${points[key]} points`;
+        p.classList.add("fade-in"); // For a fade-in effect via CSS
+        document.getElementById("pointsContainer").appendChild(p);
+      }, delay);
+      delay += 300; // adjust delay as needed
+    });
+    
+    // If there are bonus points (mission validated), add them after the main rows
+    if (isMissionValidated && points["mission validated"]) {
+      setTimeout(() => {
+        const bonusHtml = `<h4>Bonus Points:</h4><p class="fade-in">mission validated: ${points["mission validated"]} points</p>`;
+        document.getElementById("pointsContainer").insertAdjacentHTML("beforeend", bonusHtml);
+      }, delay);
+    }
 
     // Store the observation (this will update Firestore and in turn update currentUserProgress via onSnapshot)
     const currentUserId = auth.currentUser.uid;
