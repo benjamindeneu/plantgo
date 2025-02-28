@@ -425,7 +425,16 @@ async function validateGeneralPicture() {
     const newProgress = ((newTotalPoints - newPrevLevelThreshold) / (newNextLevelThreshold - newPrevLevelThreshold)) * 100;
 
     // Build identification result UI
-    let resultHtml = `<h3><strong><a href="${speciesLink}" target="_blank">${bestMatch}</a></strong></h3>`;
+    let resultHtml = `
+      <h3>
+        <button 
+          onclick="window.open('${speciesLink}', '_blank')" 
+          class="species-button"
+        >
+          ${bestMatch}
+        </button>
+      </h3>
+    `;
     if (isMissionValidated) {
       resultHtml += `<p style="color: green;"><strong>Mission validated!</strong></p>`;
     }
