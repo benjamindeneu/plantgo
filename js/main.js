@@ -333,6 +333,8 @@ async function validateGeneralPicture() {
     const plantnetImageId = jsonResponse.query.images[0];
     const identification_score = jsonResponse.results[0].score;
 
+    const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
+
     // Get the user's current GPS coordinates
     const { lat, lon } = await getCoordinates();
 
@@ -358,7 +360,7 @@ async function validateGeneralPicture() {
 
     // Build the identification result details HTML
     // Build the basic modal HTML first
-    let resultHtml = `<p>Identified species: <strong>${bestMatch}</strong></p>`;
+    let resultHtml = `<p>Identified species: <strong><a href="${speciesLink}" target="_blank">${bestMatch}</a></strong></p>`;
     if (isMissionValidated) {
       resultHtml += `<p style="color: green;"><strong>Mission validated!</strong></p>`;
     }
