@@ -456,7 +456,7 @@ async function validateGeneralPicture() {
       }
 
       // Unlock the progress bar only after confirming updates
-      document.getElementById('resultProgressBar').dataset.locked = "false";
+      document.getElementById('resultLevelProgressBar').dataset.locked = "false";
       console.log("[validateGeneralPicture] Progress bar UNLOCKED.");
 
     }, totalAnimationDuration);
