@@ -3,55 +3,114 @@
 <head>
   <meta charset="UTF-8" />
   <title>Validation Results</title>
-  <!-- Responsive meta tag -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="css/styles.css" />
   <style>
-    /* Container for the content */
-    #resultsContainer {
-      max-width: 600px;
-      margin: 20px auto;
-      padding: 20px;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      text-align: center;
+    /* Additional styling for the header and animated elements */
+    #validationHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #e8f5e9;
+      padding: 10px 20px;
+      border-bottom: 1px solid #ccc;
+      margin-bottom: 20px;
     }
-
-    /* Responsive adjustments for mobile devices */
-    @media (max-width: 480px) {
-      #resultsContainer {
-        margin: 10px;
-        padding: 15px;
-        width: calc(100% - 20px);
-      }
-      header h1 {
-        font-size: 1.5em;
-      }
-      #resultsContainer p {
-        font-size: 14px;
-      }
+    #userLevelDisplay {
+      font-size: 16px;
+      font-weight: bold;
+      color: #1b5e20;
+    }
+    #closeValidationBtn {
+      background-color: #D32F2F;
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #animatedPointsContainer {
+      margin-bottom: 20px;
+    }
+    #animatedPointsContainer h3 {
+      font-size: 20px;
+      color: #388e3c;
+    }
+    #missionBadgeContainer {
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
+  <!-- Header with user level and close button -->
+  <div id="validationHeader">
+    <div id="userLevelDisplay">Your Level: 1</div>
+    <button id="closeValidationBtn">Close</button>
+  </div>
+
   <div id="resultsContainer">
-    <!-- Intro text -->
-    <!-- <div id="intro"></div> -->
-    <!-- Final results -->
+    <!-- Container for the animated points display -->
+    <div id="animatedPointsContainer">
+      <h3>Total Points: <span id="pointsCounter">0</span></h3>
+    </div>
+    <!-- Container for the mission level badge (hidden until animation completes) -->
+    <div id="missionBadgeContainer" style="display:none;"></div>
+    <!-- Other results (if any) can go below -->
     <div id="results"></div>
   </div>
 
   <script>
+    // When the document is ready...
     document.addEventListener("DOMContentLoaded", function() {
-      // Read data passed via session storage
-      var introText = sessionStorage.getItem('introText') || "<p>Validation complete!</p>";
-      var resultsHTML = sessionStorage.getItem('resultsHTML') || "<p>No results available.</p>";
+      // Display user level from sessionStorage
+      var userLevel = sessionStorage.getItem('userLevel') || "1";
+      document.getElementById('userLevelDisplay').textContent = "Your Level: " + userLevel;
+      
+      // Retrieve the final total points, mission level, and level class from session storage
+      var totalPoints = parseInt(sessionStorage.getItem('totalPoints')) || 0;
+      var missionLevel = sessionStorage.getItem('missionLevel') || "";
+      var levelClass = sessionStorage.getItem('levelClass') || "";
 
-      // Immediately set the intro text and results without a loading spinner delay
-      //document.getElementById('intro').innerHTML = introText;
+      // Animate the points count
+      animatePoints(totalPoints, 2000, function() {
+        // Once the animation completes, display the mission level badge
+        if (missionLevel) {
+          document.getElementById('missionBadgeContainer').innerHTML = `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
+          document.getElementById('missionBadgeContainer').style.display = 'block';
+        }
+      });
+
+      // Also display any static results HTML if stored
+      var resultsHTML = sessionStorage.getItem('resultsHTML') || "";
       document.getElementById('results').innerHTML = resultsHTML;
+      
+      // Set up the close button to hide the validation view (assuming it’s in an iframe)
+      document.getElementById('closeValidationBtn').addEventListener('click', function(){
+        // Hide the validation iframe container in the parent document
+        window.parent.document.getElementById('validationFrameContainer').style.display = 'none';
+      });
     });
+
+    // Function to animate points count
+    function animatePoints(finalPoints, duration, callback) {
+      var counterElem = document.getElementById('pointsCounter');
+      var start = 0;
+      var stepTime = 50; // update every 50ms
+      var steps = duration / stepTime;
+      var increment = finalPoints / steps;
+      var current = start;
+      var interval = setInterval(function() {
+        current += increment;
+        if (current >= finalPoints) {
+          current = finalPoints;
+          clearInterval(interval);
+          if (typeof callback === "function") {
+            callback();
+          }
+        }
+        counterElem.textContent = Math.floor(current);
+      }, stepTime);
+    }
   </script>
 </body>
 </html>
