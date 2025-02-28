@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="css/styles.css" />
   <style>
-    /* Additional styling for the header and animated elements */
+    /* Header styling with level badge and progress bar */
     #validationHeader {
       display: flex;
       justify-content: space-between;
@@ -16,10 +16,33 @@
       border-bottom: 1px solid #ccc;
       margin-bottom: 20px;
     }
-    #userLevelDisplay {
-      font-size: 16px;
+    #userLevelContainer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .level-badge {
+      font-size: 14px;
       font-weight: bold;
-      color: #1b5e20;
+      padding: 6px 12px;
+      border-radius: 15px;
+      background-color: #333;
+      color: white;
+      display: flex;
+      align-items: center;
+    }
+    #levelProgressContainer {
+      width: 100px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    #levelProgressBar {
+      height: 100%;
+      width: 0%;
+      background-color: white;
+      transition: width 0.5s ease-in-out;
     }
     #closeValidationBtn {
       background-color: #D32F2F;
@@ -29,6 +52,7 @@
       border-radius: 4px;
       cursor: pointer;
     }
+    /* Points animation containers */
     #animatedPointsContainer {
       margin-bottom: 20px;
     }
@@ -36,62 +60,64 @@
       font-size: 20px;
       color: #388e3c;
     }
-    #missionBadgeContainer {
-      margin-top: 10px;
+    #pointsDetailsContainer p {
+      font-size: 16px;
+      color: #2e7d32;
+      margin: 4px 0;
+      opacity: 0;
+      transition: opacity 0.5s ease-in;
     }
   </style>
 </head>
 <body>
-  <!-- Header with user level and close button -->
+  <!-- Header with level badge (with progress bar) and a Close button -->
   <div id="validationHeader">
-    <div id="userLevelDisplay">Your Level: 1</div>
+    <div id="userLevelContainer">
+      <div id="userLevelBadge" class="level-badge">
+        Lv. <span id="levelNumber">1</span>
+      </div>
+      <div id="levelProgressContainer">
+        <div id="levelProgressBar"></div>
+      </div>
+    </div>
     <button id="closeValidationBtn">Close</button>
   </div>
 
   <div id="resultsContainer">
-    <!-- Container for the animated points display -->
+    <!-- Animated total points display -->
     <div id="animatedPointsContainer">
       <h3>Total Points: <span id="pointsCounter">0</span></h3>
     </div>
-    <!-- Container for the mission level badge (hidden until animation completes) -->
-    <div id="missionBadgeContainer" style="display:none;"></div>
-    <!-- Other results (if any) can go below -->
-    <div id="results"></div>
+    <!-- Container for the detailed points breakdown -->
+    <div id="pointsDetailsContainer"></div>
   </div>
 
   <script>
-    // When the document is ready...
     document.addEventListener("DOMContentLoaded", function() {
-      // Display user level from sessionStorage
+      // Retrieve the user's level and progress (stored from the main page)
       var userLevel = sessionStorage.getItem('userLevel') || "1";
-      document.getElementById('userLevelDisplay').textContent = "Your Level: " + userLevel;
+      var userProgress = sessionStorage.getItem('userProgress') || "0"; // progress percentage
       
-      // Retrieve the final total points, mission level, and level class from session storage
+      // Update header level display and progress bar
+      document.getElementById('levelNumber').textContent = userLevel;
+      document.getElementById('levelProgressBar').style.width = userProgress + '%';
+      
+      // Retrieve total points from session storage
       var totalPoints = parseInt(sessionStorage.getItem('totalPoints')) || 0;
-      var missionLevel = sessionStorage.getItem('missionLevel') || "";
-      var levelClass = sessionStorage.getItem('levelClass') || "";
-
-      // Animate the points count
+      
+      // Animate the total points count
       animatePoints(totalPoints, 2000, function() {
-        // Once the animation completes, display the mission level badge
-        if (missionLevel) {
-          document.getElementById('missionBadgeContainer').innerHTML = `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
-          document.getElementById('missionBadgeContainer').style.display = 'block';
-        }
+        // After the points count animation, progressively show the detailed breakdown
+        animatePointsDetails();
       });
 
-      // Also display any static results HTML if stored
-      var resultsHTML = sessionStorage.getItem('resultsHTML') || "";
-      document.getElementById('results').innerHTML = resultsHTML;
-      
-      // Set up the close button to hide the validation view (assuming it’s in an iframe)
+      // Set up the Close button to hide the validation view (assumed to be in an iframe)
       document.getElementById('closeValidationBtn').addEventListener('click', function(){
-        // Hide the validation iframe container in the parent document
         window.parent.document.getElementById('validationFrameContainer').style.display = 'none';
       });
     });
 
-    // Function to animate points count
+    // Animate the total points number
     function animatePoints(finalPoints, duration, callback) {
       var counterElem = document.getElementById('pointsCounter');
       var start = 0;
@@ -110,6 +136,37 @@
         }
         counterElem.textContent = Math.floor(current);
       }, stepTime);
+    }
+
+    // Animate the appearance of each detail line from the points breakdown
+    function animatePointsDetails() {
+      // Retrieve the results HTML (detailed breakdown) from sessionStorage
+      var resultsHTML = sessionStorage.getItem('resultsHTML') || "";
+      // Create a temporary container to extract individual elements
+      var tempDiv = document.createElement('div');
+      tempDiv.innerHTML = resultsHTML;
+      var detailsArray = Array.from(tempDiv.children);
+      
+      var container = document.getElementById('pointsDetailsContainer');
+      container.innerHTML = ""; // Clear any existing content
+      
+      // Function to reveal each detail element one at a time
+      let index = 0;
+      function showNextDetail() {
+        if (index < detailsArray.length) {
+          var detailElem = detailsArray[index];
+          // Start hidden (opacity 0)
+          detailElem.style.opacity = 0;
+          container.appendChild(detailElem);
+          // Trigger fade-in
+          setTimeout(() => {
+            detailElem.style.opacity = 1;
+          }, 50);
+          index++;
+          setTimeout(showNextDetail, 300); // delay before showing the next detail
+        }
+      }
+      showNextDetail();
     }
   </script>
 </body>
