@@ -52,13 +52,26 @@
       border-radius: 4px;
       cursor: pointer;
     }
+    /* Identification result */
+    #identificationResult {
+      text-align: center;
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #388e3c;
+    }
     /* Points animation containers */
     #animatedPointsContainer {
+      text-align: center;
       margin-bottom: 20px;
     }
     #animatedPointsContainer h3 {
       font-size: 20px;
       color: #388e3c;
+    }
+    #pointsDetailsContainer {
+      text-align: left;
+      max-width: 600px;
+      margin: 0 auto;
     }
     #pointsDetailsContainer p {
       font-size: 16px;
@@ -67,10 +80,16 @@
       opacity: 0;
       transition: opacity 0.5s ease-in;
     }
+    /* Mission badge container */
+    #missionBadgeContainer {
+      text-align: center;
+      margin-top: 20px;
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <!-- Header with level badge (with progress bar) and a Close button -->
+  <!-- Header: initially shows the previous level and progress -->
   <div id="validationHeader">
     <div id="userLevelContainer">
       <div id="userLevelBadge" class="level-badge">
@@ -83,6 +102,9 @@
     <button id="closeValidationBtn">Close</button>
   </div>
 
+  <!-- Display the identification result immediately -->
+  <div id="identificationResult"></div>
+
   <div id="resultsContainer">
     <!-- Animated total points display -->
     <div id="animatedPointsContainer">
@@ -90,84 +112,124 @@
     </div>
     <!-- Container for the detailed points breakdown -->
     <div id="pointsDetailsContainer"></div>
+    <!-- Container for the mission level badge -->
+    <div id="missionBadgeContainer"></div>
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      // Retrieve the user's level and progress (stored from the main page)
-      var userLevel = sessionStorage.getItem('userLevel') || "1";
-      var userProgress = sessionStorage.getItem('userProgress') || "0"; // progress percentage
+    document.addEventListener("DOMContentLoaded", async function() {
+      // STEP 1: Display previous level, progress and identification result.
+      var prevUserLevel = sessionStorage.getItem('prevUserLevel') || "1";
+      var prevUserProgress = sessionStorage.getItem('prevUserProgress') || "0"; // as a percentage
+      var speciesName = sessionStorage.getItem('speciesName') || "Unknown Species";
       
-      // Update header level display and progress bar
-      document.getElementById('levelNumber').textContent = userLevel;
-      document.getElementById('levelProgressBar').style.width = userProgress + '%';
+      // Set header to show previous values.
+      document.getElementById('levelNumber').textContent = prevUserLevel;
+      document.getElementById('levelProgressBar').style.width = prevUserProgress + '%';
       
-      // Retrieve total points from session storage
-      var totalPoints = parseInt(sessionStorage.getItem('totalPoints')) || 0;
+      // Display the identification result (species name).
+      document.getElementById('identificationResult').innerHTML = "Identified Species: " + speciesName;
       
-      // Animate the total points count
-      animatePoints(totalPoints, 2000, function() {
-        // After the points count animation, progressively show the detailed breakdown
-        animatePointsDetails();
-      });
-
-      // Set up the Close button to hide the validation view (assumed to be in an iframe)
-      document.getElementById('closeValidationBtn').addEventListener('click', function(){
-        window.parent.document.getElementById('validationFrameContainer').style.display = 'none';
-      });
+      // STEP 2: Animate the points details and increase the points counter.
+      var prevTotalPoints = parseInt(sessionStorage.getItem('prevTotalPoints')) || 0;
+      var newTotalPoints = parseInt(sessionStorage.getItem('newTotalPoints')) || 0;
+      await animatePointsDetailsAndCounter(prevTotalPoints, newTotalPoints);
+      
+      // STEP 3: Display the mission level badge.
+      var missionLevel = sessionStorage.getItem('missionLevel') || "";
+      var levelClass = sessionStorage.getItem('levelClass') || "";
+      await displayMissionLevelBadge(missionLevel, levelClass);
+      
+      // STEP 4: Update the header with the new level and progress.
+      var newUserLevel = sessionStorage.getItem('newUserLevel') || prevUserLevel;
+      var newUserProgress = sessionStorage.getItem('newUserProgress') || prevUserProgress;
+      await updateHeaderLevel(newUserLevel, newUserProgress);
     });
-
-    // Animate the total points number
-    function animatePoints(finalPoints, duration, callback) {
+    
+    // Animate the points details and counter sequentially.
+    function animatePointsDetailsAndCounter(prevPoints, newPoints) {
+      return new Promise(resolve => {
+        var resultsHTML = sessionStorage.getItem('resultsHTML') || "";
+        var tempDiv = document.createElement('div');
+        tempDiv.innerHTML = resultsHTML;
+        var detailsArray = Array.from(tempDiv.children);
+        var container = document.getElementById('pointsDetailsContainer');
+        container.innerHTML = "";
+        
+        // Determine total duration based on the number of lines.
+        var totalLines = detailsArray.length;
+        var delayPerLine = 300; // ms per line
+        var totalDuration = totalLines * delayPerLine;
+        
+        // Animate the points counter from the previous total to the new total over the total duration.
+        animateCounter(prevPoints, newPoints, totalDuration);
+        
+        // Reveal each line one by one.
+        let index = 0;
+        function showNextDetail() {
+          if (index < detailsArray.length) {
+            var detailElem = detailsArray[index];
+            detailElem.style.opacity = 0;
+            container.appendChild(detailElem);
+            setTimeout(() => {
+              detailElem.style.opacity = 1;
+            }, 50);
+            index++;
+            setTimeout(showNextDetail, delayPerLine);
+          } else {
+            resolve();
+          }
+        }
+        showNextDetail();
+      });
+    }
+    
+    // Animate the counter from prevPoints to newPoints over a given duration.
+    function animateCounter(prevPoints, newPoints, duration) {
       var counterElem = document.getElementById('pointsCounter');
-      var start = 0;
+      var start = prevPoints;
+      var end = newPoints;
       var stepTime = 50; // update every 50ms
       var steps = duration / stepTime;
-      var increment = finalPoints / steps;
+      var increment = (end - start) / steps;
       var current = start;
       var interval = setInterval(function() {
         current += increment;
-        if (current >= finalPoints) {
-          current = finalPoints;
+        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+          current = end;
           clearInterval(interval);
-          if (typeof callback === "function") {
-            callback();
-          }
         }
         counterElem.textContent = Math.floor(current);
       }, stepTime);
     }
-
-    // Animate the appearance of each detail line from the points breakdown
-    function animatePointsDetails() {
-      // Retrieve the results HTML (detailed breakdown) from sessionStorage
-      var resultsHTML = sessionStorage.getItem('resultsHTML') || "";
-      // Create a temporary container to extract individual elements
-      var tempDiv = document.createElement('div');
-      tempDiv.innerHTML = resultsHTML;
-      var detailsArray = Array.from(tempDiv.children);
-      
-      var container = document.getElementById('pointsDetailsContainer');
-      container.innerHTML = ""; // Clear any existing content
-      
-      // Function to reveal each detail element one at a time
-      let index = 0;
-      function showNextDetail() {
-        if (index < detailsArray.length) {
-          var detailElem = detailsArray[index];
-          // Start hidden (opacity 0)
-          detailElem.style.opacity = 0;
-          container.appendChild(detailElem);
-          // Trigger fade-in
-          setTimeout(() => {
-            detailElem.style.opacity = 1;
-          }, 50);
-          index++;
-          setTimeout(showNextDetail, 300); // delay before showing the next detail
-        }
-      }
-      showNextDetail();
+    
+    // Display the mission level badge.
+    function displayMissionLevelBadge(missionLevel, levelClass) {
+      return new Promise(resolve => {
+        var badgeContainer = document.getElementById('missionBadgeContainer');
+        badgeContainer.innerHTML = `<p class="mission-level ${levelClass}" style="opacity:0;">${missionLevel}</p>`;
+        badgeContainer.style.display = 'block';
+        setTimeout(() => {
+          badgeContainer.firstChild.style.opacity = 1;
+          resolve();
+        }, 300);
+      });
     }
+    
+    // Update the header with the new level and progress.
+    function updateHeaderLevel(newUserLevel, newUserProgress) {
+      return new Promise(resolve => {
+        document.getElementById('levelNumber').textContent = newUserLevel;
+        document.getElementById('levelProgressBar').style.width = newUserProgress + '%';
+        // Allow some time for the transition to finish.
+        setTimeout(() => { resolve(); }, 500);
+      });
+    }
+    
+    // Close button functionality: hide the validation view (assumed to be in an iframe).
+    document.getElementById('closeValidationBtn').addEventListener('click', function(){
+      window.parent.document.getElementById('validationFrameContainer').style.display = 'none';
+    });
   </script>
 </body>
 </html>
