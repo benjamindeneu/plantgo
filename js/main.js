@@ -368,7 +368,7 @@ async function validateGeneralPicture() {
     document.getElementById('modalText').innerHTML = resultHtml;
     
     // Animate the total points counter from 0 to total_points over 1.5 seconds
-    animateValue("totalPoints", 0, total_points, 1500);
+    animateValue("totalPoints", 0, total_points, 3000);
     
     // Animate each point row
     const keys = Object.keys(points).filter(key => key !== "mission validated");
@@ -380,7 +380,7 @@ async function validateGeneralPicture() {
         p.classList.add("fade-in"); // For a fade-in effect via CSS
         document.getElementById("pointsContainer").appendChild(p);
       }, delay);
-      delay += 300; // adjust delay as needed
+      delay += 800; // adjust delay as needed
     });
     
     // If there are bonus points (mission validated), add them after the main rows
