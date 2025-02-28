@@ -396,16 +396,6 @@ async function validateGeneralPicture() {
     // Store the observation in Firestore.
     // This call updates currentUserProgress via an onSnapshot listener.
     const currentUserId = auth.currentUser.uid;
-    await addObservation(
-      currentUserId,
-      bestMatch,
-      lat,
-      lon,
-      plantnetImageId,
-      total_points,
-      points,
-      identification_score
-    );
     
     // Calculate delay from points animation and add extra delay (e.g., extra 500ms)
     const extraDelay = 1000;
@@ -419,13 +409,24 @@ async function validateGeneralPicture() {
       document.getElementById('resultLevelNumber').textContent = newLevel;
       document.getElementById('resultLevelProgressBar').style.width = `${newProgress}%`;
     }, totalAnimationDuration);
+
+    await addObservation(
+      currentUserId,
+      bestMatch,
+      lat,
+      lon,
+      plantnetImageId,
+      total_points,
+      points,
+      identification_score
+    );
   
-    } catch (err) {
-      showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
-    } finally {
-      spinner.style.display = 'none';
-    }
+  } catch (err) {
+    showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
+  } finally {
+    spinner.style.display = 'none';
   }
+}
 
 // Get GPS coordinates as a promise
 function getCoordinates() {
