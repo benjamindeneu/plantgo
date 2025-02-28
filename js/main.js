@@ -446,12 +446,13 @@ async function validateSpeciesPicture(species, file) {
     sessionStorage.setItem('introText', introText);
     sessionStorage.setItem('resultsHTML', pointsBreakdown);
 
+    await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
+
     // Redirect to the results page (validation.html)
     window.location.href = "validation.html";
 
     // Store observation in Firestore (this can happen in background)
     const currentUserId = auth.currentUser.uid;
-    await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
 
   } catch (err) {
     sessionStorage.setItem('introText', `<p style="color: red;">Error validating photo for ${species.name}</p>`);
@@ -515,11 +516,13 @@ async function validateGeneralPicture() {
 
     sessionStorage.setItem('introText', introText);
     sessionStorage.setItem('resultsHTML', pointsBreakdown);
+
+    await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
+    
     window.location.href = "validation.html";
 
     // Store observation in Firestore
     const currentUserId = auth.currentUser.uid;
-    await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
 
   } catch (err) {
     sessionStorage.setItem('introText', `<p style="color: red;">Error validating photo</p>`);
