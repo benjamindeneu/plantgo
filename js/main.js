@@ -377,7 +377,7 @@ async function validateGeneralPicture() {
     if (missionsList && missionsList.length > 0) {
       const missionMatch = missionsList.find(m => m.name.trim().toLowerCase() === bestMatch.trim().toLowerCase());
       if (missionMatch) {
-        total_points = missionMatch.total_points;
+        total_points = missionMatch.total_points + 500;
         points = missionMatch.points;
         isMissionValidated = true;
       } else {
@@ -448,9 +448,9 @@ async function validateGeneralPicture() {
     });
 
     // If mission validated, show bonus points
-    if (isMissionValidated && points["mission validated"]) {
+    if (isMissionValidated) {
       setTimeout(() => {
-        const bonusHtml = `<h4>Bonus Points:</h4><p class="fade-in">Mission validated: ${points["mission validated"]} points</p>`;
+        const bonusHtml = `<h4>Bonus Points:</h4><p class="fade-in">Mission validated: 500 points</p>`;
         document.getElementById("pointsContainer").insertAdjacentHTML("beforeend", bonusHtml);
       }, delay);
       delay += 300;
