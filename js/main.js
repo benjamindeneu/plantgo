@@ -418,6 +418,10 @@ async function validateGeneralPicture() {
       const newProgress = currentUserProgress.progress;
       document.getElementById('resultLevelNumber').textContent = newLevel;
       document.getElementById('resultLevelProgressBar').style.width = `${newProgress}%`;
+      // If level-up occurred, trigger the animation
+      if (newLevel > oldLevel) {
+        triggerLevelUpAnimation(newLevel);
+      }   
     }, totalAnimationDuration);
   
   } catch (err) {
@@ -523,3 +527,25 @@ function animateValue(id, start, end, duration) {
     obj.textContent = Math.floor(current);
   }, 50);
 }
+
+function triggerLevelUpAnimation(newLevel) {
+  const levelText = document.getElementById('resultLevelNumber');
+  const modalText = document.getElementById("modalText");
+
+  // Add a glowing effect
+  levelText.classList.add("level-up-glow");
+
+  // Display a celebratory message
+  const celebrationMessage = document.createElement("p");
+  celebrationMessage.innerHTML = `🎉 <strong>Congratulations!</strong> You reached Level ${newLevel}! 🎉`;
+  celebrationMessage.classList.add("level-up-message");
+  
+  // Insert the message at the top of the modal text
+  modalText.prepend(celebrationMessage);
+
+  // Remove the glow effect after animation
+  setTimeout(() => {
+    levelText.classList.remove("level-up-glow");
+  }, 3000);
+}
+
