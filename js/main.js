@@ -368,7 +368,7 @@ async function validateGeneralPicture() {
     document.getElementById('modalText').innerHTML = resultHtml;
     
     // Animate the total points counter from 0 to total_points over 1.5 seconds
-    animateValue("totalPoints", 0, total_points, 3000);
+    animateValue("totalPoints", 0, total_points, 2000);
     
     // Animate each point row with a delay
     const keys = Object.keys(points).filter(key => key !== "mission validated");
@@ -396,20 +396,6 @@ async function validateGeneralPicture() {
     // Store the observation in Firestore.
     // This call updates currentUserProgress via an onSnapshot listener.
     const currentUserId = auth.currentUser.uid;
-    
-    // Calculate delay from points animation and add extra delay (e.g., extra 500ms)
-    const extraDelay = 1000;
-    const totalAnimationDuration = Math.max(3000, delay) + extraDelay;
-
-    
-    // After the points animations are done, update the progress bar
-    setTimeout(() => {
-      const newLevel = currentUserProgress.level;
-      const newProgress = currentUserProgress.progress;
-      document.getElementById('resultLevelNumber').textContent = newLevel;
-      document.getElementById('resultLevelProgressBar').style.width = `${newProgress}%`;
-    }, totalAnimationDuration);
-
     await addObservation(
       currentUserId,
       bestMatch,
@@ -420,6 +406,19 @@ async function validateGeneralPicture() {
       points,
       identification_score
     );
+    
+    // Calculate delay from points animation and add extra delay (e.g., extra 500ms)
+    const extraDelay = 1000;
+    const totalAnimationDuration = Math.max(2000, delay) + extraDelay;
+
+    
+    // After the points animations are done, update the progress bar
+    setTimeout(() => {
+      const newLevel = currentUserProgress.level;
+      const newProgress = currentUserProgress.progress;
+      document.getElementById('resultLevelNumber').textContent = newLevel;
+      document.getElementById('resultLevelProgressBar').style.width = `${newProgress}%`;
+    }, totalAnimationDuration);
   
   } catch (err) {
     showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
