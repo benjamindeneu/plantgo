@@ -6,44 +6,40 @@ import { db } from './firebase-config.js';
 
 let missionsList = [];
 
-// --- Authentication check ---
+let currentUserProgress = {
+  total_points: 0,
+  level: 1,
+  progress: 0
+};
+
 onAuthStateChanged(auth, async (user) => {
   if (user) {
-    document.getElementById('userName').textContent = `${user.displayName || user.email}`;
-
-    // Get user reference
+    document.getElementById('userName').textContent = user.displayName || user.email;
     const userRef = doc(db, 'users', user.uid);
-
-    // Subscribe to real-time updates on total_points
+    
+    // Listen for real-time updates on the user's points
     onSnapshot(userRef, (docSnap) => {
       if (docSnap.exists()) {
         const userData = docSnap.data();
-        const totalPoints = userData.total_points || 0;
+        currentUserProgress.total_points = userData.total_points || 0;
+        currentUserProgress.level = Math.floor(1 + (currentUserProgress.total_points / 11000));
+        const nextLevelThreshold = currentUserProgress.level * 11000;
+        const prevLevelThreshold = (currentUserProgress.level - 1) * 11000;
+        currentUserProgress.progress = ((currentUserProgress.total_points - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold)) * 100;
+        
+        // Update your main UI
+        document.getElementById('levelNumber').textContent = currentUserProgress.level;
+        document.getElementById('levelProgressBar').style.width = `${currentUserProgress.progress}%`;
 
-        // Calculate level and progress
-        const level = Math.floor(1 + (totalPoints / 11000));
-        const nextLevelThreshold = level * 11000;
-        const prevLevelThreshold = (level - 1) * 11000;
-        const progress = ((totalPoints - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold)) * 100;
-
-        // Update the UI
-        document.getElementById('levelNumber').textContent = level;
-        document.getElementById('levelProgressBar').style.width = `${progress}%`;
-
-        // Add dynamic color based on level range
-        const levelBadge = document.getElementById('userLevel');
-        levelBadge.className = "level-badge"; // Reset class first
-        if (level < 5) {
-          levelBadge.classList.add("beginner-level");
-        } else if (level < 10) {
-          levelBadge.classList.add("intermediate-level");
-        } else {
-          levelBadge.classList.add("expert-level");
+        // Also update the result modal if it is open
+        if (document.getElementById('resultModal')?.style.display === 'block') {
+          document.getElementById('resultLevelNumber').textContent = currentUserProgress.level;
+          document.getElementById('resultLevelProgressBar').style.width = `${currentUserProgress.progress}%`;
         }
       }
     });
   } else {
-    window.location.href = "login.html"; // Redirect if not logged in
+    window.location.href = "login.html";
   }
 });
 
