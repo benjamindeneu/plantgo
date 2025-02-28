@@ -324,7 +324,7 @@ async function validateGeneralPicture() {
     // Optionally, open the result modal and display the current (old) progress first
     document.getElementById('resultLevelNumber').textContent = oldLevel;
     document.getElementById('resultLevelProgressBar').style.width = `${oldProgress}%`;
-    document.getElementById('resultDetails').innerHTML = `<p>Processing identification...</p>`;
+    document.getElementById('modalText').innerHTML = `<p>Processing identification...</p>`;
     showModal(''); // Open modal (you may pass empty content if updating elements manually)
 
     // Identify the picture using your identifyPicture function
