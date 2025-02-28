@@ -440,6 +440,19 @@ async function validateSpeciesPicture(species, file) {
       pointsBreakdown += `<p>${displayKey}: ${points[key]} points</p>`;
     }
 
+        // First, ensure the observation is logged
+    const currentUserId = auth.currentUser.uid;
+    await addObservation(
+      currentUserId,
+      bestMatch,
+      lat,
+      lon,
+      plantnetImageId,
+      total_points,
+      points,
+      identification_score
+    );
+
     // Set an intro text specific to species validation
     const introText = `<p><strong>Species Validation Complete!</strong></p>`;
 
@@ -449,10 +462,6 @@ async function validateSpeciesPicture(species, file) {
 
     // Redirect to the results page (validation.html)
     window.location.href = "validation.html";
-
-    // Store observation in Firestore (this can happen in background)
-    const currentUserId = auth.currentUser.uid;
-    await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
 
   } catch (err) {
     sessionStorage.setItem('introText', `<p style="color: red;">Error validating photo for ${species.name}</p>`);
@@ -511,6 +520,19 @@ async function validateGeneralPicture() {
       pointsBreakdown += `<p>${displayKey}: ${points[key]} points</p>`;
     }
 
+        // First, ensure the observation is logged
+    const currentUserId = auth.currentUser.uid;
+    await addObservation(
+      currentUserId,
+      bestMatch,
+      lat,
+      lon,
+      plantnetImageId,
+      total_points,
+      points,
+      identification_score
+    );
+
     // Set an intro text specific to general picture validation
     const introText = `<p><strong>General Plant Picture Validation Complete!</strong></p>`;
 
@@ -518,10 +540,6 @@ async function validateGeneralPicture() {
     sessionStorage.setItem('resultsHTML', pointsBreakdown);
     
     window.location.href = "validation.html";
-
-    // Store observation in Firestore
-    const currentUserId = auth.currentUser.uid;
-    await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
 
   } catch (err) {
     sessionStorage.setItem('introText', `<p style="color: red;">Error validating photo</p>`);
