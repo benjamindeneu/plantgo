@@ -370,28 +370,31 @@ async function validateGeneralPicture() {
     // Animate the total points counter from 0 to total_points over 1.5 seconds
     animateValue("totalPoints", 0, total_points, 3000);
     
-    // Animate each point row
+    // Animate each point row with a delay
     const keys = Object.keys(points).filter(key => key !== "mission validated");
     let delay = 0;
     keys.forEach(key => {
       setTimeout(() => {
         const p = document.createElement("p");
         p.textContent = `${key}: ${points[key]} points`;
-        p.classList.add("fade-in"); // For a fade-in effect via CSS
+        p.classList.add("fade-in"); // Uses your CSS fade-in animation
         document.getElementById("pointsContainer").appendChild(p);
       }, delay);
-      delay += 800; // adjust delay as needed
+      delay += 300; // Adjust delay as needed per row
     });
     
-    // If there are bonus points (mission validated), add them after the main rows
+    // If bonus points exist, add them after the main rows
     if (isMissionValidated && points["mission validated"]) {
       setTimeout(() => {
         const bonusHtml = `<h4>Bonus Points:</h4><p class="fade-in">mission validated: ${points["mission validated"]} points</p>`;
         document.getElementById("pointsContainer").insertAdjacentHTML("beforeend", bonusHtml);
       }, delay);
+      // Optionally, increase delay if you want to add extra pause after bonus points
+      delay += 300;
     }
-
-    // Store the observation (this will update Firestore and in turn update currentUserProgress via onSnapshot)
+    
+    // Store the observation in Firestore.
+    // This call updates currentUserProgress via an onSnapshot listener.
     const currentUserId = auth.currentUser.uid;
     await addObservation(
       currentUserId,
@@ -403,24 +406,24 @@ async function validateGeneralPicture() {
       points,
       identification_score
     );
-
-    // Wait briefly for Firestore to update the user document,
-    // then update the modal with the new level and progress.
+    
+    // Calculate the total duration for the points animation
+    const totalAnimationDuration = Math.max(1500, delay);
+    
+    // After the points animations are done, update the progress bar
     setTimeout(() => {
-      // currentUserProgress is updated by the onSnapshot listener
       const newLevel = currentUserProgress.level;
       const newProgress = currentUserProgress.progress;
       document.getElementById('resultLevelNumber').textContent = newLevel;
       document.getElementById('resultLevelProgressBar').style.width = `${newProgress}%`;
-      // Optionally, add more final details here if needed.
-    }, 8000); // Adjust delay as needed based on your update speed
-
-  } catch (err) {
-    showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
-  } finally {
-    spinner.style.display = 'none';
+    }, totalAnimationDuration);
+  
+    } catch (err) {
+      showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
+    } finally {
+      spinner.style.display = 'none';
+    }
   }
-}
 
 // Get GPS coordinates as a promise
 function getCoordinates() {
