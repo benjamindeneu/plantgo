@@ -90,6 +90,7 @@ window.addEventListener("click", (event) => {
 
 // Add observation (and discovery if needed) to Firestore
 async function addObservation(userId, speciesName, lat, lng, plantnetImageCode, total_points, points, plantnet_identify_score) {
+  console.log('test')
   try {
     const observationData = {
       speciesName,
