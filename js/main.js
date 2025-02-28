@@ -372,7 +372,7 @@ async function validateGeneralPicture() {
       resultHtml += `<h4>Bonus Points:</h4>`;
       resultHtml += `<p>mission validated: ${points["mission validated"]} points</p>`;
     }
-    document.getElementById('resultDetails').innerHTML = resultHtml;
+    document.getElementById('modalText').innerHTML = resultHtml;
 
     // Store the observation (this will update Firestore and in turn update currentUserProgress via onSnapshot)
     const currentUserId = auth.currentUser.uid;
