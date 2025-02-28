@@ -643,7 +643,7 @@ function triggerLevelUpAnimation(newLevel) {
   }, 2500); // Duration matches CSS animation time
 
   // (Optional) Fire confetti for extra celebration
-  fireConfetti();
+  fireConfettiInsideModal();
 }
 
 // Fire confetti animation (optional)
@@ -654,4 +654,42 @@ function fireConfetti() {
     origin: { y: 0.6 }
   });
 }
+
+function fireConfettiInsideModal() {
+  const modal = document.getElementById("resultModal");
+
+  // Create a new canvas element inside the modal
+  let confettiCanvas = document.getElementById("modalConfetti");
+  if (!confettiCanvas) {
+    confettiCanvas = document.createElement("canvas");
+    confettiCanvas.id = "modalConfetti";
+    confettiCanvas.style.position = "absolute";
+    confettiCanvas.style.top = "0";
+    confettiCanvas.style.left = "0";
+    confettiCanvas.style.width = "100%";
+    confettiCanvas.style.height = "100%";
+    confettiCanvas.style.pointerEvents = "none"; // So it doesn't interfere with clicks
+
+    modal.appendChild(confettiCanvas);
+  }
+
+  const myConfetti = confetti.create(confettiCanvas, {
+    resize: true,
+    useWorker: true
+  });
+
+  // Fire confetti effect
+  myConfetti({
+    particleCount: 100,
+    spread: 80,
+    startVelocity: 50,
+    origin: { y: 0.5, x: 0.5 }
+  });
+
+  // Remove the canvas after animation
+  setTimeout(() => {
+    confettiCanvas.remove();
+  }, 3000);
+}
+
 
