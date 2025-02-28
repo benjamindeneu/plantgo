@@ -20,11 +20,6 @@ onAuthStateChanged(auth, async (user) => {
 
         // Calculate level and progress
         const level = Math.floor(1 + (totalPoints / 11000));
-        // After calculating the level:
-        document.getElementById('levelNumber').textContent = level;
-        // Store the level so the validation view can display it
-        sessionStorage.setItem('userLevel', level);
-
         const nextLevelThreshold = level * 11000;
         const prevLevelThreshold = (level - 1) * 11000;
         const progress = ((totalPoints - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold)) * 100;
@@ -32,9 +27,6 @@ onAuthStateChanged(auth, async (user) => {
         // Update the UI
         document.getElementById('levelNumber').textContent = level;
         document.getElementById('levelProgressBar').style.width = `${progress}%`;
-
-        sessionStorage.setItem('userProgress', progress);
-
 
         // Add dynamic color based on level range
         const levelBadge = document.getElementById('userLevel');
@@ -98,7 +90,6 @@ window.addEventListener("click", (event) => {
 
 // Add observation (and discovery if needed) to Firestore
 async function addObservation(userId, speciesName, lat, lng, plantnetImageCode, total_points, points, plantnet_identify_score) {
-  console.log('test')
   try {
     const observationData = {
       speciesName,
@@ -389,15 +380,13 @@ async function identifyPicture(file) {
 // Validate mission picture
 async function validateSpeciesPicture(species, file) {
   try {
-    // Show full-screen loading overlay immediately
-    document.getElementById("fullscreenLoading").style.display = "flex";
-
     const jsonResponse = await identifyPicture(file);
     const bestMatch = jsonResponse.bestMatch;
     const plantnetImageId = jsonResponse.query.images[0];
     const identification_score = jsonResponse.results[0].score;
     const clickedName = species.name;
 
+    // Get the device's current GPS coordinates
     const { lat, lon } = await getCoordinates();
     
     let total_points, points;
@@ -431,56 +420,38 @@ async function validateSpeciesPicture(species, file) {
       levelClass = "legendary-points";
     }
 
+    // Construct message
     let pointsBreakdown = `<h2>Identification Results</h2>`;
+    
     if (isMissionValidated) {
       pointsBreakdown += `<p style="color: green;"><strong>Mission validated!</strong> You successfully identified <strong>${clickedName}</strong>.</p>`;
     } else {
       const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
       pointsBreakdown += `<p style="color: red;"><strong>Mission NOT validated!</strong> Your selected mission was <strong>${clickedName}</strong>, but the plant identified was <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
     }
+
     pointsBreakdown += `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
     pointsBreakdown += `<h3>Total Points: ${total_points}</h3>`;
     pointsBreakdown += `<h4>Points Breakdown:</h4>`;
+
     for (const key in points) {
       let displayKey = key === 'base' ? 'Species observation' : key;
       pointsBreakdown += `<p>${displayKey}: ${points[key]} points</p>`;
     }
 
-    // Log the observation first
+    // Show results in a modal
+    showModal(pointsBreakdown);
+
+    // Store observation in Firestore
     const currentUserId = auth.currentUser.uid;
-    await addObservation(
-      currentUserId,
-      bestMatch,
-      lat,
-      lon,
-      plantnetImageId,
-      total_points,
-      points,
-      identification_score
-    );
-
-    // Set an intro text specific to species validation
-    //const introText = `<p><strong>Species Validation Complete!</strong></p>`;
-
-    // Store results in session storage
-    //sessionStorage.setItem('introText', introText);
-    sessionStorage.setItem('resultsHTML', pointsBreakdown);
-    sessionStorage.setItem('totalPoints', total_points);
-    sessionStorage.setItem('missionLevel', missionLevel); // e.g., "Common", "Rare", etc.
-    sessionStorage.setItem('levelClass', levelClass);     // e.g., "common-points", "rare-points", etc.
-
-
-    // Instead of redirecting, load the validation view in the iframe
-    document.getElementById('validationFrame').src = "validation.html";
-    document.getElementById('validationFrameContainer').style.display = "block";
+    await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
 
   } catch (err) {
-    sessionStorage.setItem('introText', `<p style="color: red;">Error validating photo for ${species.name}</p>`);
-    sessionStorage.setItem('resultsHTML', `<p style="color: red;">${err.message}</p>`);
-    document.getElementById('validationFrame').src = "validation.html";
-    document.getElementById('validationFrameContainer').style.display = "block";
+    showModal(`<p style="color: red;">Error validating photo for ${species.name}: ${err.message}</p>`);
   }
 }
+
+
 
 // Validate general plant picture
 async function validateGeneralPicture() {
@@ -490,16 +461,15 @@ async function validateGeneralPicture() {
     return;
   }
   try {
-    // Show full-screen loading overlay immediately
-    document.getElementById("fullscreenLoading").style.display = "flex";
-
     const jsonResponse = await identifyPicture(file);
     const bestMatch = jsonResponse.bestMatch;
     const plantnetImageId = jsonResponse.query.images[0];
     const identification_score = jsonResponse.results[0].score;
 
+    // Get the device's current GPS coordinates
     const { lat, lon } = await getCoordinates();
 
+    // Fetch points from the backend
     const { total_points, points } = await getPoints(lat, lon, bestMatch);
 
     // Determine mission level
@@ -520,50 +490,30 @@ async function validateGeneralPicture() {
       levelClass = "legendary-points";
     }
 
+    // Construct species info link
     const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
 
+    // Construct points breakdown
     let pointsBreakdown = `<h2>Identification Results</h2>`;
     pointsBreakdown += `<p><strong>Species Identified:</strong> <a href="${speciesLink}" target="_blank">${bestMatch}</a></p>`;
     pointsBreakdown += `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
     pointsBreakdown += `<h3>Total Points: ${total_points}</h3>`;
     pointsBreakdown += `<h4>Points Breakdown:</h4>`;
+
     for (const key in points) {
       let displayKey = key === 'base' ? 'Species observation' : key;
       pointsBreakdown += `<p>${displayKey}: ${points[key]} points</p>`;
     }
 
-    // Log the observation first
+    // Show results in a modal
+    showModal(pointsBreakdown);
+
+    // Store observation in Firestore
     const currentUserId = auth.currentUser.uid;
-    await addObservation(
-      currentUserId,
-      bestMatch,
-      lat,
-      lon,
-      plantnetImageId,
-      total_points,
-      points,
-      identification_score
-    );
-
-    // Set an intro text specific to general picture validation
-    //const introText = `<p><strong>General Plant Picture Validation Complete!</strong></p>`;
-
-    //sessionStorage.setItem('introText', introText);
-    sessionStorage.setItem('resultsHTML', pointsBreakdown);
-    sessionStorage.setItem('totalPoints', total_points);
-    sessionStorage.setItem('missionLevel', missionLevel); // e.g., "Common", "Rare", etc.
-    sessionStorage.setItem('levelClass', levelClass);     // e.g., "common-points", "rare-points", etc.
-
-    
-    // Load the validation view in the iframe instead of redirecting
-    document.getElementById('validationFrame').src = "validation.html";
-    document.getElementById('validationFrameContainer').style.display = "block";
+    await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
 
   } catch (err) {
-    sessionStorage.setItem('introText', `<p style="color: red;">Error validating photo</p>`);
-    sessionStorage.setItem('resultsHTML', `<p style="color: red;">${err.message}</p>`);
-    document.getElementById('validationFrame').src = "validation.html";
-    document.getElementById('validationFrameContainer').style.display = "block";
+    showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
   }
 }
 
