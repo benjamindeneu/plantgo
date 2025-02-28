@@ -427,10 +427,13 @@ async function validateGeneralPicture() {
     }
     // Show user-uploaded image instead
     resultHtml += `
-      <div style="text-align: center;">
-        <h4>Your Uploaded Image:</h4>
-        <img src="${uploadedImageUrl}" alt="Uploaded plant image" style="max-width: 200px; border-radius: 10px; display: block; margin: 10px auto;">
-      </div>`;
+    <div style="text-align: center;">
+      <h4>Your Uploaded Image:</h4>
+      <img src="${uploadedImageUrl}" alt="Uploaded plant image" 
+        style="max-width: 120px; max-height: 120px; object-fit: contain; 
+        border-radius: 8px; display: block; margin: 5px auto;">
+    </div>`;
+
     // Compute total observation points alone (excluding mission bonus)
     let observationPointsTotal = 0;
     if (points) {
