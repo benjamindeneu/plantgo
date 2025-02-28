@@ -562,23 +562,35 @@ function animateValue(id, start, end, duration) {
 }
 
 function triggerLevelUpAnimation(newLevel) {
-  const levelText = document.getElementById('resultLevelNumber');
+  const levelBadge = document.getElementById('currentLevelText');
   const modalText = document.getElementById("modalText");
 
-  // Add a glowing effect
-  levelText.classList.add("level-up-glow");
+  // Add glowing and pop-up effects
+  levelBadge.classList.add("level-up-glow", "level-up-pop");
 
-  // Display a celebratory message
+  // Celebration message
   const celebrationMessage = document.createElement("p");
-  celebrationMessage.innerHTML = `🎉 <strong>Congratulations!</strong> You reached Level ${newLevel}! 🎉`;
+  celebrationMessage.innerHTML = `🎉 <strong>Level Up!</strong> You are now <span style="color: #ff9800;">Level ${newLevel}!</span> 🎉`;
   celebrationMessage.classList.add("level-up-message");
   
   // Insert the message at the top of the modal text
   modalText.prepend(celebrationMessage);
 
-  // Remove the glow effect after animation
+  // Remove animation classes after animation ends
   setTimeout(() => {
-    levelText.classList.remove("level-up-glow");
-  }, 3000);
+    levelBadge.classList.remove("level-up-glow", "level-up-pop");
+  }, 2500); // Duration matches CSS animation time
+
+  // (Optional) Fire confetti for extra celebration
+  fireConfetti();
+}
+
+// Fire confetti animation (optional)
+function fireConfetti() {
+  confetti({
+    particleCount: 150,
+    spread: 70,
+    origin: { y: 0.6 }
+  });
 }
 
