@@ -33,6 +33,9 @@ onAuthStateChanged(auth, async (user) => {
         document.getElementById('levelNumber').textContent = level;
         document.getElementById('levelProgressBar').style.width = `${progress}%`;
 
+        sessionStorage.setItem('userProgress', progress);
+
+
         // Add dynamic color based on level range
         const levelBadge = document.getElementById('userLevel');
         levelBadge.className = "level-badge"; // Reset class first
