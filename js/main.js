@@ -407,8 +407,10 @@ async function validateGeneralPicture() {
       identification_score
     );
     
-    // Calculate the total duration for the points animation
-    const totalAnimationDuration = Math.max(1500, delay);
+    // Calculate delay from points animation and add extra delay (e.g., extra 500ms)
+    const extraDelay = 1000;
+    const totalAnimationDuration = Math.max(3000, delay) + extraDelay;
+
     
     // After the points animations are done, update the progress bar
     setTimeout(() => {
