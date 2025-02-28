@@ -365,4 +365,15 @@ header {
   100% { transform: rotate(360deg); }
 }
 
+.fade-in {
+  opacity: 0;
+  animation: fadeInAnimation 0.5s forwards;
+}
+
+@keyframes fadeInAnimation {
+  to {
+    opacity: 1;
+  }
+}
+
 
