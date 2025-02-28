@@ -4,7 +4,6 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { collection, doc, addDoc, setDoc, getDoc, serverTimestamp, GeoPoint, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 import { db } from './firebase-config.js';
 
-let isAnimatingPoints = false; // global flag
 let missionsList = [];
 
 let currentUserProgress = {
@@ -20,24 +19,22 @@ onAuthStateChanged(auth, async (user) => {
     
     // Listen for real-time updates on the user's points
     onSnapshot(userRef, (docSnap) => {
-      if (!isAnimatingPoints) {
-        if (docSnap.exists()) {
-          const userData = docSnap.data();
-          currentUserProgress.total_points = userData.total_points || 0;
-          currentUserProgress.level = Math.floor(1 + (currentUserProgress.total_points / 11000));
-          const nextLevelThreshold = currentUserProgress.level * 11000;
-          const prevLevelThreshold = (currentUserProgress.level - 1) * 11000;
-          currentUserProgress.progress = ((currentUserProgress.total_points - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold)) * 100;
-          
-          // Update your main UI
-          document.getElementById('levelNumber').textContent = currentUserProgress.level;
-          document.getElementById('levelProgressBar').style.width = `${currentUserProgress.progress}%`;
-  
-          // Also update the result modal if it is open
-          if (document.getElementById('resultModal')?.style.display === 'block') {
-            document.getElementById('resultLevelNumber').textContent = currentUserProgress.level;
-            document.getElementById('resultLevelProgressBar').style.width = `${currentUserProgress.progress}%`;
-          }
+      if (docSnap.exists()) {
+        const userData = docSnap.data();
+        currentUserProgress.total_points = userData.total_points || 0;
+        currentUserProgress.level = Math.floor(1 + (currentUserProgress.total_points / 11000));
+        const nextLevelThreshold = currentUserProgress.level * 11000;
+        const prevLevelThreshold = (currentUserProgress.level - 1) * 11000;
+        currentUserProgress.progress = ((currentUserProgress.total_points - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold)) * 100;
+        
+        // Update your main UI
+        document.getElementById('levelNumber').textContent = currentUserProgress.level;
+        document.getElementById('levelProgressBar').style.width = `${currentUserProgress.progress}%`;
+
+        // Also update the result modal if it is open
+        if (document.getElementById('resultModal')?.style.display === 'block') {
+          document.getElementById('resultLevelNumber').textContent = currentUserProgress.level;
+          document.getElementById('resultLevelProgressBar').style.width = `${currentUserProgress.progress}%`;
         }
       }
     });
@@ -359,7 +356,45 @@ async function validateGeneralPicture() {
       points = result.points;
     }
 
-    // Store the observation (which triggers Firestore update via onSnapshot)
+    // Build the identification result details HTML
+    // Build the basic modal HTML first
+    let resultHtml = `<p>Identified species: <strong>${bestMatch}</strong></p>`;
+    if (isMissionValidated) {
+      resultHtml += `<p style="color: green;"><strong>Mission validated!</strong></p>`;
+    }
+    resultHtml += `<h3>Total Points: <span id="totalPoints">0</span></h3>`;
+    resultHtml += `<h4>Observation Points:</h4>`;
+    resultHtml += `<div id="pointsContainer"></div>`;
+    document.getElementById('modalText').innerHTML = resultHtml;
+    
+    // Animate the total points counter from 0 to total_points over 1.5 seconds
+    animateValue("totalPoints", 0, total_points, 2000);
+    
+    // Animate each point row with a delay
+    const keys = Object.keys(points).filter(key => key !== "mission validated");
+    let delay = 0;
+    keys.forEach(key => {
+      setTimeout(() => {
+        const p = document.createElement("p");
+        p.textContent = `${key}: ${points[key]} points`;
+        p.classList.add("fade-in"); // Uses your CSS fade-in animation
+        document.getElementById("pointsContainer").appendChild(p);
+      }, delay);
+      delay += 300; // Adjust delay as needed per row
+    });
+    
+    // If bonus points exist, add them after the main rows
+    if (isMissionValidated && points["mission validated"]) {
+      setTimeout(() => {
+        const bonusHtml = `<h4>Bonus Points:</h4><p class="fade-in">mission validated: ${points["mission validated"]} points</p>`;
+        document.getElementById("pointsContainer").insertAdjacentHTML("beforeend", bonusHtml);
+      }, delay);
+      // Optionally, increase delay if you want to add extra pause after bonus points
+      delay += 300;
+    }
+    
+    // Store the observation in Firestore.
+    // This call updates currentUserProgress via an onSnapshot listener.
     const currentUserId = auth.currentUser.uid;
     await addObservation(
       currentUserId,
@@ -372,45 +407,9 @@ async function validateGeneralPicture() {
       identification_score
     );
     
-    // Optionally, capture old progress/level before they get updated:
-    const oldProgress = currentUserProgress.progress;
-    const oldLevel = currentUserProgress.level;
-    
-    // Begin the animations
-    // Build your modal HTML including <span id="totalPoints">0</span>
-    let resultHtml = `<p>Identified species: <strong>${bestMatch}</strong></p>`;
-    if (isMissionValidated) {
-      resultHtml += `<p style="color: green;"><strong>Mission validated!</strong></p>`;
-    }
-    resultHtml += `<h3>Total Points: <span id="totalPoints">0</span></h3>`;
-    resultHtml += `<h4>Observation Points:</h4>`;
-    resultHtml += `<div id="pointsContainer"></div>`;
-    document.getElementById('modalText').innerHTML = resultHtml;
-    
-    // Animate total points count-up (e.g., over 1500ms)
-    animateValue("totalPoints", 0, total_points, 1500);
-    
-    // Set a flag to block onSnapshot updates until our animations complete
-    isAnimatingPoints = true;
-    
-    // Start the points rows animation and chain the progress bar update after it finishes
-    animatePoints().then(() => {
-      // Now, safely update the progress bar from the old value to the new value
-      const progressBar = document.getElementById('resultLevelProgressBar');
-      // Start from the stored old progress
-      progressBar.style.width = `${oldProgress}%`;
-      // Force reflow so the browser registers the starting position
-      progressBar.offsetWidth;
-      
-      // Now update to the new progress (which currentUserProgress should have by now)
-      const newLevel = currentUserProgress.level;
-      const newProgress = currentUserProgress.progress;
-      document.getElementById('resultLevelNumber').textContent = newLevel;
-      progressBar.style.width = `${newProgress}%`;
-      
-      // Allow onSnapshot to update normally after our controlled animation finishes
-      isAnimatingPoints = false;
-    });
+    // Calculate delay from points animation and add extra delay (e.g., extra 500ms)
+    const extraDelay = 1000;
+    const totalAnimationDuration = Math.max(2000, delay) + extraDelay;
 
     
     // After the points animations are done, update the progress bar
@@ -523,31 +522,4 @@ function animateValue(id, start, end, duration) {
     }
     obj.textContent = Math.floor(current);
   }, 50);
-}
-
-function animatePoints() {
-  return new Promise((resolve) => {
-    let delay = 0;
-    const keys = Object.keys(points).filter(key => key !== "mission validated");
-    keys.forEach(key => {
-      setTimeout(() => {
-        const p = document.createElement("p");
-        p.textContent = `${key}: ${points[key]} points`;
-        p.classList.add("fade-in");
-        document.getElementById("pointsContainer").appendChild(p);
-      }, delay);
-      delay += 300;
-    });
-    
-    if (isMissionValidated && points["mission validated"]) {
-      setTimeout(() => {
-        const bonusHtml = `<h4>Bonus Points:</h4><p class="fade-in">mission validated: ${points["mission validated"]} points</p>`;
-        document.getElementById("pointsContainer").insertAdjacentHTML("beforeend", bonusHtml);
-      }, delay);
-      delay += 300;
-    }
-    
-    // Resolve after all animations plus a small extra buffer
-    setTimeout(resolve, delay + 100);
-  });
 }
