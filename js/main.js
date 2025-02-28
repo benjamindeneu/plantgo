@@ -311,93 +311,40 @@ async function validateGeneralPicture() {
     validationResult.innerHTML = `<p>Please capture or select a photo first.</p>`;
     return;
   }
-  
+
   // Show the spinner while processing
   const spinner = document.getElementById('spinner');
   spinner.style.display = 'block';
 
   try {
-    // Capture the current progress before identification starts
-    const oldProgress = currentUserProgress.progress;
-    const oldLevel = currentUserProgress.level;
-    
-    // Optionally, open the result modal and display the current (old) progress first
+    const currentUserId = auth.currentUser.uid;
+    const userRef = doc(db, 'users', currentUserId);
+
+    // Fetch latest user data before starting validation
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) throw new Error("User document not found.");
+
+    const userData = userSnap.data();
+    const oldLevel = Math.floor(1 + (userData.total_points / 11000));
+    const prevLevelThreshold = (oldLevel - 1) * 11000;
+    const nextLevelThreshold = oldLevel * 11000;
+    const oldProgress = ((userData.total_points - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold)) * 100;
+
+    // Open the modal with old values
     document.getElementById('resultLevelNumber').textContent = oldLevel;
     document.getElementById('resultLevelProgressBar').style.width = `${oldProgress}%`;
-    document.getElementById('modalText').innerHTML = `<p>Processing identification...</p>`;
-    showModal(''); // Open modal (you may pass empty content if updating elements manually)
+    showModal(`<p>Processing identification...</p>`);
 
-    // Identify the picture using your identifyPicture function
+    // Identify the plant
     const jsonResponse = await identifyPicture(file);
     const bestMatch = jsonResponse.bestMatch;
     const plantnetImageId = jsonResponse.query.images[0];
     const identification_score = jsonResponse.results[0].score;
 
-    const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
-
-    // Get the user's current GPS coordinates
     const { lat, lon } = await getCoordinates();
+    const { total_points, points } = await getPoints(lat, lon, bestMatch);
 
-    // Determine mission points
-    let total_points, points;
-    let isMissionValidated = false;
-    if (missionsList && missionsList.length > 0) {
-      const missionMatch = missionsList.find(m => m.name.trim().toLowerCase() === bestMatch.trim().toLowerCase());
-      if (missionMatch) {
-        total_points = missionMatch.total_points;
-        points = missionMatch.points;
-        isMissionValidated = true;
-      } else {
-        const result = await getPoints(lat, lon, bestMatch);
-        total_points = result.total_points;
-        points = result.points;
-      }
-    } else {
-      const result = await getPoints(lat, lon, bestMatch);
-      total_points = result.total_points;
-      points = result.points;
-    }
-
-    // Build the identification result details HTML
-    // Build the basic modal HTML first
-    let resultHtml = `<p>Identified species: <strong><a href="${speciesLink}" target="_blank">${bestMatch}</a></strong></p>`;
-    if (isMissionValidated) {
-      resultHtml += `<p style="color: green;"><strong>Mission validated!</strong></p>`;
-    }
-    resultHtml += `<h3>Total Points: <span id="totalPoints">0</span></h3>`;
-    resultHtml += `<h4>Observation Points:</h4>`;
-    resultHtml += `<div id="pointsContainer"></div>`;
-    document.getElementById('modalText').innerHTML = resultHtml;
-    
-    // Animate the total points counter from 0 to total_points over 1.5 seconds
-    animateValue("totalPoints", 0, total_points, 2000);
-    
-    // Animate each point row with a delay
-    const keys = Object.keys(points).filter(key => key !== "mission validated");
-    let delay = 0;
-    keys.forEach(key => {
-      setTimeout(() => {
-        const p = document.createElement("p");
-        p.textContent = `${key}: ${points[key]} points`;
-        p.classList.add("fade-in"); // Uses your CSS fade-in animation
-        document.getElementById("pointsContainer").appendChild(p);
-      }, delay);
-      delay += 300; // Adjust delay as needed per row
-    });
-    
-    // If bonus points exist, add them after the main rows
-    if (isMissionValidated && points["mission validated"]) {
-      setTimeout(() => {
-        const bonusHtml = `<h4>Bonus Points:</h4><p class="fade-in">mission validated: ${points["mission validated"]} points</p>`;
-        document.getElementById("pointsContainer").insertAdjacentHTML("beforeend", bonusHtml);
-      }, delay);
-      // Optionally, increase delay if you want to add extra pause after bonus points
-      delay += 300;
-    }
-    
-    // Store the observation in Firestore.
-    // This call updates currentUserProgress via an onSnapshot listener.
-    const currentUserId = auth.currentUser.uid;
+    // Add the observation to Firestore (this will trigger onSnapshot)
     await addObservation(
       currentUserId,
       bestMatch,
@@ -408,22 +355,49 @@ async function validateGeneralPicture() {
       points,
       identification_score
     );
-    
-    // Calculate delay from points animation and add extra delay (e.g., extra 500ms)
-    const extraDelay = 1000;
-    const totalAnimationDuration = Math.max(2000, delay) + extraDelay;
 
-    
-    // After the points animations are done, update the progress bar
+    // Wait briefly to ensure Firestore updates and `onSnapshot` triggers
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Get updated user data again **after** points update
+    const newUserSnap = await getDoc(userRef);
+    const newUserData = newUserSnap.data();
+    const newLevel = Math.floor(1 + (newUserData.total_points / 11000));
+    const newPrevLevelThreshold = (newLevel - 1) * 11000;
+    const newNextLevelThreshold = newLevel * 11000;
+    const newProgress = ((newUserData.total_points - newPrevLevelThreshold) / (newNextLevelThreshold - newPrevLevelThreshold)) * 100;
+
+    // Build the identification result details
+    let resultHtml = `<p>Identified species: <strong>${bestMatch}</strong></p>`;
+    resultHtml += `<h3>Total Points: <span id="totalPoints">0</span></h3>`;
+    resultHtml += `<h4>Observation Points:</h4>`;
+    resultHtml += `<div id="pointsContainer"></div>`;
+    document.getElementById('modalText').innerHTML = resultHtml;
+
+    // Animate the total points counter
+    animateValue("totalPoints", 0, total_points, 2000);
+
+    // Animate each point row with a delay
+    let delay = 0;
+    for (const key in points) {
+      setTimeout(() => {
+        const p = document.createElement("p");
+        p.textContent = `${key}: ${points[key]} points`;
+        p.classList.add("fade-in");
+        document.getElementById("pointsContainer").appendChild(p);
+      }, delay);
+      delay += 300;
+    }
+
+    // Delay before updating progress bar and level
+    const totalAnimationDuration = Math.max(2000, delay) + 1000;
     setTimeout(() => {
-      const newLevel = currentUserProgress.level;
-      const newProgress = currentUserProgress.progress;
       document.getElementById('resultLevelNumber').textContent = newLevel;
       document.getElementById('resultLevelProgressBar').style.width = `${newProgress}%`;
-      // If level-up occurred, trigger the animation
+
       if (newLevel > oldLevel) {
         triggerLevelUpAnimation(newLevel);
-      }   
+      }
     }, totalAnimationDuration);
   
   } catch (err) {
@@ -432,6 +406,7 @@ async function validateGeneralPicture() {
     spinner.style.display = 'none';
   }
 }
+
 
 // Get GPS coordinates as a promise
 function getCoordinates() {
