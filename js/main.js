@@ -20,6 +20,11 @@ onAuthStateChanged(auth, async (user) => {
 
         // Calculate level and progress
         const level = Math.floor(1 + (totalPoints / 11000));
+        // After calculating the level:
+        document.getElementById('levelNumber').textContent = level;
+        // Store the level so the validation view can display it
+        sessionStorage.setItem('userLevel', level);
+
         const nextLevelThreshold = level * 11000;
         const prevLevelThreshold = (level - 1) * 11000;
         const progress = ((totalPoints - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold)) * 100;
@@ -457,6 +462,10 @@ async function validateSpeciesPicture(species, file) {
     // Store results in session storage
     //sessionStorage.setItem('introText', introText);
     sessionStorage.setItem('resultsHTML', pointsBreakdown);
+    sessionStorage.setItem('totalPoints', total_points);
+    sessionStorage.setItem('missionLevel', missionLevel); // e.g., "Common", "Rare", etc.
+    sessionStorage.setItem('levelClass', levelClass);     // e.g., "common-points", "rare-points", etc.
+
 
     // Instead of redirecting, load the validation view in the iframe
     document.getElementById('validationFrame').src = "validation.html";
@@ -538,6 +547,10 @@ async function validateGeneralPicture() {
 
     //sessionStorage.setItem('introText', introText);
     sessionStorage.setItem('resultsHTML', pointsBreakdown);
+    sessionStorage.setItem('totalPoints', total_points);
+    sessionStorage.setItem('missionLevel', missionLevel); // e.g., "Common", "Rare", etc.
+    sessionStorage.setItem('levelClass', levelClass);     // e.g., "common-points", "rare-points", etc.
+
     
     // Load the validation view in the iframe instead of redirecting
     document.getElementById('validationFrame').src = "validation.html";
