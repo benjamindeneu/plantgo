@@ -315,19 +315,22 @@ async function validateGeneralPicture() {
     validationResult.innerHTML = `<p>Please capture or select a photo first.</p>`;
     return;
   }
+  
+  // Show spinner
+  const spinner = document.getElementById('spinner');
+  spinner.style.display = 'block';
+
   try {
     const jsonResponse = await identifyPicture(file);
     const bestMatch = jsonResponse.bestMatch;
     const plantnetImageId = jsonResponse.query.images[0];
     const identification_score = jsonResponse.results[0].score;
 
-    // Get the device's current GPS coordinates
     const { lat, lon } = await getCoordinates();
 
     let total_points, points;
     let isMissionValidated = false;
 
-    // Check if the identified species is one of the missions
     if (missionsList && missionsList.length > 0) {
       const missionMatch = missionsList.find(m => m.name.trim().toLowerCase() === bestMatch.trim().toLowerCase());
       if (missionMatch) {
@@ -340,7 +343,6 @@ async function validateGeneralPicture() {
         points = result.points;
       }
     } else {
-      // If no missions are loaded, fall back to getPoints
       const result = await getPoints(lat, lon, bestMatch);
       total_points = result.total_points;
       points = result.points;
@@ -393,6 +395,9 @@ async function validateGeneralPicture() {
     await addObservation(currentUserId, bestMatch, lat, lon, plantnetImageId, total_points, points, identification_score);
   } catch (err) {
     showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
+  } finally {
+    // Hide spinner regardless of success or error
+    spinner.style.display = 'none';
   }
 }
 
