@@ -427,8 +427,11 @@ async function validateGeneralPicture() {
     }
     // Show user-uploaded image instead
     resultHtml += `
+    <h3 style="text-align: center;">Total Points (including missions): 
+      <span id="totalPoints">0</span>
+    </h3>
     <div style="text-align: center;">
-      <h4>Your Uploaded Image:</h4>
+      <h4>Your observation:</h4>
       <img src="${uploadedImageUrl}" alt="Uploaded plant image" 
         style="max-width: 120px; max-height: 120px; object-fit: contain; 
         border-radius: 8px; display: block; margin: 5px auto;">
@@ -469,7 +472,6 @@ async function validateGeneralPicture() {
     `;
     
     // Continue with total points as a separate section
-    resultHtml += `<h3>Total Points (including missions): <span id="totalPoints">0</span></h3>`;
     resultHtml += `<h4>Observation Points:</h4>`;
     resultHtml += `<div id="pointsContainer"></div>`;
     document.getElementById('modalText').innerHTML = resultHtml;
