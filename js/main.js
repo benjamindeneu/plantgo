@@ -424,14 +424,12 @@ async function validateSpeciesPicture(species, file) {
     }
 
     let pointsBreakdown = `<h2>Identification Results</h2>`;
-    
     if (isMissionValidated) {
       pointsBreakdown += `<p style="color: green;"><strong>Mission validated!</strong> You successfully identified <strong>${clickedName}</strong>.</p>`;
     } else {
       const identifiedLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
       pointsBreakdown += `<p style="color: red;"><strong>Mission NOT validated!</strong> Your selected mission was <strong>${clickedName}</strong>, but the plant identified was <strong><a href="${identifiedLink}" target="_blank">${bestMatch}</a></strong>.</p>`;
     }
-
     pointsBreakdown += `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
     pointsBreakdown += `<h3>Total Points: ${total_points}</h3>`;
     pointsBreakdown += `<h4>Points Breakdown:</h4>`;
@@ -440,7 +438,7 @@ async function validateSpeciesPicture(species, file) {
       pointsBreakdown += `<p>${displayKey}: ${points[key]} points</p>`;
     }
 
-        // First, ensure the observation is logged
+    // Log the observation first
     const currentUserId = auth.currentUser.uid;
     await addObservation(
       currentUserId,
@@ -460,13 +458,15 @@ async function validateSpeciesPicture(species, file) {
     sessionStorage.setItem('introText', introText);
     sessionStorage.setItem('resultsHTML', pointsBreakdown);
 
-    // Redirect to the results page (validation.html)
-    window.location.href = "validation.html";
+    // Instead of redirecting, load the validation view in the iframe
+    document.getElementById('validationFrame').src = "validation.html";
+    document.getElementById('validationFrameContainer').style.display = "block";
 
   } catch (err) {
     sessionStorage.setItem('introText', `<p style="color: red;">Error validating photo for ${species.name}</p>`);
     sessionStorage.setItem('resultsHTML', `<p style="color: red;">${err.message}</p>`);
-    window.location.href = "validation.html";
+    document.getElementById('validationFrame').src = "validation.html";
+    document.getElementById('validationFrameContainer').style.display = "block";
   }
 }
 
@@ -520,7 +520,7 @@ async function validateGeneralPicture() {
       pointsBreakdown += `<p>${displayKey}: ${points[key]} points</p>`;
     }
 
-        // First, ensure the observation is logged
+    // Log the observation first
     const currentUserId = auth.currentUser.uid;
     await addObservation(
       currentUserId,
@@ -539,12 +539,15 @@ async function validateGeneralPicture() {
     sessionStorage.setItem('introText', introText);
     sessionStorage.setItem('resultsHTML', pointsBreakdown);
     
-    window.location.href = "validation.html";
+    // Load the validation view in the iframe instead of redirecting
+    document.getElementById('validationFrame').src = "validation.html";
+    document.getElementById('validationFrameContainer').style.display = "block";
 
   } catch (err) {
     sessionStorage.setItem('introText', `<p style="color: red;">Error validating photo</p>`);
     sessionStorage.setItem('resultsHTML', `<p style="color: red;">${err.message}</p>`);
-    window.location.href = "validation.html";
+    document.getElementById('validationFrame').src = "validation.html";
+    document.getElementById('validationFrameContainer').style.display = "block";
   }
 }
 
