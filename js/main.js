@@ -427,7 +427,42 @@ async function validateGeneralPicture() {
     if (wikiImageUrl) {
       resultHtml += `<img src="${wikiImageUrl}" alt="${bestMatch}" style="max-width: 150px; display: block; margin: 10px auto;">`;
     }
-    resultHtml += `<h3>Total Points: <span id="totalPoints">0</span></h3>`;
+    // Compute total observation points alone (excluding mission bonus)
+    let observationPointsTotal = 0;
+    if (points) {
+      for (const key in points) {
+        if (key !== "mission validated") {
+          observationPointsTotal += points[key];
+        }
+      }
+    }
+    
+    // Determine category for observation points (Common, Rare, Epic, Legendary)
+    let observationLevel = "";
+    let observationClass = "";
+    if (observationPointsTotal >= 0 && observationPointsTotal < 500) {
+      observationLevel = "Common";
+      observationClass = "common-points";
+    } else if (observationPointsTotal >= 500 && observationPointsTotal < 1000) {
+      observationLevel = "Rare";
+      observationClass = "rare-points";
+    } else if (observationPointsTotal >= 1000 && observationPointsTotal < 1500) {
+      observationLevel = "Epic";
+      observationClass = "epic-points";
+    } else if (observationPointsTotal >= 1500) {
+      observationLevel = "Legendary";
+      observationClass = "legendary-points";
+    }
+    
+    // Add observation points badge to the result modal
+    resultHtml += `
+      <h3>Observation Points: 
+        <span class="points-btn ${observationClass}">${observationPointsTotal} points</span>
+      </h3>
+    `;
+    
+    // Continue with total points as a separate section
+    resultHtml += `<h3>Total Points (including missions): <span id="totalPoints">0</span></h3>`;
     resultHtml += `<h4>Observation Points:</h4>`;
     resultHtml += `<div id="pointsContainer"></div>`;
     document.getElementById('modalText').innerHTML = resultHtml;
