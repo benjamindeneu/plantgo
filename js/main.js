@@ -115,49 +115,51 @@ window.addEventListener("click", (event) => {
 // Add observation (and discovery if needed) to Firestore
 async function addObservation(userId, speciesName, lat, lng, plantnetImageCode, total_points, points, plantnet_identify_score) {
   try {
+    const observationsRef = collection(db, 'users', userId, 'observations');
     const observationData = {
       speciesName,
       observedAt: serverTimestamp(),
       location: new GeoPoint(lat, lng),
       plantnetImageCode,
       total_points,
-      points,                     // integer value
-      plantnet_identify_score     // float value
+      points,
+      plantnet_identify_score
     };
-
-    const observationsRef = collection(db, 'users', userId, 'observations');
     const observationDoc = await addDoc(observationsRef, observationData);
     console.log("Observation added with ID:", observationDoc.id);
 
-    // Create or check discovery document
     const discoveryRef = doc(db, 'users', userId, 'discoveries', speciesName);
     const discoverySnap = await getDoc(discoveryRef);
+
+    let discoveryBonus = 0;
     if (!discoverySnap.exists()) {
-      // Discovery data now includes the observation ID instead of points and plantnet_identify_score
+      // First discovery, add bonus
+      discoveryBonus = 500;
       const discoveryData = {
         speciesName,
         discoveredAt: serverTimestamp(),
         location: new GeoPoint(lat, lng),
-        observationId: observationDoc.id  // reference to the original observation
+        observationId: observationDoc.id
       };
       await setDoc(discoveryRef, discoveryData);
-      console.log("Discovery added for species:", speciesName);
-    } else {
-      console.log("Species already discovered.");
+      console.log("New species discovered:", speciesName);
     }
 
-    // Update the user's total_points field atomically.
+    // Update total points including discovery bonus
     const userRef = doc(db, 'users', userId);
     await updateDoc(userRef, {
-      total_points: increment(total_points)
+      total_points: increment(total_points + discoveryBonus)
     });
-    console.log("User's total_points updated.");
-    
+
+    console.log(`User's total_points updated. Discovery bonus applied: ${discoveryBonus}`);
+
+    return discoveryBonus;
+
   } catch (error) {
     console.error("Error adding observation/discovery:", error);
+    return 0;
   }
 }
-
 
 // Helper: Extract binomial name for Wikipedia lookup
 function getBinomialName(fullName) {
@@ -397,7 +399,7 @@ async function validateGeneralPicture() {
 
 
     // Add observation to Firestore
-    await addObservation(
+    const discoveryBonus = await addObservation(
       currentUserId,
       bestMatch,
       lat,
@@ -493,12 +495,18 @@ async function validateGeneralPicture() {
     });
 
     // If mission validated, show bonus points
-    if (isMissionValidated) {
+    // If mission validated, show bonus points
+    if (isMissionValidated || discoveryBonus > 0) {
       setTimeout(() => {
-        const bonusHtml = `<h4>Bonus Points:</h4><p class="fade-in">Mission validated: ${missionPoints} points</p>`;
+        let bonusHtml = "<h4>Bonus Points:</h4>";
+        if (isMissionValidated) {
+          bonusHtml += `<p class="fade-in">Mission validated: ${missionPoints} points</p>`;
+        }
+        if (discoveryBonus > 0) {
+          bonusHtml += `<p class="fade-in" style="color: blue;">New species discovery: +500 points</p>`;
+        }
         document.getElementById("pointsContainer").insertAdjacentHTML("beforeend", bonusHtml);
       }, delay);
-      delay += 300;
     }
 
     // Wait before updating progress bar and level
