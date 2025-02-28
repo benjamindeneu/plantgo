@@ -410,6 +410,8 @@ async function validateGeneralPicture() {
       identification_score
     );
 
+    total_points += discoveryBonus;
+
     // Wait for Firestore update
     await new Promise(resolve => setTimeout(resolve, 1500));
 
@@ -503,7 +505,7 @@ async function validateGeneralPicture() {
           bonusHtml += `<p class="fade-in">Mission validated: ${missionPoints} points</p>`;
         }
         if (discoveryBonus > 0) {
-          bonusHtml += `<p class="fade-in" style="color: blue;">New species discovery: +500 points</p>`;
+          bonusHtml += `<p class="fade-in">New species discovery: 500 points</p>`;
         }
         document.getElementById("pointsContainer").insertAdjacentHTML("beforeend", bonusHtml);
       }, delay);
