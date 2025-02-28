@@ -368,9 +368,13 @@ async function validateGeneralPicture() {
 
     // Build the results modal content
     let pointsBreakdown = `<h2>Identification Results</h2>`;
+    pointsBreakdown += `<p>Identified species: <strong>${bestMatch}</strong>.</p>`;
+    if (isMissionValidated) {
+      pointsBreakdown += `<p style="color: green;"><strong>Mission validated!</strong> The identified species matches one of your missions.</p>`;
+    }
     pointsBreakdown += `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
     pointsBreakdown += `<h3>Total Points: ${total_points}</h3>`;
-    pointsBreakdown += `<h4>Points Breakdown:</h4>`;
+    pointsBreakdown += `<h4>Observation points:</h4>`;
     for (const key in points) {
       let displayKey = key;
       if (key !== "mission validated"){
