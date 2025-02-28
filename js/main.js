@@ -326,9 +326,6 @@ async function validateGeneralPicture() {
   document.getElementById('resultLevelProgressBar').dataset.locked = "true";
   console.log("[validateGeneralPicture] Progress bar LOCKED from updates.");
 
-  const spinner = document.getElementById('spinner');
-  spinner.style.display = 'block';
-
   try {
     const currentUserId = auth.currentUser.uid;
     const userRef = doc(db, 'users', currentUserId);
@@ -444,7 +441,7 @@ async function validateGeneralPicture() {
     }
 
     // Wait before updating progress bar and level
-    const totalAnimationDuration = Math.max(2000, delay) + 1000;
+    const totalAnimationDuration = Math.max(2000, delay) + 200;
     setTimeout(() => {
       document.getElementById('resultLevelNumber').textContent = newLevel;
       document.getElementById('resultLevelProgressBar').style.width = `${newProgress}%`;
@@ -463,8 +460,6 @@ async function validateGeneralPicture() {
 
   } catch (err) {
     showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
-  } finally {
-    spinner.style.display = 'none';
   }
 }
 
