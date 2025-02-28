@@ -89,6 +89,11 @@ function showModal(content) {
 }
 function hideModal() {
   document.getElementById("resultModal").style.display = "none";
+
+  // **REMOVE LEVEL-UP MESSAGE WHEN CLOSING THE MODAL**
+  const modalText = document.getElementById("levelUp");
+  const existingMessages = modalText.querySelectorAll(".level-up-message");
+  existingMessages.forEach(msg => msg.remove());
 }
 document.getElementById("modalClose").addEventListener("click", hideModal);
 window.addEventListener("click", (event) => {
