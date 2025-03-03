@@ -204,7 +204,7 @@ async function displaySpecies(response) {
   header.innerHTML = `Missions (${response.species.length}) <button id="infoButton" style="background:none;border:none;color:#388e3c;cursor:pointer;">ℹ️</button>`;
   suggestionsDiv.appendChild(header);
   document.getElementById("infoButton").addEventListener("click", () => {
-    showModal("<h2>Mission Information</h2><p><small>Mission: [Species Name]</small></p><p>Missions are suggestions based on multiple metrics.</p>");
+    showModalMission("<h2>Mission Information</h2><p><small>Mission: [Species Name]</small></p><p>Missions are suggestions based on multiple metrics.</p>");
   });
 
   // Loop through each mission and build its card (without a validate button)
