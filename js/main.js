@@ -210,7 +210,7 @@ async function displaySpecies(response) {
   </button>`;
   suggestionsDiv.appendChild(header);
   document.getElementById("infoButton").addEventListener("click", () => {
-    showModalMission("<h2>Mission Information</h2><p><small>Mission: [Species Name]</small></p><p>Missions suggest species for you to observe in your area based on GeoPl@ntNet predictions. These species are selected because they have been predicted with high uncertainty in a small radius around your location.</p>");
+    showModalMission("<h2>Mission Information</h2><p><small>Mission: [Species Name]</small></p><p>Missions suggest species for you to observe in your area based on GeoPl@ntNet predictions. These species are selected because they have been predicted with high uncertainty in a small radius around your location. Points are calculated using multiple metrics, including GeoPl@ntNet uncertainty, the distance to the nearest Pl@ntNet observation, the total number of Pl@ntNet observations, and the time since the last observation.</p>");
   });
 
   // Loop through each mission and build its card (without a validate button)
