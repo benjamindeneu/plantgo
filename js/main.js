@@ -412,12 +412,12 @@ async function validateMultiplePictures(files) {
         points = missionMatch.points;
         isMissionValidated = true;
       } else {
-        const result = await getPoints(lat, lon, bestMatch);
+        const result = await getPoints(lat, lon, bestMatch, speciesList);
         total_points = result.total_points;
         points = result.points;
       }
     } else {
-      const result = await getPoints(lat, lon, bestMatch);
+      const result = await getPoints(lat, lon, bestMatch, speciesList);
       total_points = result.total_points;
       points = result.points;
     }
