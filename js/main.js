@@ -6,6 +6,7 @@ import { db } from './firebase-config.js';
 
 const missionPoints = 500;
 let missionsList = [];
+let speciesList = [];
 
 let currentUserProgress = {
   total_points: 0,
@@ -877,21 +878,27 @@ async function fetchSpecies(lat, lon) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
-
+  
     if (!response.ok) throw new Error('Network response was not ok');
-
+  
     const jsonResponse = await response.json();
-    missionsList = jsonResponse.species;
+  
+    // 🌱 Save result_pred to speciesList
+    speciesList = jsonResponse.result_pred.species;
+  
+    // 🧭 Save processed result to missionsList
+    missionsList = jsonResponse.result.species;
+  
     await displaySpecies(jsonResponse);
-
+  
     // ✅ Store the new fetch time in Firestore
     await updateDoc(userRef, {
       last_species_fetch: serverTimestamp()
     });
-
+  
   } catch (err) {
     suggestionsDiv.innerHTML = `<p>Error fetching missions: ${err.message}</p>`;
-  }
+  }  
 }
 
 // Fetch species missions via proxy
