@@ -65,8 +65,11 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   }
 });
 
+//document.getElementById('plantDexBtn').addEventListener('click', () => {
+//  window.location.href = "plantdex.html";
+//});
 document.getElementById('plantDexBtn').addEventListener('click', () => {
-  window.location.href = "plantdex.html";
+  window.open("plantdex.html", "_blank");
 });
 
 // Proxy server endpoints
