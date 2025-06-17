@@ -15,8 +15,6 @@ let currentUserProgress = {
   progress: 0
 };
 
-updateUIState();
-
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     document.getElementById('userName').textContent = user.displayName || user.email;
@@ -28,6 +26,8 @@ onAuthStateChanged(auth, async (user) => {
     const lastFetch = userData.last_species_fetch?.toDate(); // Firestore Timestamp → JS Date
     const now = new Date();
     const threeHours = 3 * 60 * 60 * 1000;
+
+    updateUIState();
 
     if (lastFetch && (now - lastFetch < threeHours)) {
       console.log("[Cache] Using saved species and missions from Firestore");
