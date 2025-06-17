@@ -350,6 +350,210 @@ async function identifyPicture(file) {
   return await response.json();
 }
 
+async function validateMultiplePictures(files) {
+  if (!files || files.length === 0) {
+    validationResult.innerHTML = `<p>Please select at least one image.</p>`;
+    return;
+  }
+
+  // Lock the progress bar
+  document.getElementById('resultLevelProgressBar').dataset.locked = "true";
+  console.log("[validateMultiplePictures] Progress bar LOCKED from updates.");
+
+  try {
+    const currentUserId = auth.currentUser.uid;
+    const userRef = doc(db, 'users', currentUserId);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) throw new Error("User document not found.");
+
+    const userData = userSnap.data();
+    const oldTotalPoints = userData.total_points || 0;
+    const oldLevel = Math.floor(1 + (oldTotalPoints / 11000));
+    const prevLevelThreshold = (oldLevel - 1) * 11000;
+    const nextLevelThreshold = oldLevel * 11000;
+    const oldProgress = ((oldTotalPoints - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold)) * 100;
+
+    // Display initial values
+    document.getElementById('resultLevelNumber').textContent = oldLevel;
+    document.getElementById('resultLevelProgressBar').style.width = `${oldProgress}%`;
+
+    showModal(`<p>Processing ${files.length} image(s)...</p>`);
+
+    // Send all files together
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('image', file, file.name);
+    });
+
+    const response = await fetch(IDENTIFY_PROXY_URL, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) throw new Error("Upload failed");
+
+    const jsonResponse = await response.json();
+
+    // Assume response is an array of results (one per image)
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const result = Array.isArray(jsonResponse) ? jsonResponse[i] : jsonResponse;
+      const bestMatch = result.bestMatch;
+      const plantnetImageId = result.query?.images?.[0];
+      const identification_score = result.results?.[0]?.score || 0;
+      const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
+
+      const { lat, lon } = await getCoordinates();
+
+      let total_points, points, isMissionValidated = false;
+      if (missionsList && missionsList.length > 0) {
+        const missionMatch = missionsList.find(m => m.name.trim().toLowerCase() === bestMatch.trim().toLowerCase());
+        if (missionMatch) {
+          total_points = missionMatch.total_points + missionPoints;
+          points = missionMatch.points;
+          isMissionValidated = true;
+        } else {
+          const res = await getPoints(lat, lon, bestMatch);
+          total_points = res.total_points;
+          points = res.points;
+        }
+      } else {
+        const res = await getPoints(lat, lon, bestMatch);
+        total_points = res.total_points;
+        points = res.points;
+      }
+
+      const uploadedImageUrl = URL.createObjectURL(file);
+
+      const discoveryBonus = await addObservation(
+        currentUserId,
+        bestMatch,
+        lat,
+        lon,
+        plantnetImageId,
+        total_points,
+        points,
+        identification_score
+      );
+
+      total_points += discoveryBonus;
+
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const newUserSnap = await getDoc(userRef);
+      const newUserData = newUserSnap.data();
+      const newTotalPoints = newUserData.total_points || 0;
+      const newLevel = Math.floor(1 + (newTotalPoints / 11000));
+      const newPrevLevelThreshold = (newLevel - 1) * 11000;
+      const newNextLevelThreshold = newLevel * 11000;
+      const newProgress = ((newTotalPoints - newPrevLevelThreshold) / (newNextLevelThreshold - newPrevLevelThreshold)) * 100;
+
+      let resultHtml = `
+        <h3>
+          <button 
+            onclick="window.open('${speciesLink}', '_blank')" 
+            class="species-button"
+          >
+            ${bestMatch}
+          </button>
+        </h3>
+      `;
+      if (isMissionValidated) {
+        resultHtml += `<p style="color: green;"><strong>Mission validated!</strong></p>`;
+      }
+      resultHtml += `
+      <h3 style="text-align: center;">Points: 
+        <span id="totalPoints-${i}">0</span>
+      </h3>
+      <div style="text-align: center;">
+        <h4>Your observation:</h4>
+        <img src="${uploadedImageUrl}" alt="Uploaded plant image" 
+          style="max-width: 120px; max-height: 120px; object-fit: contain; 
+          border-radius: 8px; display: block; margin: 5px auto;">
+      </div>`;
+
+      let observationPointsTotal = 0;
+      if (points) {
+        for (const key in points) {
+          if (key !== "mission validated") {
+            observationPointsTotal += points[key];
+          }
+        }
+      }
+
+      let observationLevel = "";
+      let observationClass = "";
+      if (observationPointsTotal < 500) {
+        observationLevel = "Common";
+        observationClass = "common-points";
+      } else if (observationPointsTotal < 1000) {
+        observationLevel = "Rare";
+        observationClass = "rare-points";
+      } else if (observationPointsTotal < 1500) {
+        observationLevel = "Epic";
+        observationClass = "epic-points";
+      } else {
+        observationLevel = "Legendary";
+        observationClass = "legendary-points";
+      }
+
+      resultHtml += `
+        <h3>Observation Points: 
+          <span class="points-btn ${observationClass}">${observationPointsTotal} points</span>
+        </h3>
+        <h4>Observation Points:</h4>
+        <div id="pointsContainer-${i}"></div>
+      `;
+
+      document.getElementById('modalText').innerHTML += resultHtml;
+      animateValue(`totalPoints-${i}`, 0, total_points, 2000);
+
+      let delay = 0;
+      const keys = Object.keys(points).filter(key => key !== "mission validated");
+      keys.forEach(key => {
+        setTimeout(() => {
+          const p = document.createElement("p");
+          p.textContent = `${key}: ${points[key]} points`;
+          p.classList.add("fade-in");
+          document.getElementById(`pointsContainer-${i}`).appendChild(p);
+        }, delay);
+        delay += 300;
+      });
+
+      if (isMissionValidated || discoveryBonus > 0) {
+        setTimeout(() => {
+          let bonusHtml = "<h4>Bonus Points:</h4>";
+          if (isMissionValidated) {
+            bonusHtml += `<p class="fade-in">Mission validated: ${missionPoints} points</p>`;
+          }
+          if (discoveryBonus > 0) {
+            bonusHtml += `<p class="fade-in">New species discovery: 500 points</p>`;
+          }
+          document.getElementById(`pointsContainer-${i}`).insertAdjacentHTML("beforeend", bonusHtml);
+        }, delay);
+      }
+
+      const totalAnimationDuration = Math.max(2000, delay) + 200;
+      setTimeout(() => {
+        document.getElementById('resultLevelNumber').textContent = newLevel;
+        document.getElementById('resultLevelProgressBar').style.width = `${newProgress}%`;
+
+        console.log(`[validateMultiplePictures] Updated Level: ${newLevel}, Progress: ${newProgress}`);
+
+        if (newLevel > oldLevel) {
+          triggerLevelUpAnimation(newLevel);
+        }
+
+        document.getElementById('resultLevelProgressBar').dataset.locked = "false";
+        console.log("[validateMultiplePictures] Progress bar UNLOCKED.");
+      }, totalAnimationDuration);
+    }
+
+  } catch (err) {
+    showModal(`<p style="color: red;">Error validating photo(s): ${err.message}</p>`);
+  }
+}
+
 
 // Validate general plant picture
 async function validateGeneralPicture() {
@@ -582,9 +786,20 @@ function getCoordinates() {
 validateBtn.addEventListener('click', () => {
   photoInput.click();
 });
+//photoInput.addEventListener('change', async () => {
+//  await validateGeneralPicture();
+//});
 photoInput.addEventListener('change', async () => {
-  await validateGeneralPicture();
+  const files = Array.from(photoInput.files);
+  if (files.length === 0) {
+    validationResult.innerHTML = `<p>Please capture or select at least one photo.</p>`;
+    return;
+  }
+
+  await validateMultiplePictures(files);
+  photoInput.value = ''; // allow re-selection
 });
+
 getLocationBtn.addEventListener('click', () => {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(success, error, {
