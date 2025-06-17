@@ -70,9 +70,13 @@ document.getElementById('plantDexBtn').addEventListener('click', () => {
 });
 
 // Proxy server endpoints
-const SPECIES_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/missions';
-const POINTS_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/points';
-const IDENTIFY_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/identify';
+//const SPECIES_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/missions';
+//const POINTS_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/points';
+//const IDENTIFY_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/identify';
+
+const SPECIES_PROXY_URL = 'https://liked-stirring-stinkbug.ngrok-free.app/api/missions';
+const POINTS_PROXY_URL = 'https://liked-stirring-stinkbug.ngrok-free.app/api/points';
+const IDENTIFY_PROXY_URL = 'https://liked-stirring-stinkbug.ngrok-free.app/api/identify';
 
 // DOM elements
 const getLocationBtn = document.getElementById('getLocationBtn');
