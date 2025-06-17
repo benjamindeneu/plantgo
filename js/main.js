@@ -1079,7 +1079,7 @@ async function saveSpeciesAndMissions(userRef, speciesList, missionsList) {
     await updateDoc(userRef, {
       species_list: speciesList,
       missions_list: missionsList,
-      last_species_mission_save: serverTimestamp()  // Optional: for tracking
+      //last_species_mission_save: serverTimestamp()  // Optional: for tracking
     });
     console.log("[Firestore] speciesList and missionsList saved.");
   } catch (error) {
