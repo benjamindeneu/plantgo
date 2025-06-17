@@ -787,8 +787,14 @@ function getCoordinates() {
 
 // Event listeners
 validateBtn.addEventListener('click', () => {
+  if (!speciesList || speciesList.length === 0) {
+    alert("No species data available. Please load missions first.");
+    return;
+  }
+
   photoInput.click();
 });
+
 //photoInput.addEventListener('change', async () => {
 //  await validateGeneralPicture();
 //});
@@ -902,20 +908,28 @@ async function fetchSpecies(lat, lon) {
 }
 
 // Fetch species missions via proxy
-async function getPoints(lat, lon, species) {
-  const data = { point: { lat, lon }, species_name: species };
+async function getPoints(lat, lon, species, speciesList) {
+  const data = {
+    point: { lat, lon },
+    species_name: species,
+    species_list: speciesList   // ← send this to the backend
+  };
+
   try {
     const response = await fetch(POINTS_PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
+
     if (!response.ok) throw new Error('Network response was not ok');
     return await response.json();
+
   } catch (err) {
     return { total_points: 0, points: {} };
   }
 }
+
 
 function animateValue(id, start, end, duration) {
   const obj = document.getElementById(id);
