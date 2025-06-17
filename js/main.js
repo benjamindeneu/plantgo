@@ -889,7 +889,7 @@ async function fetchSpecies(lat, lon) {
     // 🧭 Save processed result to missionsList
     missionsList = jsonResponse.result.species;
   
-    await displaySpecies(jsonResponse);
+    await displaySpecies(jsonResponse.result);
   
     // ✅ Store the new fetch time in Firestore
     await updateDoc(userRef, {
