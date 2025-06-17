@@ -860,6 +860,7 @@ submitBtn.addEventListener('click', async () => {
   preview.innerHTML = '';
 
   await validateMultiplePictures(pictures);
+  validationResult.innerHTML = '';
 });
 
 getLocationBtn.addEventListener('click', () => {
