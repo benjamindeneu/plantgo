@@ -846,6 +846,7 @@ photoInput.addEventListener('change', () => {
   });
 
   photoInput.value = ''; // Allow repeated input
+  updateUIState();
 });
 
 submitBtn.addEventListener('click', async () => {
@@ -1084,5 +1085,25 @@ async function saveSpeciesAndMissions(userRef, speciesList, missionsList) {
     console.log("[Firestore] speciesList and missionsList saved.");
   } catch (error) {
     console.error("[Firestore] Error saving species and missions:", error);
+  }
+}
+
+function updateUIState() {
+  if (allFiles.length === 0) {
+    submitBtn.style.display = 'none';
+    validateBtn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M10.5 2a.5.5 0 0 1 .5.5V3h2a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h2v-.5a.5.5 0 0 1 .5-.5h6Zm-2.5 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm0 1.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Z"/>
+      </svg>
+      I found a plant!
+    `;
+  } else {
+    submitBtn.style.display = 'inline-block';
+    validateBtn.innerHTML = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M10.5 2a.5.5 0 0 1 .5.5V3h2a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h2v-.5a.5.5 0 0 1 .5-.5h6Zm-2.5 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm0 1.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Z"/>
+      </svg>
+      Add another photo
+    `;
   }
 }
