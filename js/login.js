@@ -14,12 +14,12 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     const user = userCredential.user;
 
     // Check if the user's email is verified
-    if (!user.emailVerified) {
-      // If not verified, sign the user out and display a message
-      await signOut(auth);
-      document.getElementById('loginMessage').textContent = "Please verify your email address before logging in.";
-      return;
-    }
+    //if (!user.emailVerified) {
+    //  // If not verified, sign the user out and display a message
+    //  await signOut(auth);
+    //  document.getElementById('loginMessage').textContent = "Please verify your email address before logging in.";
+    //  return;
+    //}
     
     // On successful and verified login, redirect to your main page
     window.location.href = "index.html";
