@@ -927,6 +927,8 @@ async function fetchSpecies(lat, lon) {
   
     // 🧭 Save processed result to missionsList
     missionsList = jsonResponse.result.species;
+
+    await saveSpeciesAndMissions(userRef, speciesList, missionsList);
   
     await displaySpecies(jsonResponse.result);
   
@@ -1050,4 +1052,15 @@ function fireConfettiInsideModal() {
   }, 3000);
 }
 
-
+async function saveSpeciesAndMissions(userRef, speciesList, missionsList) {
+  try {
+    await updateDoc(userRef, {
+      species_list: speciesList,
+      missions_list: missionsList,
+      last_species_mission_save: serverTimestamp()  // Optional: for tracking
+    });
+    console.log("[Firestore] speciesList and missionsList saved.");
+  } catch (error) {
+    console.error("[Firestore] Error saving species and missions:", error);
+  }
+}
