@@ -832,8 +832,11 @@ submitBtn.addEventListener('click', async () => {
 
   validationResult.innerHTML = `<p>Validating ${allFiles.length} photos...</p>`;
 
-  await validateMultiplePictures(allFiles);
+  const pictures = allFiles;
   allFiles = [];
+  preview.innerHTML = '';
+
+  await validateMultiplePictures(pictures);
 });
 
 getLocationBtn.addEventListener('click', () => {
