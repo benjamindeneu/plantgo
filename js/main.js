@@ -19,6 +19,26 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     document.getElementById('userName').textContent = user.displayName || user.email;
     const userRef = doc(db, 'users', user.uid);
+
+    const userSnap = await getDoc(userRef);
+    const userData = userSnap.exists() ? userSnap.data() : {};
+
+    const lastFetch = userData.last_species_fetch?.toDate(); // Firestore Timestamp → JS Date
+    const now = new Date();
+    const threeHours = 3 * 60 * 60 * 1000;
+
+    if (lastFetch && (now - lastFetch < threeHours)) {
+      console.log("[Cache] Using saved species and missions from Firestore");
+
+      speciesList = userData.species_list || [];
+      missionsList = userData.missions_list || [];
+
+      await displaySpecies(missionsList); // mimic fetchSpecies response
+    } else {
+      console.log("[Fetch] No recent species fetch — calling fetchSpecies()");
+      // Wait to fetch species after user location is available
+      // You might need to trigger fetchSpecies(lat, lon) after geolocation succeeds
+    }
     
     // Listen for real-time updates on the user's points
     onSnapshot(userRef, (docSnap) => {
@@ -203,16 +223,16 @@ async function getWikipediaImage(speciesFullName) {
 }
 
 // Display species missions
-async function displaySpecies(response) {
+async function displaySpecies(species_list) {
   suggestionsDiv.innerHTML = '';
-  if (!response.species || response.species.length === 0) {
+  if (!species_list || species_list.length === 0) {
     suggestionsDiv.innerHTML = `<p>No missions found.</p>`;
     return;
   }
 
   // Header with info button
   const header = document.createElement('h3');
-  header.innerHTML = `Missions (${response.species.length}) <button id="infoButton" style="background:none;border:none;color:#388e3c;cursor:pointer;">
+  header.innerHTML = `Missions (${species_list.length}) <button id="infoButton" style="background:none;border:none;color:#388e3c;cursor:pointer;">
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="10"></circle>
       <line x1="12" y1="16" x2="12" y2="12"></line>
@@ -225,7 +245,7 @@ async function displaySpecies(response) {
   });
 
   // Loop through each mission and build its card (without a validate button)
-  for (const species of response.species) {
+  for (const species of species_list) {
     const item = document.createElement('div');
     item.classList.add('species-item');
 
@@ -930,7 +950,7 @@ async function fetchSpecies(lat, lon) {
 
     await saveSpeciesAndMissions(userRef, speciesList, missionsList);
   
-    await displaySpecies(jsonResponse.result);
+    await displaySpecies(missionsList);
   
     // ✅ Store the new fetch time in Firestore
     await updateDoc(userRef, {
