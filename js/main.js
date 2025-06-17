@@ -7,6 +7,7 @@ import { db } from './firebase-config.js';
 const missionPoints = 500;
 let missionsList = [];
 let speciesList = [];
+let allFiles = [];
 
 let currentUserProgress = {
   total_points: 0,
@@ -89,6 +90,8 @@ const suggestionsDiv = document.getElementById('suggestions');
 const photoInput = document.getElementById('photoInput');
 const validateBtn = document.getElementById('validateBtn');
 const validationResult = document.getElementById('validationResult');
+const submitBtn = document.getElementById('submitBtn');
+const preview = document.getElementById('preview');
 
 // Modal functions
 function showModal(content) {
@@ -798,15 +801,39 @@ validateBtn.addEventListener('click', () => {
 //photoInput.addEventListener('change', async () => {
 //  await validateGeneralPicture();
 //});
-photoInput.addEventListener('change', async () => {
+
+photoInput.addEventListener('change', () => {
   const files = Array.from(photoInput.files);
   if (files.length === 0) {
     validationResult.innerHTML = `<p>Please capture or select at least one photo.</p>`;
     return;
   }
 
-  await validateMultiplePictures(files);
-  photoInput.value = ''; // allow re-selection
+  allFiles = allFiles.concat(files);
+
+  files.forEach(file => {
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    img.style.maxWidth = '80px';
+    img.style.margin = '5px';
+    img.style.borderRadius = '8px';
+    img.style.border = '1px solid #ccc';
+    preview.appendChild(img);
+  });
+
+  photoInput.value = ''; // Allow repeated input
+});
+
+submitBtn.addEventListener('click', async () => {
+  if (allFiles.length === 0) {
+    validationResult.innerHTML = `<p>No photos to validate. Please add some first.</p>`;
+    return;
+  }
+
+  validationResult.innerHTML = `<p>Validating ${allFiles.length} photos...</p>`;
+
+  await validateMultiplePictures(allFiles);
+  allFiles = [];
 });
 
 getLocationBtn.addEventListener('click', () => {
