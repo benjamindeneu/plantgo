@@ -15,6 +15,8 @@ let currentUserProgress = {
   progress: 0
 };
 
+updateUIState();
+
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     document.getElementById('userName').textContent = user.displayName || user.email;
