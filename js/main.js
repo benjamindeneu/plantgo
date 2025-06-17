@@ -827,6 +827,7 @@ validateBtn.addEventListener('click', () => {
 
 photoInput.addEventListener('change', () => {
   const files = Array.from(photoInput.files);
+  validationResult.innerHTML = '';
   if (files.length === 0) {
     validationResult.innerHTML = `<p>Please capture or select at least one photo.</p>`;
     return;
