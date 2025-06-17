@@ -606,7 +606,7 @@ function error(err) {
 }
 
 // Fetch species missions via proxy
-async function fetchSpecies(lat, lon) {
+async function fetchSpeciesOLD(lat, lon) {
   suggestionsDiv.innerHTML = `<p>Loading missions...</p>`;
   const data = { point: { lat, lon } };
   try {
@@ -620,6 +620,55 @@ async function fetchSpecies(lat, lon) {
     // Save the missions globally for later lookup
     missionsList = jsonResponse.species;
     await displaySpecies(jsonResponse);
+  } catch (err) {
+    suggestionsDiv.innerHTML = `<p>Error fetching missions: ${err.message}</p>`;
+  }
+}
+
+async function fetchSpecies(lat, lon) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const userRef = doc(db, 'users', user.uid);
+  const userSnap = await getDoc(userRef);
+
+  // Get the last fetch time (convert Firestore Timestamp to JS time)
+  const lastFetchTimestamp = userSnap.data()?.last_species_fetch?.toMillis?.() || 0;
+  const now = Date.now();
+  const FIVE_MINUTES = 5 * 60 * 1000;
+
+  if (now - lastFetchTimestamp < FIVE_MINUTES) {
+    const secondsLeft = Math.ceil((FIVE_MINUTES - (now - lastFetchTimestamp)) / 1000);
+    const existingContent = suggestionsDiv.innerHTML;
+    suggestionsDiv.innerHTML = `
+      <p style="color: orange;">Please wait ${secondsLeft} seconds before fetching missions again.</p>
+      ${existingContent}
+    `;
+    return;
+  }
+
+  // Update UI while loading
+  suggestionsDiv.innerHTML = `<p>Loading missions...</p>`;
+  const data = { point: { lat, lon } };
+
+  try {
+    const response = await fetch(SPECIES_PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) throw new Error('Network response was not ok');
+
+    const jsonResponse = await response.json();
+    missionsList = jsonResponse.species;
+    await displaySpecies(jsonResponse);
+
+    // ✅ Store the new fetch time in Firestore
+    await updateDoc(userRef, {
+      last_species_fetch: serverTimestamp()
+    });
+
   } catch (err) {
     suggestionsDiv.innerHTML = `<p>Error fetching missions: ${err.message}</p>`;
   }
