@@ -402,6 +402,9 @@ async function validateMultiplePictures(files) {
     const bestMatch = jsonResponse.bestMatch;
     const plantnetImageId = jsonResponse.query?.images?.[0];
     const identification_score = jsonResponse.results?.[0]?.score || 0;
+    const uniqueOrgansCount = new Set(
+      jsonResponse.predictedOrgans?.map(o => o.organ)
+    ).size;
     const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
 
     const { lat, lon } = await getCoordinates();
@@ -415,12 +418,12 @@ async function validateMultiplePictures(files) {
         points = missionMatch.points;
         isMissionValidated = true;
       } else {
-        const result = await getPoints(lat, lon, bestMatch, speciesList);
+        const result = await getPoints(lat, lon, bestMatch, speciesList, uniqueOrgansCount);
         total_points = result.total_points;
         points = result.points;
       }
     } else {
-      const result = await getPoints(lat, lon, bestMatch, speciesList);
+      const result = await getPoints(lat, lon, bestMatch, speciesList, uniqueOrgansCount);
       total_points = result.total_points;
       points = result.points;
     }
@@ -938,11 +941,12 @@ async function fetchSpecies(lat, lon) {
 }
 
 // Fetch species missions via proxy
-async function getPoints(lat, lon, species, speciesList) {
+async function getPoints(lat, lon, species, speciesList, uniqueOrgansCount=1) {
   const data = {
     point: { lat, lon },
     species_name: species,
-    species_list: speciesList   // ← send this to the backend
+    species_list: speciesList,   // ← send this to the backend
+    nb_organs: uniqueOrgansCount
   };
 
   try {
