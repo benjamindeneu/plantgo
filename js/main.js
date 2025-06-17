@@ -856,7 +856,7 @@ submitBtn.addEventListener('click', async () => {
     validationResult.innerHTML = `<p>No photos to validate. Please add some first.</p>`;
     return;
   }
-
+  updateUIState();
   validationResult.innerHTML = `<p>Validating ${allFiles.length} photos...</p>`;
 
   const pictures = allFiles;
