@@ -98,6 +98,10 @@
   <!-- External JavaScript -->
   <script type="module" src="js/main.js"></script>
   <script>
+    window.addEventListener('beforeunload', function (e) {
+      e.preventDefault(); // Required for some browsers
+      e.returnValue = ''; // Shows the default confirmation dialog
+    });
     document.getElementById("userBtn").addEventListener("click", function() {
       const menu = document.getElementById("userMenu");
       menu.style.display = menu.style.display === "block" ? "none" : "block";
