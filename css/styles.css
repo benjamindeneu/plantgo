@@ -371,6 +371,15 @@ header {
 
 .common-points   { background: linear-gradient(180deg, #9aa3a7, #7b8488); }
 .rare-points     { background: linear-gradient(180deg, #3aa0ff, #1e7fe0); }
+/* Flat colors, same as your original */
+.epic-points {
+  background-color: #9c27b0; /* Purple */
+}
+
+.legendary-points {
+  background-color: #FFD700; /* Gold */
+}
+
 
 /* ===== Better metallic bases ===== */
 /* Make the pill itself the clipping container */
@@ -382,15 +391,6 @@ header {
   overflow: hidden;           /* the clip */
   border-radius: 999px;       /* fully rounded */
   isolation: isolate;         /* prevents blend bleed */
-}
-
-/* Base gradients (keep yours or these) */
-.epic-points {
-  background: linear-gradient(180deg, #c646de 0%, #9f34b7 55%, #7d2592 100%);
-}
-.legendary-points {
-  background: linear-gradient(180deg, #ffe788 0%, #ffd84d 45%, #f3bf1a 55%, #e0a900 100%);
-  color: #2a2300;
 }
 
 /* Subtle grain to avoid banding */
@@ -442,23 +442,41 @@ header {
   .legendary-points::after { animation: none; opacity: 0; }
 }
 
+.epic-points,
+.legendary-points {
+  clip-path: inset(0 round 999px); /* extra clip */
+  contain: paint;                  /* isolate painting */
+}
 
-.legendary-points i.sparkle {
+
+/* Sparkles: multiple dots fading in/out */
+.epic-points::before,
+.legendary-points::before {
+  content: "";
   position: absolute;
-  width: 8px; height: 8px; border-radius: 50%;
-  background: radial-gradient(circle, #fff, rgba(255,255,255,0) 60%);
-  top: 30%; left: -10%;
-  filter: blur(.2px);
-  animation: sparkle-walk 2.8s ease-in-out infinite;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 60%),
+    radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 60%),
+    radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 60%);
+  background-size: 4px 4px, 3px 3px, 5px 5px;
+  background-position: 10% 30%, 60% 70%, 80% 40%;
+  animation: sparkle-move 3s infinite ease-in-out;
   pointer-events: none;
+  z-index: 2;
 }
-@keyframes sparkle-walk {
-  0%   { transform: translateX(0) translateY(0) scale(.6); opacity: 0; }
-  20%  { opacity: .85; }
-  50%  { transform: translateX(140%) translateY(-6px) scale(1); }
-  80%  { opacity: .0; }
-  100% { transform: translateX(180%) translateY(-10px) scale(.8); }
+
+@keyframes sparkle-move {
+  0%, 100% {
+    opacity: 0;
+    background-position: 10% 30%, 60% 70%, 80% 40%;
+  }
+  50% {
+    opacity: 1;
+    background-position: 15% 25%, 65% 75%, 85% 35%;
+  }
 }
+
 
 /* 10) Level badge with progress */
 .level-badge {
