@@ -371,23 +371,101 @@ header {
 
 .common-points   { background: linear-gradient(180deg, #9aa3a7, #7b8488); }
 .rare-points     { background: linear-gradient(180deg, #3aa0ff, #1e7fe0); }
-.epic-points     { background: linear-gradient(180deg, #bb39cf, #8d26a3); position: relative; overflow: hidden; }
-.legendary-points{ background: linear-gradient(180deg, #ffd84d, #e3b800); color: #3a2c00; position: relative; overflow: hidden; }
 
-/* Subtle sheen */
+/* ===== Better metallic bases ===== */
+.epic-points {
+  background: linear-gradient(180deg, #c646de 0%, #9f34b7 55%, #7d2592 100%); /* rich purple */
+  position: relative;
+  overflow: hidden;
+  border-radius: 999px;
+  isolation: isolate; /* so blend layers don't leak */
+}
+
+.legendary-points {
+  background:
+    linear-gradient(180deg, #ffe788 0%, #ffd84d 45%, #f3bf1a 55%, #e0a900 100%); /* gold ramp */
+  position: relative;
+  overflow: hidden;
+  border-radius: 999px;
+  color: #2a2300;
+  isolation: isolate;
+}
+
+/* Add a tiny noise texture to both (reduces banding) */
+.epic-points::before,
+.legendary-points::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: .15;
+  mix-blend-mode: multiply;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(0,0,0,.15) 1px, transparent 1px);
+  background-size: 3px 3px; /* super subtle grain */
+  z-index: 0;
+}
+
+/* ===== Sheen highlight (feathered, transform-animated) ===== */
 .epic-points::after,
 .legendary-points::after {
   content: "";
   position: absolute;
-  inset: 0 auto 0 -120%;
-  width: 50%;
-  background: linear-gradient(45deg, transparent, rgba(255,255,255,.5), transparent);
-  transform: skewX(-20deg);
-  animation: metalShine 2s linear infinite;
+  inset: -20% -60%; /* overscan to avoid cut edges */
+  pointer-events: none;
+  z-index: 1;
+  transform: translateX(-120%) rotate(12deg);
+  will-change: transform;
+
+  /* The highlight itself */
+  background:
+    linear-gradient(90deg,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,.75) 45%,
+      rgba(255,255,255,0) 60%);
+
+  /* Feather the edges with a mask so it feels soft */
+  -webkit-mask-image: radial-gradient(120% 70% at 50% 50%, #000 45%, transparent 70%);
+          mask-image: radial-gradient(120% 70% at 50% 50%, #000 45%, transparent 70%);
+
+  animation: sheen-sweep var(--sheen-speed, 2.2s) ease-in-out infinite;
 }
-@keyframes metalShine {
-  0% { transform: translateX(0) skewX(-20deg); }
-  100% { transform: translateX(300%) skewX(-20deg); }
+
+/* Purple gets a cool tint; gold gets warm tint via blend */
+.epic-points::after   { mix-blend-mode: screen; }
+.legendary-points::after { mix-blend-mode: overlay; }
+
+/* ===== Keyframes rely on transform only (cheap to animate) ===== */
+@keyframes sheen-sweep {
+  0%   { transform: translateX(-120%) rotate(12deg); }
+  55%  { transform: translateX(10%)   rotate(12deg); }
+  100% { transform: translateX(130%)  rotate(12deg); }
+}
+
+/* Optional: slow the legendary shimmer slightly */
+.legendary-points { --sheen-speed: 2.8s; }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .epic-points::after,
+  .legendary-points::after { animation: none; opacity: .0; }
+}
+
+.legendary-points i.sparkle {
+  position: absolute;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: radial-gradient(circle, #fff, rgba(255,255,255,0) 60%);
+  top: 30%; left: -10%;
+  filter: blur(.2px);
+  animation: sparkle-walk 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes sparkle-walk {
+  0%   { transform: translateX(0) translateY(0) scale(.6); opacity: 0; }
+  20%  { opacity: .85; }
+  50%  { transform: translateX(140%) translateY(-6px) scale(1); }
+  80%  { opacity: .0; }
+  100% { transform: translateX(180%) translateY(-10px) scale(.8); }
 }
 
 /* 10) Level badge with progress */
