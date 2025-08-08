@@ -669,3 +669,44 @@ button.secondary {
 /* Location button icon spacing */
 #getLocationBtn .fa-location-dot { margin-right: 8px; }
 
+/* Keep the progress bar INSIDE the level pill (header badge) */
+.level-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;          /* space for text */
+  border-radius: 999px;        /* fully rounded */
+  overflow: hidden;            /* ✨ clips the bar */
+  line-height: 1;
+  isolation: isolate;
+  contain: paint;              /* helps Safari clip */
+}
+
+/* The tiny bar that lives at the bottom of the badge */
+#levelProgressContainer {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 3px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 0;            /* avoid sticking out of rounded edge */
+  pointer-events: none;        /* ignore taps */
+}
+
+#levelProgressBar {
+  height: 100%;
+  width: 0%;
+  background: #fff;            /* visible on dark+light */
+  transition: width 500ms cubic-bezier(.2,.8,.2,1);
+}
+
+/* Extra belt-and-suspenders for Safari clipping quirks */
+.level-badge {
+  -webkit-clip-path: inset(0 round 999px);
+          clip-path: inset(0 round 999px);
+}
+
+/* If the badge looks crowded on tiny screens, shrink text slightly */
+@media (max-width: 380px) {
+  .level-badge { font-size: 11.5px; padding: 5px 10px; }
+}
