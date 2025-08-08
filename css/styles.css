@@ -373,83 +373,75 @@ header {
 .rare-points     { background: linear-gradient(180deg, #3aa0ff, #1e7fe0); }
 
 /* ===== Better metallic bases ===== */
-.epic-points {
-  background: linear-gradient(180deg, #c646de 0%, #9f34b7 55%, #7d2592 100%); /* rich purple */
-  position: relative;
-  overflow: hidden;
-  border-radius: 999px;
-  isolation: isolate; /* so blend layers don't leak */
-}
-
+/* Make the pill itself the clipping container */
+.epic-points,
 .legendary-points {
-  background:
-    linear-gradient(180deg, #ffe788 0%, #ffd84d 45%, #f3bf1a 55%, #e0a900 100%); /* gold ramp */
   position: relative;
-  overflow: hidden;
-  border-radius: 999px;
-  color: #2a2300;
-  isolation: isolate;
+  display: inline-flex;       /* important: not inline */
+  align-items: center;
+  overflow: hidden;           /* the clip */
+  border-radius: 999px;       /* fully rounded */
+  isolation: isolate;         /* prevents blend bleed */
 }
 
-/* Add a tiny noise texture to both (reduces banding) */
+/* Base gradients (keep yours or these) */
+.epic-points {
+  background: linear-gradient(180deg, #c646de 0%, #9f34b7 55%, #7d2592 100%);
+}
+.legendary-points {
+  background: linear-gradient(180deg, #ffe788 0%, #ffd84d 45%, #f3bf1a 55%, #e0a900 100%);
+  color: #2a2300;
+}
+
+/* Subtle grain to avoid banding */
 .epic-points::before,
 .legendary-points::before {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: .15;
+  opacity: .12;
   mix-blend-mode: multiply;
-  background-image:
-    radial-gradient(circle at 1px 1px, rgba(0,0,0,.15) 1px, transparent 1px);
-  background-size: 3px 3px; /* super subtle grain */
+  background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,.25) 1px, transparent 1px);
+  background-size: 3px 3px;
   z-index: 0;
 }
 
-/* ===== Sheen highlight (feathered, transform-animated) ===== */
+/* ✅ Sheen that never escapes: we animate background-position on an inset layer */
 .epic-points::after,
 .legendary-points::after {
   content: "";
   position: absolute;
-  inset: -20% -60%; /* overscan to avoid cut edges */
+  inset: 0;                   /* stays inside the pill bounds */
   pointer-events: none;
   z-index: 1;
-  transform: translateX(-120%) rotate(12deg);
-  will-change: transform;
-
-  /* The highlight itself */
   background:
-    linear-gradient(90deg,
-      rgba(255,255,255,0) 0%,
-      rgba(255,255,255,.75) 45%,
-      rgba(255,255,255,0) 60%);
-
-  /* Feather the edges with a mask so it feels soft */
-  -webkit-mask-image: radial-gradient(120% 70% at 50% 50%, #000 45%, transparent 70%);
-          mask-image: radial-gradient(120% 70% at 50% 50%, #000 45%, transparent 70%);
-
-  animation: sheen-sweep var(--sheen-speed, 2.2s) ease-in-out infinite;
+    linear-gradient(120deg,
+      transparent 0%,
+      rgba(255,255,255,0) 40%,
+      rgba(255,255,255,.55) 50%,
+      rgba(255,255,255,0) 60%,
+      transparent 100%);
+  background-size: 250% 100%;
+  animation: sheen-slide var(--sheen-speed, 2.2s) linear infinite;
+  mix-blend-mode: screen;     /* nice on purple */
+}
+.legendary-points::after {
+  mix-blend-mode: overlay;    /* warmer on gold */
+  --sheen-speed: 2.8s;
 }
 
-/* Purple gets a cool tint; gold gets warm tint via blend */
-.epic-points::after   { mix-blend-mode: screen; }
-.legendary-points::after { mix-blend-mode: overlay; }
-
-/* ===== Keyframes rely on transform only (cheap to animate) ===== */
-@keyframes sheen-sweep {
-  0%   { transform: translateX(-120%) rotate(12deg); }
-  55%  { transform: translateX(10%)   rotate(12deg); }
-  100% { transform: translateX(130%)  rotate(12deg); }
+@keyframes sheen-slide {
+  from { background-position: -150% 0; }
+  to   { background-position: 150% 0; }
 }
 
-/* Optional: slow the legendary shimmer slightly */
-.legendary-points { --sheen-speed: 2.8s; }
-
-/* Respect reduced motion */
+/* Motion safety */
 @media (prefers-reduced-motion: reduce) {
   .epic-points::after,
-  .legendary-points::after { animation: none; opacity: .0; }
+  .legendary-points::after { animation: none; opacity: 0; }
 }
+
 
 .legendary-points i.sparkle {
   position: absolute;
