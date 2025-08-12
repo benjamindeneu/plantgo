@@ -1,10 +1,10 @@
 // features/user.js
-// Purpose: user load, header render, logout, herbarium open (feature-parity).
+// Purpose: load user, show username (not email), load level/progress, herbarium + logout.
+// Keeps your Firestore contract; adjust field names below only if yours differ.
 
 import { els, updateHeaderLevel } from '../dom.js';
 import { state, setUser, setLevel, setProgress, setTotalPoints } from '../state.js';
 
-// If you already import Firebase elsewhere, keep it exactly the same:
 import { auth, db } from '../firebase-config.js';
 import {
   onAuthStateChanged,
@@ -17,40 +17,56 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
 export function init() {
-  // Auth state → load user profile (exact behavior, names can be adjusted to match your current doc)
+  // Auth state → load user profile (WITHOUT changing your schema)
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       window.location.href = "login.html";
       return;
     }
     setUser(user);
-    // Load user doc
+
     const userRef = doc(db, 'users', user.uid);
     const snap = await getDoc(userRef);
     if (snap.exists()) {
       const u = snap.data();
+
+      // Prefer username from Firestore, fall back to displayName, then email
+      const display =
+        (u && (u.username || u.name || u.displayName)) ||
+        user.displayName ||
+        user.email ||
+        'User';
+      if (els.userName) els.userName.textContent = display;
+
+      // Load points/level/progress using your existing fields
       const lvl = Number(u.level ?? state.level);
       const prog = Number(u.progress ?? state.progress);
       const total = Number(u.total_points ?? state.totalPoints);
+
       setLevel(lvl);
       setProgress(prog);
       setTotalPoints(total);
-      if (els.userName) els.userName.textContent = u.username || user.email || 'User';
       updateHeaderLevel(lvl, prog);
     }
 
-    // Live progress snapshot (parity with your current onSnapshot if you have one)
+    // Live updates (if you update user doc elsewhere)
     onSnapshot(userRef, (docSnap) => {
       const u = docSnap.data() || {};
-      const lvl = Number(u.level ?? state.level);
-      const prog = Number(u.progress ?? state.progress);
-      setLevel(lvl);
-      setProgress(prog);
-      updateHeaderLevel(lvl, prog);
+      if (u.username && els.userName) els.userName.textContent = u.username;
+      if (typeof u.level !== 'undefined') {
+        const lvl = Number(u.level);
+        setLevel(lvl);
+        const prog = Number(u.progress ?? state.progress);
+        setProgress(prog);
+        updateHeaderLevel(lvl, prog);
+      }
+      if (typeof u.total_points !== 'undefined') {
+        setTotalPoints(Number(u.total_points));
+      }
     });
   });
 
-  // Herbarium button
+  // Herbarium button (open plantdex.html exactly as before)
   if (els.plantDexBtn) {
     els.plantDexBtn.addEventListener('click', () => {
       window.open('plantdex.html', '_blank', 'noopener');

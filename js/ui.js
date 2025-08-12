@@ -1,5 +1,6 @@
 // ui.js
-// Purpose: small global UI interactions previously inline in index.html.
+// Purpose: small global UI interactions that used to be inline in index.html.
+// Kept identical to your original behavior.
 
 import { els } from './dom.js';
 
