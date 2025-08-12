@@ -132,33 +132,30 @@ const IDENTIFY_PROXY_URL = 'https://liked-stirring-stinkbug.ngrok-free.app/api/i
  * }>}
  */
 async function apiIdentifyPlant(file, ctx = {}) {
-  // 1) Identify
-  const formData = new FormData();
-  formData.append('image', file);
-
-  const idRes = await fetch(IDENTIFY_PROXY_URL, { method: 'POST', body: formData });
+  // 1) identify
+  const fd = new FormData();
+  fd.append('image', file);
+  const idRes = await fetch(IDENTIFY_PROXY_URL, { method: 'POST', body: fd });
   if (!idRes.ok) throw new Error(`Identify failed: ${idRes.status}`);
-  const identifyData = await idRes.json(); // expect { speciesName, confidence, ... }
+  const identifyData = await idRes.json();
 
-  // 2) Award points (pass along anything your backend expects)
-  const payload = {
-    speciesName: identifyData.speciesName,
-    confidence: identifyData.confidence,
-    // Optional context your backend might use:
-    lat: ctx.lat ?? null,
-    lon: ctx.lon ?? null,
-    userId: ctx.userId ?? null
+  // 2) points (mirror your old payload)
+  const pointsPayload = {
+    point: ctx.lat && ctx.lon ? { lat: ctx.lat, lon: ctx.lon } : null,
+    species_name: identifyData.speciesName,
+    species_list: state.speciesList || [],
+    nb_organs: identifyData.nb_organs || 1
   };
 
   const ptRes = await fetch(POINTS_PROXY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(pointsPayload)
   });
-  if (!ptRes.ok) throw new Error(`Points API failed: ${ptRes.status}`);
-  const pointsData = await ptRes.json(); // expect { pointsBreakdown, totalPoints, newLevel, newProgress }
+  const raw = await ptRes.text();
+  if (!ptRes.ok) { console.error('Points response body:', raw); throw new Error(`Points API ${ptRes.status}`); }
+  const pointsData = JSON.parse(raw);
 
-  // 3) Merge for UI
   return { ...identifyData, ...pointsData };
 }
 
@@ -167,9 +164,27 @@ async function apiIdentifyPlant(file, ctx = {}) {
  * @returns {Promise<Array<{id,title,description,levelClass,points}>>}
  */
 async function apiFetchMissions(lat, lon) {
-  const res = await fetch(`${SPECIES_PROXY_URL}?lat=${lat}&lon=${lon}`);
-  if (!res.ok) throw new Error(`Missions fetch failed: ${res.status}`);
-  return res.json();
+  const res = await fetch(SPECIES_PROXY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ point: { lat, lon } })
+  });
+
+  const raw = await res.text();
+  if (!res.ok) {
+    console.error('Missions response body:', raw);
+    throw new Error(`Missions ${res.status}`);
+  }
+
+  let json;
+  try { json = JSON.parse(raw); }
+  catch { throw new Error('Missions: invalid JSON'); }
+
+  // Your backend returns both predicted & processed lists
+  const speciesList  = json?.result_pred?.species || [];
+  const missionsList = json?.result?.species      || [];
+
+  return { speciesList, missionsList };
 }
 
 /** You can also call this directly elsewhere if needed */
@@ -280,18 +295,19 @@ function wireCameraFlow() {
 
 function wireMissions() {
   els.getLocationBtn?.addEventListener('click', async () => {
-    if (!navigator.geolocation) {
-      toast('Geolocation not supported.');
-      return;
-    }
+    if (!navigator.geolocation) { toast('Geolocation not supported.'); return; }
 
     busy(true);
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const { latitude: lat, longitude: lon } = pos.coords;
       els.locationInfo.textContent = `Lat ${lat.toFixed(4)}, Lon ${lon.toFixed(4)}`;
+
       try {
-        const missions = await apiFetchMissions(lat, lon);
-        renderMissions(missions || []);
+        const { speciesList, missionsList } = await apiFetchMissions(lat, lon);
+        state.geo = { lat, lon };
+        state.speciesList = speciesList;
+        state.missionsList = missionsList;
+        renderMissions(missionsList);
       } catch (err) {
         console.error(err);
         toast('Could not fetch missions.');
@@ -307,26 +323,48 @@ function wireMissions() {
 }
 
 function renderMissions(missions) {
-  if (!missions.length) {
+  if (!missions?.length) {
     els.suggestions.innerHTML = '<p class="muted">No missions nearby right now.</p>';
     return;
   }
 
-  els.suggestions.innerHTML = missions.map(m => `
-    <div class="species-item">
-      <div class="card-content">
-        <div class="species-info">
-          <h3>${m.title}</h3>
-          <p>${m.description || ''}</p>
-          <button class="validate-species-btn ${m.levelClass || ''}" data-mission-id="${m.id}">Accept (+${m.points || 0})</button>
-          <div class="validation-feedback muted"></div>
+  els.suggestions.innerHTML = missions.map(sp => {
+    // total points = sum of point components
+    const total = Object.values(sp.points || {}).reduce((a, b) => a + Number(b || 0), 0);
+
+    let missionLevel = 'Common', levelClass = 'common-points';
+    if (total >= 1500) { missionLevel = 'Legendary'; levelClass = 'legendary-points'; }
+    else if (total >= 1000) { missionLevel = 'Epic'; levelClass = 'epic-points'; }
+    else if (total >= 500)  { missionLevel = 'Rare'; levelClass = 'rare-points'; }
+
+    const badges = [
+      sp.is_tree      ? `<span class="badge tree-badge">🌳 Tree</span>` : '',
+      sp.is_invasive  ? `<span class="badge invasive-badge">⚠️ Invasive</span>` : '',
+      sp.is_flowering ? `<span class="badge flowering-badge">🌼 Flowering</span>` : ''
+    ].join('');
+
+    const breakdown = Object.entries(sp.points || {})
+      .map(([k, v]) => `<p>${k === 'base' ? 'Species observation' : k}: ${v} points</p>`)
+      .join('');
+
+    return `
+      <div class="species-item">
+        <div class="card-content">
+          <div class="species-info">
+            <h3>Mission: ${sp.name}</h3>
+            <p>${sp.common_name || ''}</p>
+            ${badges}
+            <p class="mission-level ${levelClass}">${missionLevel}</p>
+            <button class="validate-species-btn" data-species="${sp.name}">Accept (+${total})</button>
+            <div class="validation-feedback muted"></div>
+          </div>
         </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
-  // Wire mission buttons (placeholder action)
-  els.suggestions.querySelectorAll('button[data-mission-id]').forEach(btn => {
+  // wire buttons
+  els.suggestions.querySelectorAll('button[data-species]').forEach(btn => {
     btn.addEventListener('click', () => {
       btn.disabled = true;
       btn.nextElementSibling.textContent = 'Mission accepted!';
