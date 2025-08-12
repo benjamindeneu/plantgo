@@ -5,20 +5,21 @@
   <title>PlantGo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <!-- Fonts + Icons -->
+  <!-- System UI stack with Roboto fallback -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Font Awesome 6 (matches the fa-solid usage) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-T1jVgQ3..." crossorigin="anonymous" referrerpolicy="no-referrer" />
 
   <!-- Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0"></script>
 
   <!-- App CSS -->
   <link rel="stylesheet" href="css/styles.css">
+  <!-- Optional: iOS PWA colors -->
   <meta name="theme-color" content="#55c86f">
 </head>
 <body>
-  <noscript>PlantGo needs JavaScript enabled.</noscript>
-
   <!-- Header -->
   <header role="banner">
     <h1>PlantGo</h1>
@@ -28,7 +29,9 @@
         <span id="userName">User</span>
         <span id="userLevel" class="level-badge">
           Lv. <span id="levelNumber">1</span>
-          <div id="levelProgressContainer"><div id="levelProgressBar"></div></div>
+          <div id="levelProgressContainer">
+            <div id="levelProgressBar"></div>
+          </div>
         </span>
       </button>
 
@@ -81,7 +84,7 @@
     <hr class="rule" />
 
     <!-- Result Modal -->
-    <div id="resultModal" class="modal" aria-modal="true" role="dialog" aria-labelledby="result-title">
+    <div id="resultModal" class="modal" style="display:none;" aria-modal="true" role="dialog" aria-labelledby="result-title">
       <div class="modal-content">
         <button id="modalClose" class="close" aria-label="Close dialog">&times;</button>
 
@@ -103,7 +106,7 @@
     </div>
 
     <!-- Mission Details Modal -->
-    <div id="missionModal" class="modal" aria-modal="true" role="dialog" aria-labelledby="mission-title">
+    <div id="missionModal" class="modal" style="display:none;" aria-modal="true" role="dialog" aria-labelledby="mission-title">
       <div class="modal-content">
         <button id="missionModalClose" class="close" aria-label="Close dialog">&times;</button>
         <h2 id="mission-title" class="sr-only">Mission Details</h2>
@@ -112,7 +115,7 @@
     </div>
 
     <!-- Spinner -->
-    <div id="spinner" class="spinner" aria-hidden="true"></div>
+    <div id="spinner" class="spinner" style="display:none;" aria-hidden="true"></div>
 
     <!-- Branding -->
     <div class="brand">
@@ -122,5 +125,28 @@
 
   <!-- JS -->
   <script type="module" src="js/main.js"></script>
+
+  <!-- Tiny menu toggle (kept behavior) -->
+  <script>
+    window.addEventListener('beforeunload', function (e) {
+      e.preventDefault();
+      e.returnValue = '';
+    });
+    const userBtn = document.getElementById("userBtn");
+    const userMenu = document.getElementById("userMenu");
+
+    userBtn.addEventListener("click", function() {
+      const open = userMenu.style.display === "block";
+      userMenu.style.display = open ? "none" : "block";
+      userBtn.setAttribute("aria-expanded", String(!open));
+    });
+
+    document.addEventListener("click", function(event) {
+      if (!userBtn.contains(event.target) && !userMenu.contains(event.target)) {
+        userMenu.style.display = "none";
+        userBtn.setAttribute("aria-expanded", "false");
+      }
+    });
+  </script>
 </body>
 </html>
