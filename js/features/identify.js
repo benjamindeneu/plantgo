@@ -6,6 +6,7 @@ import { state, setTotalPoints, setLevel, setProgress } from '../state.js';
 import { identifyImage, postPoints } from '../api.js';
 
 export function init() {
+  refreshEls();
   wireCamera();
   wireSubmit();
 }

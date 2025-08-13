@@ -63,6 +63,7 @@ function applyUserDoc(u, fbUser) {
 }
 
 export function init() {
+  refreshEls();
   // Auth state → load user profile (as in your old main.js)
   onAuthStateChanged(auth, async (user) => {
     if (!user) {

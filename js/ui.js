@@ -1,17 +1,15 @@
 // ui.js
-// Purpose: small global UI interactions that used to be inline in index.html.
-// Kept identical to your original behavior.
-
-import { els } from './dom.js';
+import { els, refreshEls } from './dom.js';
 
 export function init() {
-  // beforeunload — unchanged
+  // ensure elements exist now (after load)
+  refreshEls();
+
   window.addEventListener('beforeunload', function (e) {
     e.preventDefault();
     e.returnValue = '';
   });
 
-  // user menu toggle — unchanged
   if (els.userBtn && els.userMenu) {
     els.userBtn.addEventListener('click', function () {
       const open = els.userMenu.style.display === 'block';

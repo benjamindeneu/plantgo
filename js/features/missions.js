@@ -7,6 +7,7 @@ import { setGeo, setMissionsList, setSpeciesList } from '../state.js';
 import { fetchMissions, fetchWikipediaImage, wikipediaPageUrl } from '../api.js';
 
 export function init() {
+  refreshEls();
   if (!els.getLocationBtn) return;
 
   els.getLocationBtn.addEventListener('click', () => {
