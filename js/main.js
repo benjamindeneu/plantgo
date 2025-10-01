@@ -613,7 +613,7 @@ async function fetchSpecies(lat, lon) {
   suggestionsDiv.innerHTML = `<p>Loading missions...</p>`;
 
   try {
-    const body = { lat, lon, model: "best", limit: 20 }; // tweak limit if you want
+    const body = { lat, lon, model: "best", limit: 10 }; // tweak limit if you want
     const resp = await fetch(SPECIES_PROXY_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
