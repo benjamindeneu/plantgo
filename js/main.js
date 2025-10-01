@@ -101,8 +101,8 @@ document.getElementById('plantDexBtn').addEventListener('click', () => {
 //const POINTS_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/points';
 //const IDENTIFY_PROXY_URL = 'https://giving-winning-mastodon.ngrok-free.app/api/identify';
 
+// Proxy server endpoints
 const SPECIES_PROXY_URL = 'https://liked-stirring-stinkbug.ngrok-free.app/api/missions';
-const POINTS_PROXY_URL = 'https://liked-stirring-stinkbug.ngrok-free.app/api/points';
 const IDENTIFY_PROXY_URL = 'https://liked-stirring-stinkbug.ngrok-free.app/api/identify';
 
 // DOM elements
@@ -232,7 +232,6 @@ async function displaySpecies(species_list) {
     return;
   }
 
-  // Header with info button
   const header = document.createElement('h3');
   header.innerHTML = `Missions (${species_list.length}) <button id="infoButton" style="background:none;border:none;color:#388e3c;cursor:pointer;">
     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -246,12 +245,10 @@ async function displaySpecies(species_list) {
     showModalMission("<h2>Mission Information</h2><p><small>Mission: [Species Name]</small></p><p>Missions suggest species for you to observe in your area based on GeoPl@ntNet predictions. These species are selected because they have been predicted with high uncertainty in a small radius around your location. Points are calculated using multiple metrics, including GeoPl@ntNet uncertainty, the distance to the nearest Pl@ntNet observation, the total number of Pl@ntNet observations, and the time since the last observation.</p>");
   });
 
-  // Loop through each mission and build its card (without a validate button)
   for (const species of species_list) {
     const item = document.createElement('div');
     item.classList.add('species-item');
 
-    // Mission title
     const missionTitle = document.createElement('div');
     missionTitle.classList.add('mission-title');
     missionTitle.textContent = `Mission: ${species.name}`;
@@ -260,75 +257,53 @@ async function displaySpecies(species_list) {
     const cardContent = document.createElement('div');
     cardContent.classList.add('card-content');
 
-    // Image container
     const imageContainer = document.createElement('div');
     imageContainer.classList.add('species-image-container');
     const img = document.createElement('img');
     img.classList.add('species-image');
     img.alt = species.name;
-    img.src = ''; // Placeholder until loaded
+    img.src = '';
     imageContainer.appendChild(img);
 
-    // Info container
     const infoContainer = document.createElement('div');
     infoContainer.classList.add('species-info');
 
-    // Compute total points
-    let totalPoints = 0;
-    if (species.points) {
-      for (const key in species.points) {
-        totalPoints += species.points[key];
-      }
-    }
+    // 🆕 total points now comes as species.points.total
+    const totalPoints = species.points?.total ?? 0;
 
-    // Points button with color coding based on totalPoints
     const pointsBtn = document.createElement('button');
     pointsBtn.classList.add('points-btn');
     pointsBtn.textContent = `${totalPoints} points`;
-    if (totalPoints >= 0 && totalPoints < 500) {
-      pointsBtn.classList.add('common-points');
-    } else if (totalPoints >= 500 && totalPoints < 1000) {
-      pointsBtn.classList.add('rare-points');
-    } else if (totalPoints >= 1000 && totalPoints < 1500) {
-      pointsBtn.classList.add('epic-points');
-    } else if (totalPoints >= 1500) {
-      pointsBtn.classList.add('legendary-points');
-    }
+    if (totalPoints < 500) pointsBtn.classList.add('common-points');
+    else if (totalPoints < 1000) pointsBtn.classList.add('rare-points');
+    else if (totalPoints < 1500) pointsBtn.classList.add('epic-points');
+    else pointsBtn.classList.add('legendary-points');
+
     pointsBtn.addEventListener('click', () => {
       let detail = `<h2>Point details</h2><p><small>Mission: ${species.name}</small></p>`;
       let missionLevel = "";
       let levelClass = "";
-      if (totalPoints >= 0 && totalPoints < 500) {
-        missionLevel = "Common";
-        levelClass = "common-points";
-      } else if (totalPoints >= 500 && totalPoints < 1000) {
-        missionLevel = "Rare";
-        levelClass = "rare-points";
-      } else if (totalPoints >= 1000 && totalPoints < 1500) {
-        missionLevel = "Epic";
-        levelClass = "epic-points";
-      } else if (totalPoints >= 1500) {
-        missionLevel = "Legendary";
-        levelClass = "legendary-points";
-      }
+      if (totalPoints < 500) { missionLevel = "Common"; levelClass = "common-points"; }
+      else if (totalPoints < 1000) { missionLevel = "Rare"; levelClass = "rare-points"; }
+      else if (totalPoints < 1500) { missionLevel = "Epic"; levelClass = "epic-points"; }
+      else { missionLevel = "Legendary"; levelClass = "legendary-points"; }
       detail += `<p class="mission-level ${levelClass}">${missionLevel}</p>`;
-      if (species.points) {
-        for (const key in species.points) {
-          let displayKey = key === 'base' ? 'Species observation' : key;
-          detail += `<p>${displayKey}: ${species.points[key]} points</p>`;
-        }
+
+      // 🆕 Breakdown lives in species.points.detail
+      const detailObj = species.points?.detail || {};
+      for (const key of Object.keys(detailObj)) {
+        const displayKey = key === 'base' ? 'Species observation' : key;
+        detail += `<p>${displayKey}: ${detailObj[key]} points</p>`;
       }
       showModalMission(detail);
     });
 
     infoContainer.appendChild(pointsBtn);
 
-    // Common name
     const commonNameP = document.createElement('p');
     commonNameP.textContent = species.common_name || "No common name";
     infoContainer.appendChild(commonNameP);
 
-    // Badges
     const badgesP = document.createElement('p');
     badgesP.innerHTML =
       (species.is_tree ? `<span class="badge tree-badge">🌳 Tree</span>` : '') +
@@ -337,7 +312,6 @@ async function displaySpecies(species_list) {
       (species.is_fruiting ? `<span class="badge flowering-badge">🍎 Fruiting</span>` : '');
     infoContainer.appendChild(badgesP);
 
-    // More info link
     const moreInfoP = document.createElement('p');
     const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(species.name)}/data`;
     const moreInfoLink = document.createElement('a');
@@ -352,29 +326,31 @@ async function displaySpecies(species_list) {
     item.appendChild(cardContent);
     suggestionsDiv.appendChild(item);
 
-    // Load and display Wikipedia image
     const wikiImageUrl = await getWikipediaImage(species.name);
-    if (wikiImageUrl) {
-      img.src = wikiImageUrl;
-    } else {
-      imageContainer.style.display = 'none';
-    }
+    if (wikiImageUrl) img.src = wikiImageUrl;
+    else imageContainer.style.display = 'none';
   }
 }
 
 
 
+
 // Identify picture using the proxy server
-async function identifyPicture(file) {
+async function identifyPicture(file, lat, lon, model = "best") {
   const formData = new FormData();
   formData.append('image', file, file.name);
+  formData.append('lat', String(lat));
+  formData.append('lon', String(lon));
+  formData.append('model', model);
+
   const response = await fetch(IDENTIFY_PROXY_URL, {
     method: 'POST',
     body: formData
   });
-  if (!response.ok) throw new Error("Upload failed");
-  return await response.json();
+  if (!response.ok) throw new Error(`Upload failed (${response.status})`);
+  return await response.json(); // { identify: {...}, points: { total, detail }, model }
 }
+
 
 async function validateMultiplePictures(files) {
   if (!files || files.length === 0) {
@@ -405,253 +381,34 @@ async function validateMultiplePictures(files) {
 
     showModal(`<p>Processing ${files.length} image(s) for identification...</p>`);
 
-    // Send all images together
-    const formData = new FormData();
-    files.forEach(file => {
-      formData.append('image', file, file.name);
-    });
-
-    const response = await fetch(IDENTIFY_PROXY_URL, {
-      method: 'POST',
-      body: formData
-    });
-
-    if (!response.ok) throw new Error("Upload failed");
-
-    const jsonResponse = await response.json();
-
-    // 🔍 One identification result
-    const bestMatch = jsonResponse.bestMatch;
-    const plantnetImageId = jsonResponse.query?.images?.[0];
-    const identification_score = jsonResponse.results?.[0]?.score || 0;
-    const uniqueOrgansCount = new Set(
-      jsonResponse.predictedOrgans?.map(o => o.organ)
-    ).size;
-    const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
+    // Use the first image for backend (current API expects one)
+    const mainFile = files[0];
 
     const { lat, lon } = await getCoordinates();
+    const jsonResponse = await identifyPicture(mainFile, lat, lon, "best");
 
-    // Determine points
-    let total_points, points, isMissionValidated = false;
+    // New shape
+    const bestMatch = jsonResponse.identify?.name || "Unknown";
+    const gbifId = jsonResponse.identify?.gbif_id ?? null;
+    const identification_score = jsonResponse.identify?.score ?? 0;
+    const plantnetImageId = jsonResponse.identify?.raw?.images?.[0] || null; // may be absent depending on PlantNet payload
+    const pointsObj = jsonResponse.points || { total: 0, detail: {} };
+    const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
+
+    // Determine if this matches a mission
+    let total_points = pointsObj.total || 0;
+    const points = pointsObj.detail || {};
+    let isMissionValidated = false;
+
     if (missionsList && missionsList.length > 0) {
       const missionMatch = missionsList.find(m => m.name.trim().toLowerCase() === bestMatch.trim().toLowerCase());
       if (missionMatch) {
-        total_points = missionMatch.total_points + missionPoints;
-        points = missionMatch.points;
         isMissionValidated = true;
-      } else {
-        const result = await getPoints(lat, lon, bestMatch, speciesList, uniqueOrgansCount);
-        total_points = result.total_points;
-        points = result.points;
-      }
-    } else {
-      const result = await getPoints(lat, lon, bestMatch, speciesList, uniqueOrgansCount);
-      total_points = result.total_points;
-      points = result.points;
-    }
-
-    const discoveryBonus = await addObservation(
-      currentUserId,
-      bestMatch,
-      lat,
-      lon,
-      plantnetImageId,
-      total_points,
-      points,
-      identification_score
-    );
-
-    total_points += discoveryBonus;
-
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    const newUserSnap = await getDoc(userRef);
-    const newUserData = newUserSnap.data();
-    const newTotalPoints = newUserData.total_points || 0;
-    const newLevel = Math.floor(1 + (newTotalPoints / 11000));
-    const newPrevLevelThreshold = (newLevel - 1) * 11000;
-    const newNextLevelThreshold = newLevel * 11000;
-    const newProgress = ((newTotalPoints - newPrevLevelThreshold) / (newNextLevelThreshold - newPrevLevelThreshold)) * 100;
-
-    // Build result UI
-    let resultHtml = `
-      <h3>
-        <button 
-          onclick="window.open('${speciesLink}', '_blank')" 
-          class="species-button"
-        >
-          ${bestMatch}
-        </button>
-      </h3>
-    `;
-
-    if (isMissionValidated) {
-      resultHtml += `<p style="color: green;"><strong>Mission validated!</strong></p>`;
-    }
-
-    resultHtml += `
-      <h3 style="text-align: center;">Points: 
-        <span id="totalPoints">0</span>
-      </h3>
-      <div style="text-align: center;">
-        <h4>Your observation:</h4>
-        ${files.map(file => `
-          <img src="${URL.createObjectURL(file)}" alt="Uploaded image" 
-               style="max-width: 120px; max-height: 120px; object-fit: contain; 
-               border-radius: 8px; display: inline-block; margin: 5px;">
-        `).join('')}
-      </div>
-    `;
-
-    // Compute observation points
-    let observationPointsTotal = 0;
-    if (points) {
-      for (const key in points) {
-        if (key !== "mission validated") {
-          observationPointsTotal += points[key];
-        }
+        total_points += missionPoints; // client-side mission bonus
       }
     }
 
-    let observationLevel = "";
-    let observationClass = "";
-    if (observationPointsTotal < 500) {
-      observationLevel = "Common";
-      observationClass = "common-points";
-    } else if (observationPointsTotal < 1000) {
-      observationLevel = "Rare";
-      observationClass = "rare-points";
-    } else if (observationPointsTotal < 1500) {
-      observationLevel = "Epic";
-      observationClass = "epic-points";
-    } else {
-      observationLevel = "Legendary";
-      observationClass = "legendary-points";
-    }
-
-    resultHtml += `
-      <h3>Observation Points: 
-        <span class="points-btn ${observationClass}">${observationPointsTotal} points</span>
-      </h3>
-      <h4>Observation Points:</h4>
-      <div id="pointsContainer"></div>
-    `;
-
-    document.getElementById('modalText').innerHTML = resultHtml;
-    animateValue("totalPoints", 0, total_points, 2000);
-
-    let delay = 0;
-    const keys = Object.keys(points).filter(key => key !== "mission validated");
-    keys.forEach(key => {
-      setTimeout(() => {
-        const p = document.createElement("p");
-        p.textContent = `${key}: ${points[key]} points`;
-        p.classList.add("fade-in");
-        document.getElementById("pointsContainer").appendChild(p);
-      }, delay);
-      delay += 300;
-    });
-
-    if (isMissionValidated || discoveryBonus > 0) {
-      setTimeout(() => {
-        let bonusHtml = "<h4>Bonus Points:</h4>";
-        if (isMissionValidated) {
-          bonusHtml += `<p class="fade-in">Mission validated: ${missionPoints} points</p>`;
-        }
-        if (discoveryBonus > 0) {
-          bonusHtml += `<p class="fade-in">New species discovery: 500 points</p>`;
-        }
-        document.getElementById("pointsContainer").insertAdjacentHTML("beforeend", bonusHtml);
-      }, delay);
-    }
-
-    const totalAnimationDuration = Math.max(2000, delay) + 200;
-    setTimeout(() => {
-      document.getElementById('resultLevelNumber').textContent = newLevel;
-      document.getElementById('resultLevelProgressBar').style.width = `${newProgress}%`;
-
-      console.log(`[validateMultiplePictures] Updated Level: ${newLevel}, Progress: ${newProgress}`);
-
-      if (newLevel > oldLevel) {
-        triggerLevelUpAnimation(newLevel);
-      }
-
-      document.getElementById('resultLevelProgressBar').dataset.locked = "false";
-      console.log("[validateMultiplePictures] Progress bar UNLOCKED.");
-    }, totalAnimationDuration);
-
-  } catch (err) {
-    showModal(`<p style="color: red;">Error validating photo(s): ${err.message}</p>`);
-  }
-}
-
-
-// Validate general plant picture
-async function validateGeneralPicture() {
-  const file = photoInput.files[0];
-  if (!file) {
-    validationResult.innerHTML = `<p>Please capture or select a photo first.</p>`;
-    return;
-  }
-
-  // Lock the progress bar to prevent unwanted updates
-  document.getElementById('resultLevelProgressBar').dataset.locked = "true";
-  console.log("[validateGeneralPicture] Progress bar LOCKED from updates.");
-
-  try {
-    const currentUserId = auth.currentUser.uid;
-    const userRef = doc(db, 'users', currentUserId);
-
-    // Fetch latest user data before starting validation
-    const userSnap = await getDoc(userRef);
-    if (!userSnap.exists()) throw new Error("User document not found.");
-
-    const userData = userSnap.data();
-    const oldTotalPoints = userData.total_points || 0;
-    const oldLevel = Math.floor(1 + (oldTotalPoints / 11000));
-    const prevLevelThreshold = (oldLevel - 1) * 11000;
-    const nextLevelThreshold = oldLevel * 11000;
-    const oldProgress = ((oldTotalPoints - prevLevelThreshold) / (nextLevelThreshold - prevLevelThreshold)) * 100;
-
-    // Display initial values
-    document.getElementById('resultLevelNumber').textContent = oldLevel;
-    document.getElementById('resultLevelProgressBar').style.width = `${oldProgress}%`;
-    showModal(`<p>Processing identification...</p>`);
-
-    // Identify the picture
-    const jsonResponse = await identifyPicture(file);
-    const bestMatch = jsonResponse.bestMatch;
-    const plantnetImageId = jsonResponse.query.images[0];
-    const identification_score = jsonResponse.results[0].score;
-    const speciesLink = `https://identify.plantnet.org/fr/k-world-flora/species/${encodeURIComponent(bestMatch)}/data`;
-
-    // Get user's location
-    const { lat, lon } = await getCoordinates();
-
-    // Determine mission points
-    let total_points, points, isMissionValidated = false;
-    if (missionsList && missionsList.length > 0) {
-      const missionMatch = missionsList.find(m => m.name.trim().toLowerCase() === bestMatch.trim().toLowerCase());
-      if (missionMatch) {
-        total_points = missionMatch.total_points + missionPoints;
-        points = missionMatch.points;
-        isMissionValidated = true;
-      } else {
-        const result = await getPoints(lat, lon, bestMatch);
-        total_points = result.total_points;
-        points = result.points;
-      }
-    } else {
-      const result = await getPoints(lat, lon, bestMatch);
-      total_points = result.total_points;
-      points = result.points;
-    }
-
-    // Use the user-uploaded image instead of fetching from Wikipedia
-    const uploadedImageUrl = URL.createObjectURL(file);
-
-
-    // Add observation to Firestore
+    // Save observation
     const discoveryBonus = await addObservation(
       currentUserId,
       bestMatch,
@@ -668,7 +425,6 @@ async function validateGeneralPicture() {
     // Wait for Firestore update
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Fetch updated user data
     const newUserSnap = await getDoc(userRef);
     const newUserData = newUserSnap.data();
     const newTotalPoints = newUserData.total_points || 0;
@@ -677,13 +433,10 @@ async function validateGeneralPicture() {
     const newNextLevelThreshold = newLevel * 11000;
     const newProgress = ((newTotalPoints - newPrevLevelThreshold) / (newNextLevelThreshold - newPrevLevelThreshold)) * 100;
 
-    // Build identification result UI
+    // Build UI
     let resultHtml = `
       <h3>
-        <button 
-          onclick="window.open('${speciesLink}', '_blank')" 
-          class="species-button"
-        >
+        <button onclick="window.open('${speciesLink}', '_blank')" class="species-button">
           ${bestMatch}
         </button>
       </h3>
@@ -691,64 +444,26 @@ async function validateGeneralPicture() {
     if (isMissionValidated) {
       resultHtml += `<p style="color: green;"><strong>Mission validated!</strong></p>`;
     }
-    // Show user-uploaded image instead
     resultHtml += `
-    <h3 style="text-align: center;">Points: 
-      <span id="totalPoints">0</span>
-    </h3>
-    <div style="text-align: center;">
-      <h4>Your observation:</h4>
-      <img src="${uploadedImageUrl}" alt="Uploaded plant image" 
-        style="max-width: 120px; max-height: 120px; object-fit: contain; 
-        border-radius: 8px; display: block; margin: 5px auto;">
-    </div>`;
-
-    // Compute total observation points alone (excluding mission bonus)
-    let observationPointsTotal = 0;
-    if (points) {
-      for (const key in points) {
-        if (key !== "mission validated") {
-          observationPointsTotal += points[key];
-        }
-      }
-    }
-    
-    // Determine category for observation points (Common, Rare, Epic, Legendary)
-    let observationLevel = "";
-    let observationClass = "";
-    if (observationPointsTotal >= 0 && observationPointsTotal < 500) {
-      observationLevel = "Common";
-      observationClass = "common-points";
-    } else if (observationPointsTotal >= 500 && observationPointsTotal < 1000) {
-      observationLevel = "Rare";
-      observationClass = "rare-points";
-    } else if (observationPointsTotal >= 1000 && observationPointsTotal < 1500) {
-      observationLevel = "Epic";
-      observationClass = "epic-points";
-    } else if (observationPointsTotal >= 1500) {
-      observationLevel = "Legendary";
-      observationClass = "legendary-points";
-    }
-    
-    // Add observation points badge to the result modal
-    resultHtml += `
-      <h3>Observation Points: 
-        <span class="points-btn ${observationClass}">${observationPointsTotal} points</span>
-      </h3>
+      <h3 style="text-align: center;">Points: <span id="totalPoints">0</span></h3>
+      <div style="text-align: center;">
+        <h4>Your observation:</h4>
+        ${files.map(file => `
+          <img src="${URL.createObjectURL(file)}" alt="Uploaded image"
+               style="max-width: 120px; max-height: 120px; object-fit: contain;
+               border-radius: 8px; display: inline-block; margin: 5px;">
+        `).join('')}
+      </div>
+      <h4>Observation Points:</h4>
+      <div id="pointsContainer"></div>
     `;
-    
-    // Continue with total points as a separate section
-    resultHtml += `<h4>Observation Points:</h4>`;
-    resultHtml += `<div id="pointsContainer"></div>`;
     document.getElementById('modalText').innerHTML = resultHtml;
 
-    // Animate total points
+    // Animate
     animateValue("totalPoints", 0, total_points, 2000);
 
-    // Animate each point row
     let delay = 0;
-    const keys = Object.keys(points).filter(key => key !== "mission validated");
-    keys.forEach(key => {
+    for (const key of Object.keys(points)) {
       setTimeout(() => {
         const p = document.createElement("p");
         p.textContent = `${key}: ${points[key]} points`;
@@ -756,43 +471,27 @@ async function validateGeneralPicture() {
         document.getElementById("pointsContainer").appendChild(p);
       }, delay);
       delay += 300;
-    });
+    }
 
-    // If mission validated, show bonus points
-    // If mission validated, show bonus points
     if (isMissionValidated || discoveryBonus > 0) {
       setTimeout(() => {
         let bonusHtml = "<h4>Bonus Points:</h4>";
-        if (isMissionValidated) {
-          bonusHtml += `<p class="fade-in">Mission validated: ${missionPoints} points</p>`;
-        }
-        if (discoveryBonus > 0) {
-          bonusHtml += `<p class="fade-in">New species discovery: 500 points</p>`;
-        }
+        if (isMissionValidated) bonusHtml += `<p class="fade-in">Mission validated: ${missionPoints} points</p>`;
+        if (discoveryBonus > 0) bonusHtml += `<p class="fade-in">New species discovery: 500 points</p>`;
         document.getElementById("pointsContainer").insertAdjacentHTML("beforeend", bonusHtml);
       }, delay);
     }
 
-    // Wait before updating progress bar and level
     const totalAnimationDuration = Math.max(2000, delay) + 200;
     setTimeout(() => {
       document.getElementById('resultLevelNumber').textContent = newLevel;
       document.getElementById('resultLevelProgressBar').style.width = `${newProgress}%`;
-
-      console.log(`[validateGeneralPicture] Updated Level: ${newLevel}, Progress: ${newProgress}`);
-
-      if (newLevel > oldLevel) {
-        triggerLevelUpAnimation(newLevel);
-      }
-
-      // Unlock the progress bar only after confirming updates
+      if (newLevel > oldLevel) triggerLevelUpAnimation(newLevel);
       document.getElementById('resultLevelProgressBar').dataset.locked = "false";
-      console.log("[validateGeneralPicture] Progress bar UNLOCKED.");
-
     }, totalAnimationDuration);
 
   } catch (err) {
-    showModal(`<p style="color: red;">Error validating photo: ${err.message}</p>`);
+    showModal(`<p style="color: red;">Error validating photo(s): ${err.message}</p>`);
   }
 }
 
@@ -890,26 +589,6 @@ function error(err) {
   locationInfo.textContent = "Error retrieving location: " + err.message;
 }
 
-// Fetch species missions via proxy
-async function fetchSpeciesOLD(lat, lon) {
-  suggestionsDiv.innerHTML = `<p>Loading missions...</p>`;
-  const data = { point: { lat, lon } };
-  try {
-    const response = await fetch(SPECIES_PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    if (!response.ok) throw new Error('Network response was not ok');
-    const jsonResponse = await response.json();
-    // Save the missions globally for later lookup
-    missionsList = jsonResponse.species;
-    await displaySpecies(jsonResponse);
-  } catch (err) {
-    suggestionsDiv.innerHTML = `<p>Error fetching missions: ${err.message}</p>`;
-  }
-}
-
 async function fetchSpecies(lat, lon) {
   const user = auth.currentUser;
   if (!user) return;
@@ -917,7 +596,6 @@ async function fetchSpecies(lat, lon) {
   const userRef = doc(db, 'users', user.uid);
   const userSnap = await getDoc(userRef);
 
-  // Get the last fetch time (convert Firestore Timestamp to JS time)
   const lastFetchTimestamp = userSnap.data()?.last_species_fetch?.toMillis?.() || 0;
   const now = Date.now();
   const FIVE_MINUTES = 5 * 60 * 1000;
@@ -932,62 +610,29 @@ async function fetchSpecies(lat, lon) {
     return;
   }
 
-  // Update UI while loading
   suggestionsDiv.innerHTML = `<p>Loading missions...</p>`;
-  const data = { point: { lat, lon } };
 
   try {
-    const response = await fetch(SPECIES_PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+    const body = { lat, lon, model: "best", limit: 20 }; // tweak limit if you want
+    const resp = await fetch(SPECIES_PROXY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
     });
-  
-    if (!response.ok) throw new Error('Network response was not ok');
-  
-    const jsonResponse = await response.json();
-  
-    // 🌱 Save result_pred to speciesList
-    speciesList = jsonResponse.result_pred.species;
-  
-    // 🧭 Save processed result to missionsList
-    missionsList = jsonResponse.result.species;
+    if (!resp.ok) throw new Error(`Network response was not ok (${resp.status})`);
+    const json = await resp.json();
+
+    // Backend now sends: { model, missions: [...], length }
+    missionsList = json.missions || [];
+    // Optional: keep a simple list of species names if you still need it elsewhere
+    speciesList = missionsList.map(m => m.name);
 
     await saveSpeciesAndMissions(userRef, speciesList, missionsList);
-  
     await displaySpecies(missionsList);
-  
-    // ✅ Store the new fetch time in Firestore
-    await updateDoc(userRef, {
-      last_species_fetch: serverTimestamp()
-    });
-  
+
+    await updateDoc(userRef, { last_species_fetch: serverTimestamp() });
   } catch (err) {
     suggestionsDiv.innerHTML = `<p>Error fetching missions: ${err.message}</p>`;
-  }  
-}
-
-// Fetch species missions via proxy
-async function getPoints(lat, lon, species, speciesList, uniqueOrgansCount=1) {
-  const data = {
-    point: { lat, lon },
-    species_name: species,
-    species_list: speciesList,   // ← send this to the backend
-    nb_organs: uniqueOrgansCount
-  };
-
-  try {
-    const response = await fetch(POINTS_PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-
-    if (!response.ok) throw new Error('Network response was not ok');
-    return await response.json();
-
-  } catch (err) {
-    return { total_points: 0, points: {} };
   }
 }
 
