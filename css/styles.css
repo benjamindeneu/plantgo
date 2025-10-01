@@ -423,12 +423,16 @@ header {
       rgba(255,255,255,0) 60%,
       transparent 100%);
   background-size: 250% 100%;
-  animation: sheen-slide var(--sheen-speed, 2.2s) linear infinite;
+  /* move time */
+  --sheen-speed: 2.2s;
+  /* extra idle time at the end of each loop */
+  --sheen-gap: 3.5s;
+  /* total = move + gap */
+  animation: sheen-slide-hold calc(var(--sheen-speed) + var(--sheen-gap)) linear infinite;
   mix-blend-mode: screen;     /* nice on purple */
 }
 .legendary-points::after {
   mix-blend-mode: overlay;    /* warmer on gold */
-  --sheen-speed: 2.8s;
 }
 
 @keyframes sheen-slide {
