@@ -73,13 +73,16 @@
 <button aria-label="Close dialog" class="close" id="modalClose">×</button>
 <div id="levelUp"></div>
 <div class="progress-row" id="progressSection">
-<span class="level-badge" id="currentLevelText">
-            Lv. <span id="resultLevelNumber">1</span>
-<div class="progress-mini" id="resultLevelProgressContainer">
-<div id="resultLevelProgressBar"></div>
-</div>
-</span>
-<span class="muted" id="nextLevelText">Next Level</span>
+  <span class="level-badge" id="currentLevelText">
+    Lv. <span id="resultLevelNumber">1</span>
+  </span>
+
+  <!-- 👇 outside the badge -->
+  <div class="result-progress" id="resultLevelProgressContainer">
+    <div class="result-progress-bar" id="resultLevelProgressBar"></div>
+  </div>
+
+  <span class="muted" id="nextLevelText">Next Level</span>
 </div>
 <h2 id="result-title">Identification Results</h2>
 <div id="modalText"></div>

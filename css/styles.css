@@ -714,3 +714,35 @@ button.secondary {
 @media (max-width: 380px) {
   .level-badge { font-size: 11.5px; padding: 5px 10px; }
 }
+
+/* === Result modal: outside progress bar (final override) === */
+#resultModal .progress-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Hard reset in case earlier rules made it absolute/tiny */
+#resultModal #resultLevelProgressContainer {
+  all: unset;
+  display: block;
+  flex: 1;
+  height: 8px;
+  background: var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+#resultModal #resultLevelProgressBar {
+  all: unset;
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: var(--green-600);
+  transition: width 500ms var(--easing);
+}
+
+/* Cosmetic: keep badge compact next to the wide bar */
+#resultModal .level-badge {
+  flex: 0 0 auto;
+}
