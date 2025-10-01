@@ -428,14 +428,12 @@ header {
 }
 .legendary-points::after {
   mix-blend-mode: overlay;    /* warmer on gold */
+  --sheen-speed: 2.8s;
 }
 
-/* Move from -150% -> 150% during the first 70% of the timeline,
-   then HOLD (no change) for the remaining 30% = the "delay". */
-@keyframes sheen-slide-hold {
-  0%   { background-position: -150% 0; }
-  70%  { background-position:  150% 0; }  /* finish the sweep */
-  100% { background-position:  150% 0; }  /* hold here = gap */
+@keyframes sheen-slide {
+  from { background-position: -150% 0; }
+  to   { background-position: 150% 0; }
 }
 
 /* Motion safety */
