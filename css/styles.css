@@ -423,7 +423,8 @@ header {
       rgba(255,255,255,0) 60%,
       transparent 100%);
   background-size: 250% 100%;
-  animation: sheen-slide var(--sheen-speed, 5.0s) linear infinite;
+  background-repeat: no-repeat;
+  animation: sheen-slide var(--sheen-speed, 4.0s) linear infinite;
   mix-blend-mode: screen;     /* nice on purple */
 }
 .legendary-points::after {
@@ -434,7 +435,7 @@ header {
    then HOLD (no change) for the remaining 30% = the "delay". */
 @keyframes sheen-slide {
   0%   { background-position: -150% 0; }
-  20%  { background-position:  150% 0; }  /* finish the sweep */
+  30%  { background-position:  150% 0; }  /* finish the sweep */
   100% { background-position:  150% 0; }  /* hold here = gap */
 }
 
