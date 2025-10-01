@@ -308,7 +308,7 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: var(--sp-3) var(--sp-5);
-  background: linear-gradient(180deg, var(--green-50), transparent 60%) ;
+  /*background: linear-gradient(180deg, var(--green-50), transparent 60%) ;*/
   position: sticky;
   top: 0;
   z-index: 50;
