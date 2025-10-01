@@ -423,21 +423,19 @@ header {
       rgba(255,255,255,0) 60%,
       transparent 100%);
   background-size: 250% 100%;
-  /* move time */
-  --sheen-speed: 2.2s;
-  /* extra idle time at the end of each loop */
-  --sheen-gap: 3.5s;
-  /* total = move + gap */
-  animation: sheen-slide-hold calc(var(--sheen-speed) + var(--sheen-gap)) linear infinite;
+  animation: sheen-slide var(--sheen-speed, 2.2s) linear infinite;
   mix-blend-mode: screen;     /* nice on purple */
 }
 .legendary-points::after {
   mix-blend-mode: overlay;    /* warmer on gold */
 }
 
-@keyframes sheen-slide {
-  from { background-position: -150% 0; }
-  to   { background-position: 150% 0; }
+/* Move from -150% -> 150% during the first 70% of the timeline,
+   then HOLD (no change) for the remaining 30% = the "delay". */
+@keyframes sheen-slide-hold {
+  0%   { background-position: -150% 0; }
+  70%  { background-position:  150% 0; }  /* finish the sweep */
+  100% { background-position:  150% 0; }  /* hold here = gap */
 }
 
 /* Motion safety */
