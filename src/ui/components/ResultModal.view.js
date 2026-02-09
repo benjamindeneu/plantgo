@@ -24,8 +24,8 @@ export function createResultModalView() {
         <div class="user-photos center" id="userPhotos"></div>
 
         <div class="result-head">
+          <h2 id="resultTitle" data-i18n="result.identifying">Identifying…</h2>
           <div id=speciesNameDiv class="card">
-            <h2 id="resultTitle" data-i18n="result.identifying">Identifying…</h2>
             <div id="speciesNameLine" class="muted"></div>
             <div id="speciesVernacularNameLine" class="muted"></div>
           </div>
