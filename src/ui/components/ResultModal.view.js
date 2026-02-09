@@ -24,9 +24,11 @@ export function createResultModalView() {
         <div class="user-photos center" id="userPhotos"></div>
 
         <div class="result-head">
-          <h2 id="resultTitle" data-i18n="result.identifying">Identifying…</h2>
-          <div id="speciesNameLine" class="muted"></div>
-          <div id="speciesVernacularNameLine" class="muted"></div>
+          <div id=speciesNameDiv class="card">
+            <h2 id="resultTitle" data-i18n="result.identifying">Identifying…</h2>
+            <div id="speciesNameLine" class="muted"></div>
+            <div id="speciesVernacularNameLine" class="muted"></div>
+          </div>
           <div class="loading-track" id="loadingTrack" aria-hidden="true">
             <div class="loading-indeterminate"></div>
           </div>
@@ -233,8 +235,16 @@ export function createResultModalView() {
       loading.style.display = "none";
       title.textContent = t("result.newObservationOf");
 
-      speciesLine.textContent = speciesName || t("result.unknownSpecies");
-      speciesVernacularLine.textContent = speciesVernacularName || t("result.noCommonName");
+      //speciesLine.textContent = speciesName || t("result.unknownSpecies");
+      //speciesVernacularLine.textContent = speciesVernacularName || t("result.noCommonName");
+      speciesLine.innerHTML = speciesName
+        ? `<em>${speciesName}</em>`
+        : t("result.unknownSpecies");
+
+      speciesVernacularLine.innerHTML = speciesVernacularName
+        ? `<strong>${speciesVernacularName}</strong>`
+        : t("result.noCommonName");
+
 
       await animateObservation(
         { total: baseTotal, detail, counterEl, detailsEl, badgeEl },
