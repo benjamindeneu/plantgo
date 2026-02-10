@@ -229,7 +229,11 @@ button.secondary{
 }
 
 .small-text {
-  font-size: 0.6em;
+  font-size: 0.7em;
+}
+
+.big-text {
+  font-size: 1.5em;
 }
 
 /* ---------- 5) HEADER / NAV / USER MENU ---------- */
