@@ -101,7 +101,7 @@ h1,h2,h3{
   letter-spacing:.2px;
   line-height:1.2;
   text-align:center;
-  margin:0 0 var(--sp-2);
+  margin:0 0 var(--sp-1);
   color:var(--green-700);
 }
 h1{ font-size:clamp(2rem, 2.8vw, 2.4rem); }
@@ -340,7 +340,7 @@ header, .nav{
   animation: modalIn .18s var(--easing);
   display:grid;
   grid-template-columns: 1fr auto;
-  gap:var(--sp-3);
+  gap:var(--sp-2);
 }
 .modal-content > :not(.close){ grid-column:1 / -1; }
 
@@ -491,8 +491,8 @@ header, .nav{
 
 /* ---------- 9) RESULT MODAL / PROGRESS ---------- */
 .result-modal .modal-content.result{ overflow:hidden; }
-.result-head{ display:flex; flex-direction:column; gap:8px; }
-.result-body{ display:grid; gap:16px; }
+.result-head{ display:flex; flex-direction:column; gap:var(--sp-2); }
+.result-body{ display:grid; gap:var(--sp-2); }
 
 .loading-track{
   position:relative;

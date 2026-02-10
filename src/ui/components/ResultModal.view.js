@@ -260,7 +260,8 @@ export function createResultModalView() {
       const rarityLabel = rarityText(rarityClass);
       setBadgeRarityClass(badgeEl, rarityClass);
 
-      valueWrapper.innerHTML = `<span id="pointsCounter">${escapeHtml(counterEl.textContent)}</span><br><span class="rarity-label">${escapeHtml(rarityLabel)}</span>`;
+      //valueWrapper.innerHTML = `<span id="pointsCounter">${escapeHtml(counterEl.textContent)}</span><br><span class="rarity-label">${escapeHtml(rarityLabel)}</span>`;
+      valueWrapper.innerHTML = `<span id="pointsCounter">${escapeHtml(counterEl.textContent)}</span> <span class="rarity-label">${escapeHtml(rarityLabel)}</span>`;
 
       if (badges && badges.length) {
         badgesEl.style.display = "block";
