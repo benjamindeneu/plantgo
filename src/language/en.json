@@ -96,6 +96,7 @@
   "result.newObservationOf": "New observation of:",
   "result.unknownSpecies": "Unknown species",
   "result.noCommonName": "No common name",
+  "result.confidence": "confidence: ",
   "result.yourPhotoAlt": "Your photo",
 
   "result.observationPoints": "Observation points:",
