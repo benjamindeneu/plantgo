@@ -548,6 +548,10 @@ header, .nav{
   transition: width 500ms var(--easing);
 }
 
+.details{
+  padding-top: var(--sp-2);
+}
+
 .detail-line{
   display:flex;
   justify-content:space-between;
