@@ -12,6 +12,9 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 await initI18n();
 
 function App() {
+  // declare this BEFORE Header so onLogout can use it safely
+  let stopLevel = () => {};
+
   // --- Header ---
   const headerMount = document.getElementById("appHeader");
   const header = Header({
@@ -22,7 +25,7 @@ function App() {
       try {
         stopLevel();
         await signOut(auth);
-        location.href = "./login.html";
+        location.replace("./login.html");
       } catch (e) {
         alert(e.message);
       }
@@ -41,7 +44,7 @@ function App() {
   identifyMount.replaceWith(identifyPanel);
   missionsMount.replaceWith(missionsPanel);
 
-  // --- Footer (unchanged, but mounted cleanly) ---
+  // --- Footer ---
   const footerMount = document.getElementById("appFooter");
   const footer = document.createElement("footer");
   footer.className = "footer";
@@ -50,14 +53,22 @@ function App() {
 
   translateDom(document);
 
-  // --- Auth-driven header level sync ---
-  let stopLevel = () => {};
+  // --- Auth guard + header level sync ---
   onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      stopLevel(); // stop any listeners if they were running
+      location.replace("./login.html"); // replace avoids "Back" returning to protected page
+      return;
+    }
+
+    // logged in
     header.setUser(user);
-    if (stopLevel) stopLevel();
-    stopLevel = user ? listenUserLevel(user.uid, (lvl) => header.setLevel(lvl)) : (() => {});
+
+    // refresh level listener
+    stopLevel();
+    stopLevel = listenUserLevel(user.uid, (lvl) => header.setLevel(lvl));
   });
 }
 
 App();
-export default App; // optional
+export default App;
