@@ -228,6 +228,10 @@ button.secondary{
   box-shadow:var(--shadow-sm);
 }
 
+.small-text {
+  font-size: 0.8em;
+}
+
 /* ---------- 5) HEADER / NAV / USER MENU ---------- */
 header, .nav{
   display:flex;
