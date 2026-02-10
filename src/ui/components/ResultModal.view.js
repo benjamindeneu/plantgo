@@ -29,9 +29,9 @@ export function createResultModalView() {
             <div id="speciesNameLine" class="muted big-text"></div>
             <div id="speciesVernacularNameLine" class="muted big-text"></div>
             <div id="speciesScoreLine" class="muted small-text"></div>
-          </div>
-          <div class="loading-track" id="loadingTrack" aria-hidden="true">
-            <div class="loading-indeterminate"></div>
+            <div class="loading-track" id="loadingTrack" aria-hidden="true">
+              <div class="loading-indeterminate"></div>
+            </div>
           </div>
         </div>
 
