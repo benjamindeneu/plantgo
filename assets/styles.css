@@ -144,7 +144,7 @@ main{ padding:var(--sp-1); }
 .card{
   border:1px solid var(--border);
   border-radius:var(--r-lg);
-  padding:var(--sp-4);
+  padding:var(--sp-1);
   background:var(--surface);
   box-shadow:var(--shadow);
 }
