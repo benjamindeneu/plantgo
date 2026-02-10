@@ -248,7 +248,7 @@ export function createResultModalView() {
         ? `<strong>${speciesVernacularName}</strong>`
         : t("result.noCommonName");
 
-      speciesScoreLine.textContent = speciesScore || "";
+      speciesScoreLine.textContent = String(speciesScore) || "";
 
       await animateObservation(
         { total: baseTotal, detail, counterEl, detailsEl, badgeEl },
