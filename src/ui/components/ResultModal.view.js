@@ -20,7 +20,7 @@ export function createResultModalView() {
       </div>
 
       <div class="result-body">
-        <div data-i18n="result.yourObservation">Your observation:</div>
+        <!-- <div data-i18n="result.yourObservation">Your observation:</div> -->
         <div class="user-photos center" id="userPhotos"></div>
 
         <div class="result-head">
@@ -28,6 +28,7 @@ export function createResultModalView() {
           <div id=speciesNameDiv class="card">
             <div id="speciesNameLine" class="muted"></div>
             <div id="speciesVernacularNameLine" class="muted"></div>
+            <div id="speciesScore" class="muted"></div>
           </div>
           <div class="loading-track" id="loadingTrack" aria-hidden="true">
             <div class="loading-indeterminate"></div>
@@ -211,6 +212,7 @@ export function createResultModalView() {
       qs("#resultTitle").textContent = t("result.identifying");
       qs("#speciesNameLine").textContent = "";
       qs("#speciesVernacularNameLine").textContent = "";
+      qs("#speciesScore").textContent = "";
       qs("#loadingTrack").style.display = "block";
 
       const obsBadge = qs("#obsBadge");
@@ -221,11 +223,12 @@ export function createResultModalView() {
       qs("#pointsDetails").innerHTML = "";
     },
 
-    async showResultUI({ speciesName, speciesVernacularName, baseTotal, detail, badges, currentTotalBefore, finalTotal }) {
+    async showResultUI({ speciesName, speciesVernacularName, speciesScore, baseTotal, detail, badges, currentTotalBefore, finalTotal }) {
       const loading = qs("#loadingTrack");
       const title = qs("#resultTitle");
       const speciesLine = qs("#speciesNameLine");
       const speciesVernacularLine = qs("#speciesVernacularNameLine");
+      const speciesScore = qs("#speciesScore");
       const badgeEl = qs("#obsBadge");
       const counterEl = qs("#pointsCounter");
       const valueWrapper = counterEl.parentElement; // .value
@@ -245,6 +248,7 @@ export function createResultModalView() {
         ? `<strong>${speciesVernacularName}</strong>`
         : t("result.noCommonName");
 
+      speciesScore.textContent = speciesScore || "";
 
       await animateObservation(
         { total: baseTotal, detail, counterEl, detailsEl, badgeEl },

@@ -19,6 +19,7 @@ export function ResultModal() {
       const speciesName = identify?.name || t("result.unknownSpecies");
       const speciesVernacularName = identify?.vernacularName || t("result.noCommonName");
       const baseTotal = Number(points?.total ?? 0);
+      const plantnet_identify_score = Number(identify?.score ?? 0);
       const detail = (points?.detail && typeof points.detail === "object") ? points.detail : {};
 
       const user = auth.currentUser;
@@ -42,7 +43,7 @@ export function ResultModal() {
           speciesName,
           lat, lon,
           plantnetImageCode,
-          plantnet_identify_score: Number(identify?.score ?? 0),
+          plantnet_identify_score,
           gbif_id: identify?.gbif_id ?? null,
           pointsMap: detail, // detail keys already stable i18n keys
           total_points: baseTotal,
@@ -57,6 +58,7 @@ export function ResultModal() {
       await view.showResultUI({
         speciesName,
         speciesVernacularName,
+        plantnet_identify_score,
         baseTotal,
         detail,
         badges,
