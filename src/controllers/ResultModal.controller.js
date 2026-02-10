@@ -58,7 +58,7 @@ export function ResultModal() {
       await view.showResultUI({
         speciesName,
         speciesVernacularName,
-        plantnet_identify_score,
+        speciesScore: plantnet_identify_score,
         baseTotal,
         detail,
         badges,
