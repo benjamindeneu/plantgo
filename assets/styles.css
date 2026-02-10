@@ -101,7 +101,7 @@ h1,h2,h3{
   letter-spacing:.2px;
   line-height:1.2;
   text-align:center;
-  margin:0 0 var(--sp-3);
+  margin:0 0 var(--sp-2);
   color:var(--green-700);
 }
 h1{ font-size:clamp(2rem, 2.8vw, 2.4rem); }
@@ -491,7 +491,7 @@ header, .nav{
 
 /* ---------- 9) RESULT MODAL / PROGRESS ---------- */
 .result-modal .modal-content.result{ overflow:hidden; }
-.result-head{ display:flex; flex-direction:column; gap:8px; margin-bottom:10px; }
+.result-head{ display:flex; flex-direction:column; gap:8px; }
 .result-body{ display:grid; gap:16px; }
 
 .loading-track{
