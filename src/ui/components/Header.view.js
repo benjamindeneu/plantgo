@@ -26,6 +26,7 @@ export function createHeaderView({
         <option value="fr">FR</option>
         <option value="de">DE</option>
         <option value="it">IT</option>
+        <option value="pt">PT</option>
       </select>
       <button id="userBtn" class="user-btn" aria-haspopup="menu" aria-expanded="false" type="button">
         <span class="user-name">${user?.displayName ?? "User"}</span>
