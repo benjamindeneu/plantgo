@@ -65,10 +65,32 @@ export function createMissionCardView({
     badgesEl.style.display = html ? "" : "none";
   }
 
+  function formatSciName(name) {
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) {
+      return parts[0].charAt(0).toUpperCase() +
+            parts[0].slice(1).toLowerCase() +
+            " " +
+            parts[1].toLowerCase();
+    }
+    return name;
+  }
+
   function refreshI18n() {
     if (missionTitleEl) {
-      missionTitleEl.innerHTML = `${t("missions.card.missionPrefix")} <i>${sciName}</i>`;
+      missionTitleEl.textContent = ""; // clear existing content
+
+      // Add prefix text
+      missionTitleEl.append(
+        document.createTextNode(t("missions.card.missionPrefix") + " ")
+      );
+
+      // Add italic scientific name
+      const sciEl = document.createElement("em"); // or "i"
+      sciEl.textContent = formatSciName(sciName);
+      missionTitleEl.append(sciEl);
     }
+
     if (pointsBtn) {
       pointsBtn.innerHTML = `${pointsTotal} ${t("missions.card.points")}<br>${escapeHtml(missionLevel)}`;
     }
