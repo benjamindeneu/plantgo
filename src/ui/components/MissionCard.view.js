@@ -15,7 +15,7 @@ export function createMissionCardView({
   root.className = "species-item";
 
   root.innerHTML = `
-    <h2 class="mission-title card-content" id="missionTitle"></h2>
+    <h2 class="mission-title" id="missionTitle"></h2>
 
     <div class="card-content">
       <div class="media-col">
