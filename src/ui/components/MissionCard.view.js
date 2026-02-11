@@ -15,7 +15,7 @@ export function createMissionCardView({
   root.className = "species-item";
 
   root.innerHTML = `
-    <div class="mission-title" id="missionTitle"></div>
+    <div class="mission-title card-content big-text" id="missionTitle"></div>
 
     <div class="card-content">
       <div class="media-col">
@@ -67,7 +67,7 @@ export function createMissionCardView({
 
   function refreshI18n() {
     if (missionTitleEl) {
-      missionTitleEl.textContent = `${t("missions.card.missionPrefix")} ${sciName}`;
+      missionTitleEl.innerHTML = `${t("missions.card.missionPrefix")} <i>${sciName}</i>`;
     }
     if (pointsBtn) {
       pointsBtn.innerHTML = `${pointsTotal} ${t("missions.card.points")}<br>${escapeHtml(missionLevel)}`;
