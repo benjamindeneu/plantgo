@@ -251,20 +251,26 @@ header, .nav{
   border-bottom:1px solid color-mix(in srgb, var(--border) 70%, transparent);
 }
 
-.brandmark {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.brandmark{
+  display:flex;
+  align-items:center;
+  gap: clamp(6px, 2vw, 12px);
+  min-width: 0; /* allows shrinking inside tight headers */
 }
 
-.brand-logo {
-  height: 38px;
+.brand-logo{
+  height: clamp(26px, 6vw, 40px);
   width: auto;
+  flex: 0 0 auto;
 }
 
-.brand-title {
-  height: 28px;
+.brand-title{
+  height: clamp(18px, 4.6vw, 32px);
   width: auto;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: min(60vw, 260px); /* prevents title from taking over */
+  object-fit: contain;
 }
 
 .user-area{
