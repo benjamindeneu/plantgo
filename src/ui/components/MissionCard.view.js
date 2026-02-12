@@ -87,7 +87,8 @@ export function createMissionCardView({
 
       // Add italic scientific name
       const sciEl = document.createElement("em"); // or "i"
-      sciEl.textContent = formatSciName(sciName);
+      //sciEl.textContent = formatSciName(sciName);
+      sciEl.textContent = sciName;
       missionTitleEl.append(sciEl);
     }
 
