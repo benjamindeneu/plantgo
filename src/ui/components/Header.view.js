@@ -19,7 +19,10 @@ export function createHeaderView({
   const root = document.createElement("header");
   root.className = "nav";
   root.innerHTML = `
-    <div class="brandmark" id="brandmark">🌿 PlantGo</div>
+    <div class="brandmark" id="brandmark">
+      <img src="./assets/plantgo_logo1.png" alt="PlantGo logo" class="brand-logo">
+      <img src="./assets/plantgo_titleimage_1.png" alt="PlantGo" class="brand-title">
+    </div>
     <div class="user-area">
       <select class="user-btn menu-item" id="langSelect" aria-label="Language">
         <option value="en">EN</option>
