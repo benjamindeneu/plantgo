@@ -51,7 +51,7 @@ export function createHeaderView({
 
   const btn = root.querySelector("#userBtn");
   const menu = root.querySelector("#userMenu");
-  const brandEl = root.querySelector("#brandmark");
+  //const brandEl = root.querySelector("#brandmark");
   const levelEl = root.querySelector("#levelNumber");
   const levelLabelEl = root.querySelector("#levelLabel");
   const nameEl = root.querySelector(".user-name");
@@ -74,7 +74,7 @@ export function createHeaderView({
 
   // Apply translated strings (called on init + after language changes)
   function refreshI18n() {
-    if (brandEl) brandEl.textContent = `🌿 ${t("app.title")}`;
+    //if (brandEl) brandEl.textContent = `🌿 ${t("app.title")}`;
 
     // fallback user label if no displayName
     if (!user?.displayName) nameEl.textContent = t("header.user");
