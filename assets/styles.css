@@ -251,6 +251,22 @@ header, .nav{
   border-bottom:1px solid color-mix(in srgb, var(--border) 70%, transparent);
 }
 
+.brandmark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-logo {
+  height: 38px;
+  width: auto;
+}
+
+.brand-title {
+  height: 28px;
+  width: auto;
+}
+
 .user-area{
   position: relative;
   display: flex !important;
