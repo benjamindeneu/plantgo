@@ -18,8 +18,10 @@
     <form id="signupForm" class="form-grid">
       <input
         id="username"
+        name="username"
         class="input"
         type="text"
+        autocomplete="username"
         data-i18n-placeholder="signup.username"
         placeholder="Username"
         required
@@ -27,8 +29,11 @@
 
       <input
         id="email"
+        name="email"
         class="input"
         type="email"
+        autocomplete="email"
+        inputmode="email"
         data-i18n-placeholder="signup.email"
         placeholder="Email"
         required
@@ -36,8 +41,10 @@
 
       <input
         id="password"
+        name="new-password"
         class="input"
         type="password"
+        autocomplete="new-password"
         data-i18n-placeholder="signup.password"
         placeholder="Password"
         required
@@ -45,8 +52,10 @@
 
       <input
         id="confirmPassword"
+        name="confirm-password"
         class="input"
         type="password"
+        autocomplete="new-password"
         data-i18n-placeholder="signup.confirm"
         placeholder="Confirm Password"
         required

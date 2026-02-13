@@ -19,8 +19,11 @@
     <form id="loginForm" class="form-grid">
       <input
         id="email"
+        name="email"
         class="input"
         type="email"
+        autocomplete="email"
+        inputmode="email"
         data-i18n-placeholder="login.email"
         placeholder="Email"
         required
@@ -28,8 +31,10 @@
 
       <input
         id="password"
+        name="password"
         class="input"
         type="password"
+        autocomplete="current-password"
         data-i18n-placeholder="login.password"
         placeholder="Password"
         required
