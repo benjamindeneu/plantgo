@@ -400,7 +400,7 @@ header, .nav{
 .general-validation,
 .gps-section{
   text-align:center;
-  /*margin-bottom:var(--sp-6);*/
+  margin-top:var(--sp-4);
 }
 
 .species-item{
