@@ -7,7 +7,8 @@ await initI18n();
  */
 export function createIdentifyPanelView() {
   const wrap = document.createElement("section");
-  wrap.className = "general-validation card";
+  //wrap.className = "general-validation card";
+  wrap.className = "general-validation";
   wrap.innerHTML = `
     <h1 data-i18n="identify.title">Identify a plant</h1>
 
