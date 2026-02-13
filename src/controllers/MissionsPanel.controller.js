@@ -27,13 +27,13 @@ export function MissionsPanel() {
       return;
     }
     try {
-      const { missions, fromCache } = await maybeLoadCachedMissions(user.uid, isFresh);
+      const { missions, model, fromCache } = await maybeLoadCachedMissions(user.uid, isFresh);
       if (fromCache && missions.length) {
-        view.renderMissions(missions);
+        view.renderMissions(missions, model);
         view.setStatus("");
       } else {
         // Keep list empty (it will show missions.empty in the list area)
-        view.renderMissions([]);
+        view.renderMissions([], "");
         view.setStatus(t("missions.empty.hint"));
       }
     } catch (e) {
@@ -43,7 +43,7 @@ export function MissionsPanel() {
   });
 
   view.onLocate(async () => {
-    view.renderMissions([]); // shows missions.empty (translated)
+    view.renderMissions([], ""); // shows missions.empty (translated) + hides model line
     view.setStatus(t("missions.status.fetchingLocation"));
 
     try {
@@ -51,12 +51,13 @@ export function MissionsPanel() {
       view.setStatus(t("missions.status.loading"));
 
       const user = auth.currentUser;
-      const missions = await loadAndMaybePersistMissions(
+
+      const { missions, model } = await loadAndMaybePersistMissions(
         user?.uid,
         { lat: pos.coords.latitude, lon: pos.coords.longitude }
       );
 
-      view.renderMissions(missions);
+      view.renderMissions(missions, model);
       view.setStatus("");
     } catch (e) {
       console.error("[MissionsPanel] Locate/Fetch error:", e);
