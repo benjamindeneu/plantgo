@@ -1,5 +1,5 @@
 // src/i18n/i18n.js
-const SUPPORTED = ["en", "fr", "de", "it", "pt"];
+const SUPPORTED = ["en", "fr", "de", "it", "es", "pt"];
 const DEFAULT_LANG = "en";
 
 let dict = {};
