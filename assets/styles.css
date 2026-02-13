@@ -93,8 +93,47 @@ body{
   -webkit-font-smoothing:antialiased;
   text-rendering:optimizeLegibility;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
-  background:var(--bg);
+  /*background:var(--bg);*/
   color:var(--text);
+
+  background:
+    radial-gradient(
+      circle at 50% 15%,
+      rgba(120, 200, 120, 0.25) 0%,
+      rgba(120, 200, 120, 0.15) 25%,
+      transparent 55%
+    ),
+    linear-gradient(
+      160deg,
+      #f4fbf5 0%,
+      #e6f6ea 35%,
+      #d4f0dc 65%,
+      #c1e8cf 100%
+    );
+
+  background-attachment: fixed;
+}
+body::after {
+  content: "";
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 260px;
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      120% 100% at 50% 100%,
+      #a8dfb6 0%,
+      #7fd493 40%,
+      #55c86f 70%,
+      #22c55e 100%
+    );
+
+  border-top-left-radius: 60% 100%;
+  border-top-right-radius: 60% 100%;
+  z-index: -1;
 }
 
 h1,h2,h3{
