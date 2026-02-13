@@ -1,12 +1,11 @@
 // signup.js
 import {
   createUserWithEmailAndPassword,
-  updateProfile,
-  sendEmailVerification
+  updateProfile
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 import { auth, db } from "./firebase-config.js";
-import { doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
 import { initI18n, t } from "./src/language/i18n.js";
 
@@ -31,36 +30,24 @@ form.addEventListener("submit", async (e) => {
   }
 
   try {
-    // Create a new user with email and password
+    // Create user
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Set the display name to the chosen username
+    // Set display name
     await updateProfile(user, { displayName: username });
 
-    // Create a Firestore document for the new user
+    // Create Firestore document
     await setDoc(doc(db, "users", user.uid), {
       name: username,
       email: email,
       total_points: 0
     });
 
-    try {
-      // Attempt to send the email verification
-      await sendEmailVerification(user);
+    // Redirect to main app page
+    window.location.href = "./index.html";
 
-      // Inform the user and remove the signup form
-      messageEl.textContent = t("signup.success.verificationSent");
-      form.remove();
-    } catch (emailError) {
-      // If email sending fails, remove the created user and firestore doc
-      await user.delete();
-      await deleteDoc(doc(db, "users", user.uid));
-
-      messageEl.textContent = t("signup.error.verificationFailed");
-    }
   } catch (error) {
-    // If you want this translated too, we can map Firebase error codes like you did in login
     messageEl.textContent = error?.message || "Signup failed.";
   }
 });
