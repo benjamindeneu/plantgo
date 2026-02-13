@@ -1,7 +1,7 @@
-| |
-|:--:|
-| ![PlantGo logo](assets/plantgo_logo2.png) |
-| ![PlantGo title](assets/plantgo_titleimage_1.png) |
+<p align="center">
+  <img src="assets/plantgo_logo1.png" alt="PlantGo logo" width="140"><br>
+  <img src="assets/plantgo_titleimage_1.png" alt="PlantGo" height="60">
+</p>
 
 ------------------------------------------------------------------------
 
