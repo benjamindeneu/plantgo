@@ -259,7 +259,7 @@ header, .nav{
 }
 
 .brand-logo{
-  height: clamp(26px, 6vw, 40px);
+  height: clamp(40px, 10vw, 72px);
   width: auto;
   flex: 0 0 auto;
 }
@@ -271,6 +271,9 @@ header, .nav{
   min-width: 0;
   max-width: min(60vw, 260px); /* prevents title from taking over */
   object-fit: contain;
+}
+@media (max-width: 380px){
+  .brand-title{ display:none; } /* show just the logo */
 }
 
 .user-area{
