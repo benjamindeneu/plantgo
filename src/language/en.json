@@ -68,6 +68,7 @@
   "missions.status.loading": "Loading missions…",
   "missions.status.cacheError": "Unable to load cached missions.",
   "missions.status.locateError": "Location/mission error.",
+  "missions.modelUsed": "Model",
 
   "missions.card.missionPrefix": "Mission:",
   "missions.card.noCommonName": "No common name",
