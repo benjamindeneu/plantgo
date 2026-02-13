@@ -68,6 +68,7 @@
   "missions.status.loading": "Chargement des missions…",
   "missions.status.cacheError": "Impossible de charger les missions en cache.",
   "missions.status.locateError": "Erreur de localisation ou de mission.",
+  "missions.modelUsed": "Modèle de distribution d'espèces",
 
   "missions.card.missionPrefix": "Mission :",
   "missions.card.noCommonName": "Pas de nom commun",

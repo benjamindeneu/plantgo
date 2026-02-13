@@ -68,6 +68,7 @@
   "missions.status.loading": "Caricamento missioni…",
   "missions.status.cacheError": "Impossibile caricare le missioni memorizzate.",
   "missions.status.locateError": "Errore di localizzazione/missione.",
+  "missions.modelUsed": "Modello di distribuzione delle specie",
 
   "missions.card.missionPrefix": "Missione:",
   "missions.card.noCommonName": "Nessun nome comune",
