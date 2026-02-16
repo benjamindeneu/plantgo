@@ -31,10 +31,9 @@ export function createMissionCardView({
       <div class="species-info">
         <p><strong id="commonName">${escapeHtml(commonName)}</strong></p>
 
-        <div class="badges" id="badges"></div>
-
         <div class="species-actions">
           <button class="points-btn ${levelClass}" id="pointsBtn" type="button"></button>
+          <div class="badges" id="badges"></div>
         </div>
       </div>
     </div>
