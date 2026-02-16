@@ -20,26 +20,36 @@ export async function maybeLoadCachedMissions(uid, isFreshFn) {
  * Fetch missions and try to save them, but NEVER block rendering on save.
  * If save fails (no uid, rules, offline), we just log it.
  */
-export async function loadAndMaybePersistMissions(uid, { lat, lon }, speciesList = [], model = "best") {
+export async function loadAndMaybePersistMissions(
+  uid,
+  { lat, lon },
+  speciesList = [],
+  model = "best"
+) {
   const lang = document.documentElement.lang || "en";
-  const data = await fetchMissions({ lat, lon, lang, model });
 
-  // backend can return { missions: [...], model: "..." }
+  const data = await fetchMissions({
+    lat,
+    lon,
+    lang,
+    model   // passed to backend
+  });
+
   const missions = Array.isArray(data?.missions)
     ? data.missions
     : (Array.isArray(data) ? data : []);
 
-  const model =
+  const resolvedModel =
     typeof data?.model === "string" ? data.model
       : typeof data?.model === "number" ? String(data.model)
-      : "";
+      : model; // fallback to requested model
 
-  // fire-and-forget save
   if (uid) {
-    saveSpeciesAndMissions(uid, speciesList, missions, model).catch((e) => {
-      console.warn("[missions.repo] Save skipped/failed:", e?.message || e);
-    });
+    saveSpeciesAndMissions(uid, speciesList, missions, resolvedModel)
+      .catch((e) => {
+        console.warn("[missions.repo] Save skipped/failed:", e?.message || e);
+      });
   }
 
-  return { missions, model };
+  return { missions, model: resolvedModel };
 }
