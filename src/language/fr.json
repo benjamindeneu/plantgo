@@ -69,6 +69,9 @@
   "missions.status.cacheError": "Impossible de charger les missions en cache.",
   "missions.status.locateError": "Erreur de localisation ou de mission.",
   "missions.modelUsed": "Modèle de distribution d'espèces",
+  "missions.chooseModel": "Modèle",
+  "missions.model.auto": "Auto",
+  "missions.model.geoplantnet": "GeoPlantNet",
 
   "missions.card.missionPrefix": "Mission :",
   "missions.card.noCommonName": "Pas de nom commun",

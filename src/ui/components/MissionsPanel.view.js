@@ -33,7 +33,15 @@ export function createMissionsPanelView() {
   sec.innerHTML = `
     <h1 data-i18n="missions.title">Your missions</h1>
 
-    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:8px">
+    <div style="display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:8px">
+      <label class="muted" style="display:flex;gap:6px;align-items:center">
+        <span data-i18n="missions.chooseModel">Model</span>
+        <select id="modelSelect" class="input" style="width:auto; padding:8px 10px">
+          <option value="best" data-i18n="missions.model.auto">Auto</option>
+          <option value="geoplantnet" data-i18n="missions.model.geoplantnet">GeoPlantNet</option>
+        </select>
+      </label>
+
       <button id="locate" class="secondary" type="button" data-i18n="missions.refresh">
         Refresh Missions
       </button>
@@ -50,6 +58,7 @@ export function createMissionsPanelView() {
   const listEl = sec.querySelector("#list");
   const locateBtn = sec.querySelector("#locate");
   const modelEl = sec.querySelector("#modelLine");
+  const modelSelect = sec.querySelector("#modelSelect");
 
   // keep last missions so we can re-render on language change
   let lastMissions = [];
@@ -78,6 +87,11 @@ export function createMissionsPanelView() {
       lastModel = model ?? "";
       renderMissionsList(listEl, lastMissions);
       renderModelLine(modelEl, lastModel, lastMissions);
+    },
+
+    getSelectedModel() {
+      // UI values are already backend values: "best" | "geoplantnet"
+      return modelSelect?.value || "best";
     },
 
     onLocate(handler) {

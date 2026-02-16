@@ -68,7 +68,10 @@
   "missions.status.loading": "Loading missions…",
   "missions.status.cacheError": "Unable to load cached missions.",
   "missions.status.locateError": "Location/mission error.",
-  "missions.modelUsed": "Model",
+  "missions.modelUsed": "Species distribution model",
+  "missions.chooseModel": "Model",
+  "missions.model.auto": "Auto",
+  "missions.model.geoplantnet": "GeoPlantNet",
 
   "missions.card.missionPrefix": "Mission:",
   "missions.card.noCommonName": "No common name",

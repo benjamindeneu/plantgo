@@ -69,6 +69,9 @@
   "missions.status.cacheError": "Zwischengespeicherte Missionen konnten nicht geladen werden.",
   "missions.status.locateError": "Standort- oder Missionsfehler.",
   "missions.modelUsed": "Artenverbreitungsmodell",
+  "missions.chooseModel": "Modell",
+  "missions.model.auto": "Auto",
+  "missions.model.geoplantnet": "GeoPlantNet",
 
   "missions.card.missionPrefix": "Mission:",
   "missions.card.noCommonName": "Kein Trivialname",

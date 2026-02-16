@@ -69,6 +69,9 @@
   "missions.status.cacheError": "No se pudieron cargar las misiones en caché.",
   "missions.status.locateError": "Error de ubicación/misión.",
   "missions.modelUsed": "Modelo de distribución de especies",
+  "missions.chooseModel": "Modelo",
+  "missions.model.auto": "Automático",
+  "missions.model.geoplantnet": "GeoPlantNet",
 
   "missions.card.missionPrefix": "Misión:",
   "missions.card.noCommonName": "Sin nombre común",

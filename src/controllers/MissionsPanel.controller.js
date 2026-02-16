@@ -52,9 +52,13 @@ export function MissionsPanel() {
 
       const user = auth.currentUser;
 
+      const selectedModel = view.getSelectedModel(); // "best" | "geoplantnet"
+
       const { missions, model } = await loadAndMaybePersistMissions(
         user?.uid,
-        { lat: pos.coords.latitude, lon: pos.coords.longitude }
+        { lat: pos.coords.latitude, lon: pos.coords.longitude },
+        [],
+        selectedModel
       );
 
       view.renderMissions(missions, model);

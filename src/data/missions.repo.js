@@ -20,9 +20,9 @@ export async function maybeLoadCachedMissions(uid, isFreshFn) {
  * Fetch missions and try to save them, but NEVER block rendering on save.
  * If save fails (no uid, rules, offline), we just log it.
  */
-export async function loadAndMaybePersistMissions(uid, { lat, lon }, speciesList = []) {
+export async function loadAndMaybePersistMissions(uid, { lat, lon }, speciesList = [], model = "best") {
   const lang = document.documentElement.lang || "en";
-  const data = await fetchMissions({ lat, lon, lang });
+  const data = await fetchMissions({ lat, lon, lang, model });
 
   // backend can return { missions: [...], model: "..." }
   const missions = Array.isArray(data?.missions)
