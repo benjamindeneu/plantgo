@@ -563,7 +563,7 @@ header, .nav{
 
 /* --- NEW: "me" only changes text color (no background/border) --- */
 .leader-me {
-  border-width: 4px;
+  border-width: 3px;
 }
 
 .leader-me .leader-name,
@@ -572,9 +572,9 @@ header, .nav{
   /*color: var(--green-700); /* pick your accent; change if you want */
   font-weight: 900;
 }
-/*.leader-me .leader-name {
+.leader-me .leader-name {
   text-decoration: underline;
-}*/
+}
 
 /* --- NEW: top 3 highlights (same vibe as your old "leader-me") --- */
 .leader-top1 {
