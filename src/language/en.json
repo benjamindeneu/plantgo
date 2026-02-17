@@ -114,5 +114,33 @@
   "result.rarity.legendary": "Legendary",
 
   "result.badge.missionSpecies": "Mission species",
-  "result.badge.newSpecies": "New species"
+  "result.badge.newSpecies": "New species",
+
+  "challenge.title": "Challenge",
+
+  "challenge.create.subtitle": "Create a challenge",
+  "challenge.create.title": "Start a timed challenge",
+  "challenge.duration": "Duration",
+  "challenge.create.button": "Create",
+  "challenge.creating": "Creating challenge…",
+  "challenge.created": "Challenge created. Join code:",
+  "challenge.error.codeGen": "Could not generate a join code. Please try again.",
+  "challenge.error.mustLogin": "Please log in to create or join a challenge.",
+  "challenge.error.generic": "Something went wrong. Please try again.",
+
+  "challenge.join.subtitle": "Join a challenge",
+  "challenge.join.placeholder": "ABCDE",
+  "challenge.join.button": "Join",
+  "challenge.join.invalidCode": "Enter a 5-character code.",
+  "challenge.joining": "Joining challenge…",
+  "challenge.joined": "Joined!",
+  "challenge.join.notFound": "Challenge not found.",
+  "challenge.join.ended": "This challenge has already ended.",
+
+  "challenge.active.subtitle": "Active challenge",
+  "challenge.active.none": "No active challenge",
+  "challenge.active.code": "Code:",
+  "challenge.active.timeLeft": "Time left:",
+  "challenge.leaderboard": "Leaderboard",
+  "challenge.leaderboard.empty": "No scores yet."
 }

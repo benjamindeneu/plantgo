@@ -4,7 +4,6 @@ import {
   collection, addDoc, doc, getDoc, setDoc, updateDoc,
   serverTimestamp, GeoPoint, increment
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
-import { applyActiveChallengeScore } from "./challenges.js";
 
 /**
  * Save observation and discovery (if first time).
@@ -22,9 +21,9 @@ export async function addObservationAndDiscovery({
   plantnetImageCode,
   plantnet_identify_score,
   gbif_id,
-  pointsMap,
-  total_points,
-  extraBonus = 0,
+  pointsMap,         // backend points.detail (mapping)
+  total_points,      // backend points.total
+  extraBonus = 0,    // e.g. +500 for mission species
 }) {
   const observationsRef = collection(db, "users", userId, "observations");
 
@@ -34,13 +33,14 @@ export async function addObservationAndDiscovery({
     location: new GeoPoint(lat, lon),
     plantnetImageCode,
     plantnet_identify_score,
-    total_points,
+    total_points,        // base observation points (no client bonuses)
     points: pointsMap || {},
     gbif_id: gbif_id ?? null,
   };
 
   const observationDoc = await addDoc(observationsRef, observationData);
 
+  // Discovery doc (first time only)
   const discoveryRef = doc(db, "users", userId, "discoveries", speciesName);
   const discoverySnap = await getDoc(discoveryRef);
 
@@ -55,19 +55,10 @@ export async function addObservationAndDiscovery({
     });
   }
 
-  const earned = Number(total_points || 0) + discoveryBonus + Number(extraBonus || 0);
-
-  // Update user's total points (as before)
+  // Update user's total_points: base + discovery + extra (mission) bonus
   const userRef = doc(db, "users", userId);
   await updateDoc(userRef, {
-    total_points: increment(earned),
-  });
-
-  // ✅ Update active challenge member score (O(1))
-  await applyActiveChallengeScore({
-    userId,
-    pointsToAdd: earned,
-    nowMs: Date.now(),
+    total_points: increment(Number(total_points || 0) + discoveryBonus + Number(extraBonus || 0)),
   });
 
   return { observationId: observationDoc.id, discoveryBonus };
