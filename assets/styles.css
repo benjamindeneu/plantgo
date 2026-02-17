@@ -533,16 +533,16 @@ header, .nav{
 }
 
 .rank-number {
-  font-weight: 500;
+  font-weight: 400;
   color: #777;
 }
 
 .leader-name {
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .leader-score {
-  font-weight: 500;
+  font-weight: 400;
 }
 
 /* bar stays */
@@ -563,17 +563,18 @@ header, .nav{
 
 /* --- NEW: "me" only changes text color (no background/border) --- */
 .leader-me {
-  border-width: 3px;
+  border-width: 4px;
 }
 
 .leader-me .leader-name,
-.leader-me .leader-score {
+.leader-me .leader-score,
+.leader-me .rank-number {
   /*color: var(--green-700); /* pick your accent; change if you want */
   font-weight: 900;
 }
-.leader-me .leader-name {
+/*.leader-me .leader-name {
   text-decoration: underline;
-}
+}*/
 
 /* --- NEW: top 3 highlights (same vibe as your old "leader-me") --- */
 .leader-top1 {
