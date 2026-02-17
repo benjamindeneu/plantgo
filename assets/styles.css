@@ -572,6 +572,9 @@ header, .nav{
   /*color: var(--green-700); /* pick your accent; change if you want */
   font-weight: 900;
 }
+.leader-me .leader-name {
+  text-decoration: underline;
+}
 
 /* --- NEW: top 3 highlights (same vibe as your old "leader-me") --- */
 .leader-top1 {
