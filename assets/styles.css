@@ -514,6 +514,43 @@ header, .nav{
 .herbarium-info .herbarium-name{ margin:0 0 4px 0; }
 .herbarium-info .herbarium-date{ margin:0; font-size:12px; color:var(--muted); }
 
+/* ---------- CHALLENGE ---------- */
+
+.leader-item {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  background: var(--card-bg, #f6f6f6);
+}
+
+.leader-rank {
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.rank-number {
+  font-weight: 600;
+  color: #777;
+}
+
+.leader-name {
+  font-weight: 600;
+}
+
+.leader-score {
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+.leader-me {
+  background: linear-gradient(90deg, #e8f5e9, #f1f8e9);
+  border: 1px solid #a5d6a7;
+}
+
+
 /* ---------- 9) RESULT MODAL / PROGRESS ---------- */
 .result-modal .modal-content.result{ overflow:hidden; }
 .result-head{ display:flex; flex-direction:column; gap:var(--sp-2); }

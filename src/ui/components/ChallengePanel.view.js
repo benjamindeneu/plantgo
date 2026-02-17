@@ -1,5 +1,6 @@
 // src/ui/components/ChallengePanel.view.js
 import { t, initI18n, translateDom } from "../../language/i18n.js";
+import { auth } from "../../../firebase-config.js";
 await initI18n();
 
 export function createChallengePanelView() {
@@ -56,6 +57,7 @@ export function createChallengePanelView() {
   });
 
   translateDom(wrap);
+  const currentUid = auth.currentUser?.uid;
 
   return {
     element: wrap,
@@ -104,6 +106,9 @@ export function createChallengePanelView() {
         rows.forEach((r, i) => {
             const li = document.createElement("li");
             li.className = "leader-item";
+            if (r.uid === currentUid) {
+              li.classList.add("leader-me");
+            }
 
             let medal = "";
             if (i === 0) medal = "🥇";
