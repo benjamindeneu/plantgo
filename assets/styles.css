@@ -563,8 +563,7 @@ header, .nav{
 
 /* --- NEW: "me" only changes text color (no background/border) --- */
 .leader-me {
-  background: var(--card-bg, #f6f6f6);
-  border-color: transparent;
+  border-width: 3px;
 }
 
 .leader-me .leader-name,
@@ -574,7 +573,6 @@ header, .nav{
 }
 .leader-me .leader-name {
   text-decoration: underline;
-  border-width: 3px;
 }
 
 /* --- NEW: top 3 highlights (same vibe as your old "leader-me") --- */
