@@ -533,16 +533,16 @@ header, .nav{
 }
 
 .rank-number {
-  font-weight: 600;
+  font-weight: 500;
   color: #777;
 }
 
 .leader-name {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .leader-score {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* bar stays */
@@ -570,7 +570,7 @@ header, .nav{
 .leader-me .leader-name,
 .leader-me .leader-score {
   /*color: var(--green-700); /* pick your accent; change if you want */
-  font-weight: 1200;
+  font-weight: 900;
 }
 
 /* --- NEW: top 3 highlights (same vibe as your old "leader-me") --- */
