@@ -3,6 +3,8 @@
   "nav.login": "Accedi",
   "nav.signup": "Registrati",
 
+  "common.close": "Chiudi",
+
   "login.pageTitle": "PlantGo • Accesso",
   "login.title": "Bentornato",
   "login.email": "Email",
@@ -34,6 +36,7 @@
   "header.logout": "Disconnetti",
   "header.language": "Lingua",
   "header.levelShort": "Lv.",
+  "header.challenge": "Sfida",
 
   "herbarium.pageTitle": "PlantGo • Erbario",
   "herbarium.title": "Le tue scoperte",
@@ -114,5 +117,36 @@
   "result.rarity.legendary": "Leggendaria",
 
   "result.badge.missionSpecies": "Specie della missione",
-  "result.badge.newSpecies": "Nuova specie"
+  "result.badge.newSpecies": "Nuova specie",
+
+  "challenge.title": "Sfida",
+  "challenge.modal.title": "Sfida",
+
+  "challenge.create.subtitle": "Crea una sfida",
+  "challenge.create.title": "Avvia una sfida a tempo",
+  "challenge.duration": "Durata",
+  "challenge.create.button": "Crea",
+  "challenge.creating": "Creazione della sfida…",
+  "challenge.created": "Sfida creata. Codice di accesso:",
+  "challenge.error.codeGen": "Impossibile generare il codice. Riprova.",
+  "challenge.error.mustLogin": "Accedi per creare o partecipare a una sfida.",
+  "challenge.error.generic": "Qualcosa è andato storto. Riprova.",
+
+  "challenge.join.subtitle": "Partecipa a una sfida",
+  "challenge.join.placeholder": "ABCDE",
+  "challenge.join.button": "Partecipa",
+  "challenge.join.invalidCode": "Inserisci un codice di 5 caratteri.",
+  "challenge.joining": "Accesso alla sfida…",
+  "challenge.joined": "Partecipazione avvenuta!",
+  "challenge.join.notFound": "Sfida non trovata.",
+  "challenge.join.ended": "Questa sfida è già terminata.",
+
+  "challenge.active.subtitle": "Sfida attiva",
+  "challenge.active.none": "Nessuna sfida attiva",
+  "challenge.active.code": "Codice:",
+  "challenge.active.timeLeft": "Tempo rimanente:",
+  "challenge.active.ended": "Sfida terminata",
+  "challenge.active.close": "Chiudi classifica",
+  "challenge.leaderboard": "Classifica",
+  "challenge.leaderboard.empty": "Nessun punteggio ancora."
 }

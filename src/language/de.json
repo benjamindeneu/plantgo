@@ -3,6 +3,8 @@
   "nav.login": "Anmelden",
   "nav.signup": "Registrieren",
 
+  "common.close": "Schließen",
+
   "login.pageTitle": "PlantGo • Anmeldung",
   "login.title": "Willkommen zurück",
   "login.email": "E-Mail",
@@ -34,6 +36,7 @@
   "header.logout": "Abmelden",
   "header.language": "Sprache",
   "header.levelShort": "Lvl.",
+  "header.challenge": "Wettbewerb",
 
   "herbarium.pageTitle": "PlantGo • Herbarium",
   "herbarium.title": "Deine Entdeckungen",
@@ -114,5 +117,36 @@
   "result.rarity.legendary": "Legendär",
 
   "result.badge.missionSpecies": "Missionsart",
-  "result.badge.newSpecies": "Neue Art"
+  "result.badge.newSpecies": "Neue Art",
+
+  "challenge.title": "Wettbewerb",
+  "challenge.modal.title": "Wettbewerb",
+
+  "challenge.create.subtitle": "Einen Wettbewerb erstellen",
+  "challenge.create.title": "Zeitlich begrenzten Wettbewerb starten",
+  "challenge.duration": "Dauer",
+  "challenge.create.button": "Erstellen",
+  "challenge.creating": "Wettbewerb wird erstellt…",
+  "challenge.created": "Wettbewerb erstellt. Beitrittscode:",
+  "challenge.error.codeGen": "Beitrittscode konnte nicht generiert werden. Bitte erneut versuchen.",
+  "challenge.error.mustLogin": "Bitte anmelden, um einen Wettbewerb zu erstellen oder beizutreten.",
+  "challenge.error.generic": "Etwas ist schiefgelaufen. Bitte erneut versuchen.",
+
+  "challenge.join.subtitle": "Einem Wettbewerb beitreten",
+  "challenge.join.placeholder": "ABCDE",
+  "challenge.join.button": "Beitreten",
+  "challenge.join.invalidCode": "Geben Sie einen 5-stelligen Code ein.",
+  "challenge.joining": "Beitritt läuft…",
+  "challenge.joined": "Beigetreten!",
+  "challenge.join.notFound": "Wettbewerb nicht gefunden.",
+  "challenge.join.ended": "Dieser Wettbewerb ist bereits beendet.",
+
+  "challenge.active.subtitle": "Aktiver Wettbewerb",
+  "challenge.active.none": "Kein aktiver Wettbewerb",
+  "challenge.active.code": "Code:",
+  "challenge.active.timeLeft": "Verbleibende Zeit:",
+  "challenge.active.ended": "Wettbewerb beendet",
+  "challenge.active.close": "Bestenliste schließen",
+  "challenge.leaderboard": "Bestenliste",
+  "challenge.leaderboard.empty": "Noch keine Punkte."
 }

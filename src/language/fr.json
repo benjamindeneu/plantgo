@@ -3,6 +3,8 @@
   "nav.login": "Connexion",
   "nav.signup": "Inscription",
 
+  "common.close": "Fermer",
+
   "login.pageTitle": "PlantGo • Connexion",
   "login.title": "Bon retour",
   "login.email": "Adresse e-mail",
@@ -34,6 +36,7 @@
   "header.logout": "Se déconnecter",
   "header.language": "Langue",
   "header.levelShort": "Niv.",
+  "header.challenge": "Défi",
 
   "herbarium.pageTitle": "PlantGo • Herbier",
   "herbarium.title": "Vos découvertes",
@@ -114,5 +117,36 @@
   "result.rarity.legendary": "Légendaire",
 
   "result.badge.missionSpecies": "Espèce de mission",
-  "result.badge.newSpecies": "Nouvelle espèce"
+  "result.badge.newSpecies": "Nouvelle espèce",
+
+  "challenge.title": "Défi",
+  "challenge.modal.title": "Défi",
+
+  "challenge.create.subtitle": "Créer un défi",
+  "challenge.create.title": "Démarrer un défi chronométré",
+  "challenge.duration": "Durée",
+  "challenge.create.button": "Créer",
+  "challenge.creating": "Création du défi…",
+  "challenge.created": "Défi créé. Code de participation :",
+  "challenge.error.codeGen": "Impossible de générer un code. Veuillez réessayer.",
+  "challenge.error.mustLogin": "Veuillez vous connecter pour créer ou rejoindre un défi.",
+  "challenge.error.generic": "Une erreur est survenue. Veuillez réessayer.",
+
+  "challenge.join.subtitle": "Rejoindre un défi",
+  "challenge.join.placeholder": "ABCDE",
+  "challenge.join.button": "Rejoindre",
+  "challenge.join.invalidCode": "Entrez un code à 5 caractères.",
+  "challenge.joining": "Connexion au défi…",
+  "challenge.joined": "Rejoint !",
+  "challenge.join.notFound": "Défi introuvable.",
+  "challenge.join.ended": "Ce défi est déjà terminé.",
+
+  "challenge.active.subtitle": "Défi en cours",
+  "challenge.active.none": "Aucun défi actif",
+  "challenge.active.code": "Code :",
+  "challenge.active.timeLeft": "Temps restant :",
+  "challenge.active.ended": "Défi terminé",
+  "challenge.active.close": "Fermer le classement",
+  "challenge.leaderboard": "Classement",
+  "challenge.leaderboard.empty": "Aucun score pour le moment."
 }

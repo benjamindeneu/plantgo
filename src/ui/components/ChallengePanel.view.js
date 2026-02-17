@@ -99,15 +99,26 @@ export function createChallengePanelView() {
     },
 
     renderLeaderboard(rows = []) {
-      leaderList.innerHTML = "";
-      for (const r of rows) {
-        const li = document.createElement("li");
-        li.innerHTML = `
-          <span style="font-weight:600">${r.username}</span>
-          <span class="muted"> — ${r.score || 0} pts</span>
-        `;
-        leaderList.appendChild(li);
-      }
+        leaderList.innerHTML = "";
+
+        rows.forEach((r, i) => {
+            const li = document.createElement("li");
+            li.className = "leader-item";
+
+            let medal = "";
+            if (i === 0) medal = "🥇";
+            else if (i === 1) medal = "🥈";
+            else if (i === 2) medal = "🥉";
+            else medal = `<span class="rank-number">#${i + 1}</span>`;
+
+            li.innerHTML = `
+            <div class="leader-rank">${medal}</div>
+            <div class="leader-name">${r.username}</div>
+            <div class="leader-score">${r.score || 0} pts</div>
+            `;
+
+            leaderList.appendChild(li);
+        });
     },
 
     onClose(cb) {

@@ -3,6 +3,8 @@
   "nav.login": "Entrar",
   "nav.signup": "Registar",
 
+  "common.close": "Fechar",
+
   "login.pageTitle": "PlantGo • Entrar",
   "login.title": "Bem-vindo de volta",
   "login.email": "Email",
@@ -34,6 +36,7 @@
   "header.logout": "Sair",
   "header.language": "Idioma",
   "header.levelShort": "Nv.",
+  "header.challenge": "Desafio",
 
   "herbarium.pageTitle": "PlantGo • Herbário",
   "herbarium.title": "As suas descobertas",
@@ -114,5 +117,36 @@
   "result.rarity.legendary": "Lendária",
 
   "result.badge.missionSpecies": "Espécie da missão",
-  "result.badge.newSpecies": "Nova espécie"
+  "result.badge.newSpecies": "Nova espécie",
+
+  "challenge.title": "Desafio",
+  "challenge.modal.title": "Desafio",
+
+  "challenge.create.subtitle": "Criar um desafio",
+  "challenge.create.title": "Iniciar um desafio cronometrado",
+  "challenge.duration": "Duração",
+  "challenge.create.button": "Criar",
+  "challenge.creating": "Criando desafio…",
+  "challenge.created": "Desafio criado. Código de entrada:",
+  "challenge.error.codeGen": "Não foi possível gerar um código. Tente novamente.",
+  "challenge.error.mustLogin": "Faça login para criar ou participar de um desafio.",
+  "challenge.error.generic": "Algo deu errado. Tente novamente.",
+
+  "challenge.join.subtitle": "Participar de um desafio",
+  "challenge.join.placeholder": "ABCDE",
+  "challenge.join.button": "Participar",
+  "challenge.join.invalidCode": "Insira um código de 5 caracteres.",
+  "challenge.joining": "Entrando no desafio…",
+  "challenge.joined": "Participação confirmada!",
+  "challenge.join.notFound": "Desafio não encontrado.",
+  "challenge.join.ended": "Este desafio já terminou.",
+
+  "challenge.active.subtitle": "Desafio ativo",
+  "challenge.active.none": "Nenhum desafio ativo",
+  "challenge.active.code": "Código:",
+  "challenge.active.timeLeft": "Tempo restante:",
+  "challenge.active.ended": "Desafio encerrado",
+  "challenge.active.close": "Fechar classificação",
+  "challenge.leaderboard": "Classificação",
+  "challenge.leaderboard.empty": "Ainda não há pontuações."
 }

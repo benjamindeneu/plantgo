@@ -3,6 +3,8 @@
   "nav.login": "Iniciar sesión",
   "nav.signup": "Registrarse",
 
+  "common.close": "Cerrar",
+
   "login.pageTitle": "PlantGo • Iniciar sesión",
   "login.title": "Bienvenido de nuevo",
   "login.email": "Correo electrónico",
@@ -34,6 +36,7 @@
   "header.logout": "Cerrar sesión",
   "header.language": "Idioma",
   "header.levelShort": "Nv.",
+  "header.challenge": "Desafío",
 
   "herbarium.pageTitle": "PlantGo • Herbario",
   "herbarium.title": "Tus descubrimientos",
@@ -114,5 +117,36 @@
   "result.rarity.legendary": "Legendaria",
 
   "result.badge.missionSpecies": "Especie de misión",
-  "result.badge.newSpecies": "Nueva especie"
+  "result.badge.newSpecies": "Nueva especie",
+
+  "challenge.title": "Desafío",
+  "challenge.modal.title": "Desafío",
+
+  "challenge.create.subtitle": "Crear un desafío",
+  "challenge.create.title": "Iniciar un desafío cronometrado",
+  "challenge.duration": "Duración",
+  "challenge.create.button": "Crear",
+  "challenge.creating": "Creando desafío…",
+  "challenge.created": "Desafío creado. Código de acceso:",
+  "challenge.error.codeGen": "No se pudo generar un código. Inténtalo de nuevo.",
+  "challenge.error.mustLogin": "Por favor, inicia sesión para crear o unirte a un desafío.",
+  "challenge.error.generic": "Algo salió mal. Inténtalo de nuevo.",
+
+  "challenge.join.subtitle": "Unirse a un desafío",
+  "challenge.join.placeholder": "ABCDE",
+  "challenge.join.button": "Unirse",
+  "challenge.join.invalidCode": "Introduce un código de 5 caracteres.",
+  "challenge.joining": "Uniéndose al desafío…",
+  "challenge.joined": "¡Unido!",
+  "challenge.join.notFound": "Desafío no encontrado.",
+  "challenge.join.ended": "Este desafío ya ha terminado.",
+
+  "challenge.active.subtitle": "Desafío activo",
+  "challenge.active.none": "No hay desafío activo",
+  "challenge.active.code": "Código:",
+  "challenge.active.timeLeft": "Tiempo restante:",
+  "challenge.active.ended": "Desafío finalizado",
+  "challenge.active.close": "Cerrar clasificación",
+  "challenge.leaderboard": "Clasificación",
+  "challenge.leaderboard.empty": "Aún no hay puntuaciones."
 }
