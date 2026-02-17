@@ -10,7 +10,7 @@ export function createChallengePanelView() {
     <div id="activeCard" class="card" style="display:none">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap">
         <div>
-          <h1 class="muted" data-i18n="challenge.active.subtitle">Active challenge</h1>
+          <h1 data-i18n="challenge.active.subtitle">Active challenge</h1>
           <div id="activeLine" style="font-weight:700"></div>
           <div id="endedLine" class="muted" style="display:none; margin-top:4px"
                data-i18n="challenge.active.ended">
