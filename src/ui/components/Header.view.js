@@ -45,6 +45,7 @@ export function createHeaderView({
             ? `<button class="menu-item" role="menuitem" id="menuHome">🏠 Main</button>`
             : `<button class="menu-item" role="menuitem" id="menuHerbarium">📗 Herbarium</button>`
         }
+        <button class="menu-item" role="menuitem" id="menuChallenge">🏁 Challenge</button>
         <button class="menu-item danger" role="menuitem" id="menuLogout">🚪 Log out</button>
       </div>
     </div>
@@ -59,12 +60,14 @@ export function createHeaderView({
   const primaryNavBtn = root.querySelector(isHerbarium ? "#menuHome" : "#menuHerbarium");
   const logoutBtn = root.querySelector("#menuLogout");
   const langSelect = root.querySelector("#langSelect");
+  const challengeMenuBtn = root.querySelector("#menuChallenge");
 
   // callbacks set by controller
   let onMenuToggle = null;
   let onPrimaryNav = null;
   let onLogout = null;
   let onLanguageChange = null;
+  let onChallenge = null;
 
   function toggleMenu(force) {
     const willOpen = force !== undefined ? force : menu.style.display === "none";
@@ -91,6 +94,8 @@ export function createHeaderView({
     if (logoutBtn) logoutBtn.textContent = `🚪 ${t("header.logout")}`;
 
     if (langSelect) langSelect.setAttribute("aria-label", t("header.language"));
+
+    if (challengeMenuBtn) {challengeMenuBtn.textContent = `🏁 ${t("header.challenge")}`;}
   }
 
   document.addEventListener("i18n:changed", () => {
@@ -116,6 +121,11 @@ export function createHeaderView({
   // language dropdown -> emit to controller
   langSelect?.addEventListener("change", () => {
     if (onLanguageChange) onLanguageChange(langSelect.value);
+  });
+
+  challengeMenuBtn?.addEventListener("click", () => {
+    toggleMenu(false);
+    if (onChallenge) onChallenge();
   });
 
   // initial i18n render
@@ -145,5 +155,6 @@ export function createHeaderView({
     setOnPrimaryNav(cb) { onPrimaryNav = cb; },
     setOnLogout(cb) { onLogout = cb; },
     setOnLanguageChange(cb) { onLanguageChange = cb; },
+    setOnChallenge(cb) { onChallenge = cb; },
   };
 }

@@ -3,6 +3,8 @@
   "nav.login": "Login",
   "nav.signup": "Sign up",
 
+  "common.close": "Close",
+
   "login.pageTitle": "PlantGo • Login",
   "login.title": "Welcome back",
   "login.email": "Email",
@@ -34,6 +36,7 @@
   "header.logout": "Log out",
   "header.language": "Language",
   "header.levelShort": "Lv.",
+  "header.challenge": "Challenge",
 
   "herbarium.pageTitle": "PlantGo • Herbarium",
   "herbarium.title": "Your Discoveries",
@@ -117,6 +120,7 @@
   "result.badge.newSpecies": "New species",
 
   "challenge.title": "Challenge",
+  "challenge.modal.title": "Challenge",
 
   "challenge.create.subtitle": "Create a challenge",
   "challenge.create.title": "Start a timed challenge",

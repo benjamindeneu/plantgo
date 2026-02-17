@@ -3,8 +3,9 @@ import { initI18n, translateDom } from "../language/i18n.js";
 
 import { Header } from "../controllers/Header.controller.js";
 import { IdentifyPanel } from "../controllers/IdentifyPanel.controller.js";
-import { ChallengePanel } from "../controllers/ChallengePanel.controller.js"; // ✅ add
+import { ChallengePanel } from "../controllers/ChallengePanel.controller.js";
 import { MissionsPanel } from "../controllers/MissionsPanel.controller.js";
+import { ChallengeModal } from "../controllers/ChallengeModal.controller.js";
 import { listenUserLevel } from "../user/level.js";
 
 import { auth } from "../../firebase-config.js";
@@ -21,6 +22,10 @@ function App() {
     user: null,
     level: 1,
     onMenu: () => {},
+    onChallenge: () => {
+      const modal = ChallengeModal();
+      document.body.appendChild(modal);
+    },
     onLogout: async () => {
       try {
         stopLevel();
@@ -36,15 +41,15 @@ function App() {
 
   // --- Panels ---
   const identifyMount = document.getElementById("identifyRoot");
-  const challengeMount = document.getElementById("challengeRoot"); // ✅ add
+  const challengeMount = document.getElementById("challengeRoot");
   const missionsMount = document.getElementById("missionsRoot");
 
   const identifyPanel = IdentifyPanel();
-  const challengePanel = ChallengePanel(); // ✅ add
+  const challengePanel = ChallengePanel();
   const missionsPanel = MissionsPanel();
 
   identifyMount.replaceWith(identifyPanel);
-  challengeMount.replaceWith(challengePanel); // ✅ add
+  challengeMount.replaceWith(challengePanel);
   missionsMount.replaceWith(missionsPanel);
 
   // --- Footer ---

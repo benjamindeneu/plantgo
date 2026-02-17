@@ -90,7 +90,7 @@ export function ChallengePanel() {
     }
   });
 
-  view.onCreate(async ({ durationSec }) => {
+  /*view.onCreate(async ({ durationSec }) => {
     try {
       view.setFeedback("");
       view.setCreateStatus(t("challenge.creating"));
@@ -118,7 +118,7 @@ export function ChallengePanel() {
       view.setJoinStatus("");
       view.setFeedback(e?.message || t("challenge.error.generic"));
     }
-  });
+  });*/
 
   // ✅ Close leaderboard when ended: clears activeChallenge pointer + collapses UI
   view.onClose(async () => {

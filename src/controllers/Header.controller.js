@@ -10,6 +10,7 @@ export function Header({
   onLogout,
   onHerbarium,
   onBackHome,
+  onChallenge,
 } = {}) {
   const view = createHeaderView({ user, level, menuVariant });
 
@@ -21,6 +22,8 @@ export function Header({
   });
 
   view.setOnLogout(() => { (onLogout || (() => {}))(); });
+
+  view.setOnChallenge(() => { (onChallenge || (() => {}))(); });
 
   // keep dropdown in sync with current doc lang
   const currentLang = document.documentElement.lang || "en";
