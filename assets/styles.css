@@ -557,13 +557,13 @@ header, .nav{
 
 .leader-bar-fill {
   height: 100%;
-  background: #555555;
+  background: #959595;
   transition: width 0.4s ease;
 }
 
 /* --- NEW: "me" only changes text color (no background/border) --- */
 .leader-me {
-  border-width: 3px;
+  border-width: 4px;
 }
 
 .leader-me .leader-name,
@@ -573,11 +573,11 @@ header, .nav{
   font-weight: 900;
 }
 .leader-me .leader-name {
-  color: #4caf50;
-  text-decoration: underline;
+  color: var(--green-700);
+  /*text-decoration: underline;*/
 }
 .leader-me .leader-bar-fill {
-  background: #4caf50;
+  background: var(--green-700);
 }
 
 /* --- NEW: top 3 highlights (same vibe as your old "leader-me") --- */
