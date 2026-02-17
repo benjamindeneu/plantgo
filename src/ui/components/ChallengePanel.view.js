@@ -9,21 +9,23 @@ export function createChallengePanelView() {
 
   wrap.innerHTML = `
     <div id="activeCard" class="card" style="display:none">
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap">
-        <div>
-          <h1 data-i18n="challenge.active.subtitle">Active challenge</h1>
-          <div id="activeLine" style="font-weight:700"></div>
-          <div id="endedLine" class="muted" style="display:none; margin-top:4px"
-               data-i18n="challenge.active.ended">
-            Challenge ended
-          </div>
-        </div>
+
+      <div style="text-align:center">
+        <h1 data-i18n="challenge.active.subtitle">Active challenge</h1>
+
+        <div id="activeLine" style="font-weight:700"></div>
+
         <div id="timerLine" class="muted" style="display:none"></div>
+
+        <div id="endedLine" class="muted" style="display:none"
+            data-i18n="challenge.active.ended">
+          Challenge ended
+        </div>
       </div>
 
-      <div id="leaderWrap" style="margin-top:10px">
+      <div id="leaderWrap" style="margin-top:12px">
         <div class="muted" data-i18n="challenge.leaderboard">Leaderboard</div>
-        <ol id="leaderList" style="margin-top:6px; padding-left:18px"></ol>
+        <ol id="leaderList" style="margin-top:8px; padding-left:0; list-style:none"></ol>
 
         <div id="closeWrap" style="display:none; margin-top:12px; text-align:center">
           <button id="btnClose" class="secondary" type="button"
@@ -101,37 +103,47 @@ export function createChallengePanelView() {
     },
 
     renderLeaderboard(rows = []) {
-        leaderList.innerHTML = "";
+      leaderList.innerHTML = "";
 
-        const maxScore = Math.max(...rows.map(r => r.score || 0), 1);
+      const maxScore = Math.max(...rows.map(r => r.score || 0), 1);
 
-        rows.forEach((r, i) => {
-            const percent = Math.round(((r.score || 0) / maxScore) * 100);
-            const li = document.createElement("li");
-            li.className = "leader-item";
-            if (r.uid === currentUid) {
-              li.classList.add("leader-me");
-            }
-            li.classList.add("leader-flash");
-            setTimeout(() => li.classList.remove("leader-flash"), 500);
-            
-            let medal = "";
-            if (i === 0) medal = "🥇";
-            else if (i === 1) medal = "🥈";
-            else if (i === 2) medal = "🥉";
-            else medal = `<span class="rank-number">#${i + 1}</span>`;
+      rows.forEach((r, i) => {
+        const percent = Math.round(((r.score || 0) / maxScore) * 100);
+        const li = document.createElement("li");
+        li.className = "leader-item";
 
-            li.innerHTML = `
-              <div class="leader-rank">${medal}</div>
-              <div class="leader-name">${r.username}</div>
-              <div class="leader-score">${r.score || 0} pts</div>
-              <div class="leader-bar">
-                <div class="leader-bar-fill" style="width:${percent}%"></div>
-              </div>
-            `;
+        // current user: only text color change
+        if (r.uid === currentUid) li.classList.add("leader-me");
 
-            leaderList.appendChild(li);
-        });
+        // top 3: gold/silver/bronze highlight like the old "me" background effect
+        if (i === 0) li.classList.add("leader-top1");
+        else if (i === 1) li.classList.add("leader-top2");
+        else if (i === 2) li.classList.add("leader-top3");
+
+        // optional flash animation stays
+        li.classList.add("leader-flash");
+        setTimeout(() => li.classList.remove("leader-flash"), 500);
+
+        let medal = "";
+        if (i === 0) medal = "🥇";
+        else if (i === 1) medal = "🥈";
+        else if (i === 2) medal = "🥉";
+        else medal = `<span class="rank-number">#${i + 1}</span>`;
+
+        li.innerHTML = `
+          <div class="leader-rank">${medal}</div>
+          <div class="leader-name"></div>
+          <div class="leader-score">${r.score || 0} pts</div>
+          <div class="leader-bar">
+            <div class="leader-bar-fill" style="width:${percent}%"></div>
+          </div>
+        `;
+
+        // safer than innerHTML for username
+        li.querySelector(".leader-name").textContent = r.username || "—";
+
+        leaderList.appendChild(li);
+      });
     },
 
     onClose(cb) {

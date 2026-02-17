@@ -514,7 +514,7 @@ header, .nav{
 .herbarium-info .herbarium-name{ margin:0 0 4px 0; }
 .herbarium-info .herbarium-date{ margin:0; font-size:12px; color:var(--muted); }
 
-/* ---------- CHALLENGE ---------- */
+/* ---------- CHALLENGE (LEADERBOARD) ---------- */
 
 .leader-item {
   display: grid;
@@ -524,6 +524,7 @@ header, .nav{
   border-radius: 10px;
   margin-bottom: 6px;
   background: var(--card-bg, #f6f6f6);
+  border: 1px solid transparent;
 }
 
 .leader-rank {
@@ -537,19 +538,15 @@ header, .nav{
 }
 
 .leader-name {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .leader-score {
-  font-weight: 700;
+  font-weight: 800;
   color: #2e7d32;
 }
 
-.leader-me {
-  background: linear-gradient(90deg, #e8f5e9, #f1f8e9);
-  border: 1px solid #a5d6a7;
-}
-
+/* bar stays */
 .leader-bar {
   grid-column: 1 / -1;
   height: 6px;
@@ -565,6 +562,44 @@ header, .nav{
   transition: width 0.4s ease;
 }
 
+/* --- NEW: "me" only changes text color (no background/border) --- */
+.leader-me {
+  background: var(--card-bg, #f6f6f6);
+  border-color: transparent;
+}
+
+.leader-me .leader-name,
+.leader-me .leader-score {
+  color: var(--green-700) /* pick your accent; change if you want */
+}
+
+/* --- NEW: top 3 highlights (same vibe as your old "leader-me") --- */
+.leader-top1 {
+  background: linear-gradient(90deg, #fff8e1, #fffde7);
+  border-color: #f3d27a;
+}
+
+.leader-top2 {
+  background: linear-gradient(90deg, #f5f5f5, #fafafa);
+  border-color: #cfcfcf;
+}
+
+.leader-top3 {
+  background: linear-gradient(90deg, #efebe9, #fbe9e7);
+  border-color: #d7a07a;
+}
+
+/* If someone is both top3 and "me", keep the medal background, but still tint your name */
+.leader-top1.leader-me .leader-name,
+.leader-top2.leader-me .leader-name,
+.leader-top3.leader-me .leader-name,
+.leader-top1.leader-me .leader-score,
+.leader-top2.leader-me .leader-score,
+.leader-top3.leader-me .leader-score {
+  color: var(--green-700);
+}
+
+/* flash animation can stay */
 @keyframes flash {
   0% { background-color: #c8e6c9; }
   100% { background-color: transparent; }
