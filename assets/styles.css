@@ -550,6 +550,21 @@ header, .nav{
   border: 1px solid #a5d6a7;
 }
 
+.leader-bar {
+  grid-column: 1 / -1;
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.leader-bar-fill {
+  height: 100%;
+  background: #4caf50;
+  transition: width 0.4s ease;
+}
+
 
 /* ---------- 9) RESULT MODAL / PROGRESS ---------- */
 .result-modal .modal-content.result{ overflow:hidden; }

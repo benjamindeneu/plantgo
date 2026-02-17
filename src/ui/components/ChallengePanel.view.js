@@ -103,7 +103,10 @@ export function createChallengePanelView() {
     renderLeaderboard(rows = []) {
         leaderList.innerHTML = "";
 
+        const maxScore = Math.max(...rows.map(r => r.score || 0), 1);
+
         rows.forEach((r, i) => {
+            const percent = Math.round(((r.score || 0) / maxScore) * 100);
             const li = document.createElement("li");
             li.className = "leader-item";
             if (r.uid === currentUid) {
@@ -117,9 +120,12 @@ export function createChallengePanelView() {
             else medal = `<span class="rank-number">#${i + 1}</span>`;
 
             li.innerHTML = `
-            <div class="leader-rank">${medal}</div>
-            <div class="leader-name">${r.username}</div>
-            <div class="leader-score">${r.score || 0} pts</div>
+              <div class="leader-rank">${medal}</div>
+              <div class="leader-name">${r.username}</div>
+              <div class="leader-score">${r.score || 0} pts</div>
+              <div class="leader-bar">
+                <div class="leader-bar-fill" style="width:${percent}%"></div>
+              </div>
             `;
 
             leaderList.appendChild(li);
