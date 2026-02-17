@@ -1,9 +1,11 @@
-// src/pages/home.js
+// src/pages/home_test.app.js
 import { initI18n, translateDom } from "../language/i18n.js";
 
 import { Header } from "../controllers/Header.controller.js";
 import { IdentifyPanel } from "../controllers/IdentifyPanel.controller.js";
+import { ChallengePanel } from "../controllers/ChallengePanel.controller.js";
 import { MissionsPanel } from "../controllers/MissionsPanel.controller.js";
+import { ChallengeModal } from "../controllers/ChallengeModal.controller.js";
 import { listenUserLevel } from "../user/level.js";
 
 import { auth } from "../../firebase-config.js";
@@ -12,7 +14,6 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 await initI18n();
 
 function App() {
-  // declare this BEFORE Header so onLogout can use it safely
   let stopLevel = () => {};
 
   // --- Header ---
@@ -21,6 +22,10 @@ function App() {
     user: null,
     level: 1,
     onMenu: () => {},
+    onChallenge: () => {
+      const modal = ChallengeModal();
+      document.body.appendChild(modal);
+    },
     onLogout: async () => {
       try {
         stopLevel();
@@ -36,12 +41,15 @@ function App() {
 
   // --- Panels ---
   const identifyMount = document.getElementById("identifyRoot");
+  const challengeMount = document.getElementById("challengeRoot");
   const missionsMount = document.getElementById("missionsRoot");
 
   const identifyPanel = IdentifyPanel();
+  const challengePanel = ChallengePanel();
   const missionsPanel = MissionsPanel();
 
   identifyMount.replaceWith(identifyPanel);
+  challengeMount.replaceWith(challengePanel);
   missionsMount.replaceWith(missionsPanel);
 
   // --- Footer ---
@@ -56,15 +64,13 @@ function App() {
   // --- Auth guard + header level sync ---
   onAuthStateChanged(auth, (user) => {
     if (!user) {
-      stopLevel(); // stop any listeners if they were running
-      location.replace("./login.html"); // replace avoids "Back" returning to protected page
+      stopLevel();
+      location.replace("./login.html");
       return;
     }
 
-    // logged in
     header.setUser(user);
 
-    // refresh level listener
     stopLevel();
     stopLevel = listenUserLevel(user.uid, (lvl) => header.setLevel(lvl));
   });
