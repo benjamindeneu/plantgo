@@ -112,7 +112,9 @@ export function createChallengePanelView() {
             if (r.uid === currentUid) {
               li.classList.add("leader-me");
             }
-
+            li.classList.add("leader-flash");
+            setTimeout(() => li.classList.remove("leader-flash"), 500);
+            
             let medal = "";
             if (i === 0) medal = "🥇";
             else if (i === 1) medal = "🥈";

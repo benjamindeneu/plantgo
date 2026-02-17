@@ -565,6 +565,15 @@ header, .nav{
   transition: width 0.4s ease;
 }
 
+@keyframes flash {
+  0% { background-color: #c8e6c9; }
+  100% { background-color: transparent; }
+}
+
+.leader-flash {
+  animation: flash 0.6s ease;
+}
+
 
 /* ---------- 9) RESULT MODAL / PROGRESS ---------- */
 .result-modal .modal-content.result{ overflow:hidden; }
