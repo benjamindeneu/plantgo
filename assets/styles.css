@@ -574,6 +574,7 @@ header, .nav{
 }
 .leader-me .leader-name {
   text-decoration: underline;
+  border-width: 3px;
 }
 
 /* --- NEW: top 3 highlights (same vibe as your old "leader-me") --- */
