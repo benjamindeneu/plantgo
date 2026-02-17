@@ -9,6 +9,8 @@ import {
   clearMyActiveChallenge,
 } from "../data/challenges.js";
 
+import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { db } from "../../firebase-config.js";
 import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
@@ -75,20 +77,27 @@ export function ChallengePanel() {
     if (!isEnded) startCountdown();
   }
 
-  // ✅ Persist / restore on reload (auth can be null at first render)
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      // logged out -> clear panel state
-      await activateFromPointer(null);
-      return;
-    }
-    try {
-      const pointer = await getMyActiveChallenge();
-      await activateFromPointer(pointer);
-    } catch (e) {
-      view.setFeedback(e?.message || t("challenge.error.generic"));
-    }
-  });
+  let unsubUserDoc = null;
+
+    onAuthStateChanged(auth, (user) => {
+        if (!user) {
+            if (unsubUserDoc) unsubUserDoc();
+            activateFromPointer(null);
+            return;
+        }
+
+        // Listen to user's document in real-time
+        const userRef = doc(db, "users", user.uid);
+
+        if (unsubUserDoc) unsubUserDoc();
+
+        unsubUserDoc = onSnapshot(userRef, (snap) => {
+            const data = snap.exists() ? snap.data() : null;
+            const pointer = data?.activeChallenge || null;
+            activateFromPointer(pointer);
+        });
+    });
+
 
   /*view.onCreate(async ({ durationSec }) => {
     try {
