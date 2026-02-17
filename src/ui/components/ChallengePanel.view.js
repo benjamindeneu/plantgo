@@ -128,17 +128,21 @@ export function createChallengePanelView() {
       showOut(joinOut, text);
     },
 
-    setActiveChallenge({ code, endsAtMs } = {}) {
-      if (!code) {
-        activeLine.textContent = t("challenge.active.none");
-        timerLine.style.display = "none";
-        leaderWrap.style.display = "none";
-        return;
-      }
-      activeLine.textContent = `${t("challenge.active.code")} ${code}`;
-      timerLine.style.display = "block";
-      timerLine.textContent = `${t("challenge.active.timeLeft")} ${fmtTimeLeft(endsAtMs - Date.now())}`;
-      leaderWrap.style.display = "block";
+    setActiveChallenge(payload) {
+        const code = payload?.code;
+        const endsAtMs = payload?.endsAtMs;
+
+        if (!code) {
+            activeLine.textContent = t("challenge.active.none");
+            timerLine.style.display = "none";
+            leaderWrap.style.display = "none";
+            return;
+        }
+
+        activeLine.textContent = `${t("challenge.active.code")} ${code}`;
+        timerLine.style.display = "block";
+        timerLine.textContent = `${t("challenge.active.timeLeft")} ${fmtTimeLeft(endsAtMs - Date.now())}`;
+        leaderWrap.style.display = "block";
     },
 
     setTimeLeft(endsAtMs) {

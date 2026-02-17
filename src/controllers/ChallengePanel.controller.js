@@ -71,7 +71,7 @@ export function ChallengePanel() {
     }
   });
 
-  view.setActiveChallenge(null);
+  view.setActiveChallenge();
   view.renderLeaderboard([]);
   return view.element;
 }
