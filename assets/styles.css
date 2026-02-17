@@ -548,9 +548,9 @@ header, .nav{
 /* bar stays */
 .leader-bar {
   grid-column: 1 / -1;
-  height: 6px;
+  height: 3px;
   background: #e0e0e0;
-  border-radius: 4px;
+  border-radius: 2px;
   margin-top: 6px;
   overflow: hidden;
 }
