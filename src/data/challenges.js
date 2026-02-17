@@ -69,6 +69,24 @@ async function setUserActiveChallenge(uid, payloadOrNull) {
   await updateDoc(userRef, { activeChallenge: payloadOrNull });
 }
 
+// Get current user's activeChallenge pointer (or null)
+export async function getMyActiveChallenge() {
+  const u = auth.currentUser;
+  if (!u) return null;
+
+  const snap = await getDoc(doc(db, "users", u.uid));
+  if (!snap.exists()) return null;
+
+  return snap.data()?.activeChallenge || null;
+}
+
+// Clear current user's activeChallenge pointer
+export async function clearMyActiveChallenge() {
+  const u = auth.currentUser;
+  if (!u) return;
+  await updateDoc(doc(db, "users", u.uid), { activeChallenge: null });
+}
+
 /**
  * Optional helper: if user's activeChallenge is expired, clear it.
  * Call on app start or on Challenge panel init.

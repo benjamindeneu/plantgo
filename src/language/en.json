@@ -141,6 +141,8 @@
   "challenge.active.none": "No active challenge",
   "challenge.active.code": "Code:",
   "challenge.active.timeLeft": "Time left:",
+  "challenge.active.ended": "Challenge ended",
+  "challenge.active.close": "Close leaderboard",
   "challenge.leaderboard": "Leaderboard",
   "challenge.leaderboard.empty": "No scores yet."
 }

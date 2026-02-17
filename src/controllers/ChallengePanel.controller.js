@@ -5,7 +5,12 @@ import {
   createChallenge,
   joinChallengeByCode,
   subscribeLeaderboard,
+  getMyActiveChallenge,
+  clearMyActiveChallenge,
 } from "../data/challenges.js";
+
+import { auth } from "../../firebase-config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 export function ChallengePanel() {
   const view = createChallengePanelView();
@@ -13,33 +18,77 @@ export function ChallengePanel() {
   let unsub = null;
   let timer = null;
   let endAtMs = null;
+  let active = null; // { id, code, endAtMs }
 
   function cleanupLive() {
     if (unsub) { unsub(); unsub = null; }
     if (timer) { clearInterval(timer); timer = null; }
   }
 
+  function setEndedUI(isEnded) {
+    view.setEnded(!!isEnded);
+  }
+
   function startCountdown() {
     if (!endAtMs) return;
+
     if (timer) clearInterval(timer);
+
     timer = setInterval(() => {
-      view.setTimeLeft(endAtMs);
-      if (Date.now() >= endAtMs) {
+      const remaining = endAtMs - Date.now();
+
+      if (remaining <= 0) {
         clearInterval(timer);
         timer = null;
+        setEndedUI(true);        // ✅ timer removed, ended text shown
+        return;
       }
+
+      view.setTimeLeft(endAtMs);
     }, 1000);
   }
 
-  async function activate({ challengeId, code, endAt }) {
-    endAtMs = endAt?.toMillis ? endAt.toMillis() : null;
-    view.setActiveChallenge({ code, endsAtMs: endAtMs });
+  async function activateFromPointer(pointer) {
+    // pointer is users/{uid}.activeChallenge: { id, code, startAt, endAt }
+    if (!pointer?.id) {
+      active = null;
+      endAtMs = null;
+      cleanupLive();
+      view.setActiveChallenge(null);
+      view.renderLeaderboard([]);
+      setEndedUI(false);
+      return;
+    }
+
+    endAtMs = pointer?.endAt?.toMillis ? pointer.endAt.toMillis() : null;
+    active = { id: pointer.id, code: pointer.code, endAtMs };
+
+    view.setActiveChallenge({ code: pointer.code, endsAtMs: endAtMs });
     view.renderLeaderboard([]);
 
     cleanupLive();
-    unsub = subscribeLeaderboard(challengeId, (rows) => view.renderLeaderboard(rows));
-    startCountdown();
+    unsub = subscribeLeaderboard(pointer.id, (rows) => view.renderLeaderboard(rows));
+
+    const isEnded = endAtMs && Date.now() >= endAtMs;
+    setEndedUI(isEnded);
+
+    if (!isEnded) startCountdown();
   }
+
+  // ✅ Persist / restore on reload (auth can be null at first render)
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      // logged out -> clear panel state
+      await activateFromPointer(null);
+      return;
+    }
+    try {
+      const pointer = await getMyActiveChallenge();
+      await activateFromPointer(pointer);
+    } catch (e) {
+      view.setFeedback(e?.message || t("challenge.error.generic"));
+    }
+  });
 
   view.onCreate(async ({ durationSec }) => {
     try {
@@ -49,7 +98,7 @@ export function ChallengePanel() {
       const res = await createChallenge({ durationSec });
 
       view.setCreateStatus(`${t("challenge.created")} ${res.code}`);
-      await activate({ challengeId: res.challengeId, code: res.code, endAt: res.endAt });
+      await activateFromPointer({ id: res.challengeId, code: res.code, startAt: res.startAt, endAt: res.endAt });
     } catch (e) {
       view.setCreateStatus("");
       view.setFeedback(e?.message || t("challenge.error.generic"));
@@ -64,14 +113,27 @@ export function ChallengePanel() {
       const res = await joinChallengeByCode(code);
 
       view.setJoinStatus(t("challenge.joined"));
-      await activate({ challengeId: res.challengeId, code: res.code, endAt: res.endAt });
+      await activateFromPointer({ id: res.challengeId, code: res.code, startAt: res.startAt, endAt: res.endAt });
     } catch (e) {
       view.setJoinStatus("");
       view.setFeedback(e?.message || t("challenge.error.generic"));
     }
   });
 
-  view.setActiveChallenge();
+  // ✅ Close leaderboard when ended: clears activeChallenge pointer + collapses UI
+  view.onClose(async () => {
+    try {
+      await clearMyActiveChallenge();
+      await activateFromPointer(null);
+    } catch (e) {
+      view.setFeedback(e?.message || t("challenge.error.generic"));
+    }
+  });
+
+  // initial state
+  view.setActiveChallenge(null);
   view.renderLeaderboard([]);
+  setEndedUI(false);
+
   return view.element;
 }

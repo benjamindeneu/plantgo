@@ -51,6 +51,9 @@ export function createChallengePanelView() {
         <div>
           <div class="muted" data-i18n="challenge.active.subtitle">Active challenge</div>
           <div id="activeLine" style="font-weight:700" data-i18n="challenge.active.none">No active challenge</div>
+          <div id="endedLine" class="muted" style="display:none; margin-top:4px" data-i18n="challenge.active.ended">
+            Challenge ended
+          </div>
         </div>
         <div id="timerLine" class="muted" style="display:none"></div>
       </div>
@@ -58,6 +61,12 @@ export function createChallengePanelView() {
       <div id="leaderWrap" style="margin-top:10px; display:none">
         <div class="muted" data-i18n="challenge.leaderboard">Leaderboard</div>
         <ol id="leaderList" style="margin-top:6px; padding-left:18px"></ol>
+
+        <div id="closeWrap" style="display:none; margin-top:12px; text-align:center">
+          <button id="btnClose" class="secondary" type="button" data-i18n="challenge.active.close">
+            Close leaderboard
+          </button>
+        </div>
       </div>
     </div>
 
@@ -79,6 +88,11 @@ export function createChallengePanelView() {
 
   const feedback = wrap.querySelector("#feedback");
 
+  const endedLine = wrap.querySelector("#endedLine");
+  const closeWrap = wrap.querySelector("#closeWrap");
+  const btnClose = wrap.querySelector("#btnClose");
+
+  let closeCb = null;
   let createCb = null;
   let joinCb = null;
 
@@ -105,6 +119,10 @@ export function createChallengePanelView() {
     if (joinCb) joinCb({ code });
   });
 
+  btnClose.addEventListener("click", () => {
+    if (closeCb) closeCb();
+  });
+
   // keep uppercase
   elJoinCode.addEventListener("input", () => {
     elJoinCode.value = elJoinCode.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 5);
@@ -129,26 +147,48 @@ export function createChallengePanelView() {
     },
 
     setActiveChallenge(payload) {
-        const code = payload?.code;
-        const endsAtMs = payload?.endsAtMs;
+      const code = payload?.code;
+      const endsAtMs = payload?.endsAtMs;
 
-        if (!code) {
-            activeLine.textContent = t("challenge.active.none");
-            timerLine.style.display = "none";
-            leaderWrap.style.display = "none";
-            return;
-        }
+      if (!code) {
+        activeLine.textContent = t("challenge.active.none");
+        timerLine.style.display = "none";
+        endedLine.style.display = "none";
+        leaderWrap.style.display = "none";
+        closeWrap.style.display = "none";
+        return;
+      }
 
-        activeLine.textContent = `${t("challenge.active.code")} ${code}`;
+      activeLine.textContent = `${t("challenge.active.code")} ${code}`;
+      leaderWrap.style.display = "block";
+
+      // ended state is controlled by setEnded()
+      endedLine.style.display = "none";
+      closeWrap.style.display = "none";
+
+      if (endsAtMs) {
         timerLine.style.display = "block";
         timerLine.textContent = `${t("challenge.active.timeLeft")} ${fmtTimeLeft(endsAtMs - Date.now())}`;
-        leaderWrap.style.display = "block";
+      } else {
+        timerLine.style.display = "none";
+      }
     },
 
     setTimeLeft(endsAtMs) {
       if (!endsAtMs) return;
       timerLine.style.display = "block";
       timerLine.textContent = `${t("challenge.active.timeLeft")} ${fmtTimeLeft(endsAtMs - Date.now())}`;
+    },
+
+    setEnded(isEnded) {
+      if (isEnded) {
+        timerLine.style.display = "none";
+        endedLine.style.display = "block";
+        closeWrap.style.display = "block"; // show button only when ended
+      } else {
+        endedLine.style.display = "none";
+        closeWrap.style.display = "none";
+      }
     },
 
     renderLeaderboard(rows = []) {
@@ -175,6 +215,10 @@ export function createChallengePanelView() {
 
     onJoin(cb) {
       joinCb = cb;
+    },
+
+    onClose(cb) {
+      closeCb = cb;
     },
   };
 }
