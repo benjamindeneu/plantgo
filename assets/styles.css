@@ -538,12 +538,11 @@ header, .nav{
 }
 
 .leader-name {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .leader-score {
-  font-weight: 800;
-  color: #2e7d32;
+  font-weight: 600;
 }
 
 /* bar stays */
@@ -568,35 +567,40 @@ header, .nav{
   border-color: transparent;
 }
 
-.leader-me .leader-name {
-  color: var(--green-700) /* pick your accent; change if you want */
+.leader-me .leader-name,
+.leader-me .leader-score {
+  /*color: var(--green-700); /* pick your accent; change if you want */
+  font-weight: 900;
 }
 
 /* --- NEW: top 3 highlights (same vibe as your old "leader-me") --- */
 .leader-top1 {
   background: linear-gradient(90deg, #fff8e1, #fffde7);
   border-color: #f3d27a;
+  color:#f3d27a;
 }
 
 .leader-top2 {
   background: linear-gradient(90deg, #f5f5f5, #fafafa);
   border-color: #cfcfcf;
+  color: #cfcfcf;
 }
 
 .leader-top3 {
   background: linear-gradient(90deg, #efebe9, #fbe9e7);
   border-color: #d7a07a;
+  color: #d7a07a;
 }
 
 /* If someone is both top3 and "me", keep the medal background, but still tint your name */
-.leader-top1.leader-me .leader-name,
+/*.leader-top1.leader-me .leader-name,
 .leader-top2.leader-me .leader-name,
 .leader-top3.leader-me .leader-name,
 .leader-top1.leader-me .leader-score,
 .leader-top2.leader-me .leader-score,
 .leader-top3.leader-me .leader-score {
   color: var(--green-700);
-}
+}*/
 
 /* flash animation can stay */
 @keyframes flash {
