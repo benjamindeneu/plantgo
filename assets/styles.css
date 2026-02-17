@@ -568,8 +568,7 @@ header, .nav{
   border-color: transparent;
 }
 
-.leader-me .leader-name,
-.leader-me .leader-score {
+.leader-me .leader-name {
   color: var(--green-700) /* pick your accent; change if you want */
 }
 
