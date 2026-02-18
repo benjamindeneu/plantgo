@@ -21,6 +21,7 @@ export function ChallengePanel() {
   let timer = null;
   let endAtMs = null;
   let active = null; // { id, code, endAtMs }
+  let lastRows = null;
 
   function cleanupLive() {
     if (unsub) { unsub(); unsub = null; }
@@ -51,7 +52,6 @@ export function ChallengePanel() {
   }
 
   async function activateFromPointer(pointer) {
-    // pointer is users/{uid}.activeChallenge: { id, code, startAt, endAt }
     if (!pointer?.id) {
       active = null;
       endAtMs = null;
@@ -65,11 +65,14 @@ export function ChallengePanel() {
     endAtMs = pointer?.endAt?.toMillis ? pointer.endAt.toMillis() : null;
     active = { id: pointer.id, code: pointer.code, endAtMs };
 
-    view.setActiveChallenge({ code: pointer.code, endsAtMs: endAtMs });
-    view.renderLeaderboard([]);
+    view.setActiveChallenge({ code: active.code, endsAtMs: endAtMs });
 
     cleanupLive();
-    unsub = subscribeLeaderboard(pointer.id, (rows) => view.renderLeaderboard(rows));
+
+    unsub = subscribeLeaderboard(active.id, (rows) => {
+      lastRows = rows;
+      view.renderLeaderboard(rows);
+    });
 
     const isEnded = endAtMs && Date.now() >= endAtMs;
     setEndedUI(isEnded);
@@ -77,37 +80,31 @@ export function ChallengePanel() {
     if (!isEnded) startCountdown();
   }
 
+
   let unsubUserDoc = null;
 
-    onAuthStateChanged(auth, (user) => {
-      view.setMyUid(user?.uid || null);
+  onAuthStateChanged(auth, (user) => {
+    view.setMyUid(user?.uid || null);
 
-      // If you already have last leaderboard cached, rerender it
-      if (lastRows) view.renderLeaderboard(lastRows);
+    // If you already have last leaderboard cached, rerender it
+    if (lastRows) view.renderLeaderboard(lastRows);
 
-      if (!user) {
-        if (unsubUserDoc) unsubUserDoc();
-        activateFromPointer(null);
-        return;
-      }
-
-      // Listen to user's document in real-time
-      const userRef = doc(db, "users", user.uid);
-
+    if (!user) {
       if (unsubUserDoc) unsubUserDoc();
+      activateFromPointer(null);
+      return;
+    }
 
-      unsubUserDoc = onSnapshot(userRef, (snap) => {
-        const data = snap.exists() ? snap.data() : null;
-        const pointer = data?.activeChallenge || null;
-        activateFromPointer(pointer);
-      });
+    // Listen to user's document in real-time
+    const userRef = doc(db, "users", user.uid);
+
+    if (unsubUserDoc) unsubUserDoc();
+
+    unsubUserDoc = onSnapshot(userRef, (snap) => {
+      const data = snap.exists() ? snap.data() : null;
+      const pointer = data?.activeChallenge || null;
+      activateFromPointer(pointer);
     });
-
-  let lastRows = null;
-
-  unsub = subscribeLeaderboard(active.id, (rows) => {
-    lastRows = rows;
-    view.renderLeaderboard(rows);
   });
 
   /*view.onCreate(async ({ durationSec }) => {
