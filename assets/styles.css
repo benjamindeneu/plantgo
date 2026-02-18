@@ -848,7 +848,7 @@ header, .nav{
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  margin: var(--sp-3) 0 2px;
+  margin: var(--sp-4) 0 2px;
 }
 .user-photos .shot {
   width: 84px;
