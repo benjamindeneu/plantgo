@@ -151,8 +151,14 @@ main{ padding:var(--sp-1); }
   border:1px solid var(--border);
   border-radius:var(--r-lg);
   padding:var(--sp-1);
-  background:var(--surface);
+  /*background:var(--surface);*/
   box-shadow:var(--shadow);
+
+  background-image: url("./plantgo_cardbg1.png");   /* relative to styles.css */
+  background-size: cover;              /* fill screen */
+  background-position: center;         /* center image */
+  background-repeat: no-repeat;
+  background-attachment: fixed;        /* optional parallax feel */
 }
 
 /* Inputs */
