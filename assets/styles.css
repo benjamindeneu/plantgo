@@ -841,6 +841,10 @@ header, .nav{
   opacity: .9;
 }
 
+.user-photos {
+  margin-top: var(--sp-3);
+}
+
 .user-photos.center {
   /*margin-bottom: 8px;*/
   display: flex;
