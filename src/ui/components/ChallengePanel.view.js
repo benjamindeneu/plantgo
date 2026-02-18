@@ -14,8 +14,8 @@ export function createChallengePanelView() {
         <h1 data-i18n="challenge.active.subtitle">Active challenge</h1>
 
         <div>
-          <span id="activeLine" style="font-weight:700"></div>
-          <span id="timerLine" class="muted" style="display:none"></div>
+          <span id="activeLine" style="font-weight:700"></span>
+          <span id="timerLine" class="muted" style="display:none"></span>
           <span id="endedLine" class="muted" style="display:none" data-i18n="challenge.active.ended">
             Challenge ended
           </span>
