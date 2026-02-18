@@ -61,6 +61,8 @@ export function createChallengePanelView() {
   translateDom(wrap);
   const currentUid = auth.currentUser?.uid;
 
+  let myUid = null;
+
   return {
     element: wrap,
 
@@ -113,7 +115,9 @@ export function createChallengePanelView() {
         li.className = "leader-item";
 
         // current user: only text color change
-        if (r.uid === currentUid) li.classList.add("leader-me");
+        if (myUid && r.uid === myUid) {
+          li.classList.add("leader-me");
+        }
 
         // top 3: gold/silver/bronze highlight like the old "me" background effect
         if (i === 0) li.classList.add("leader-top1");
@@ -144,6 +148,10 @@ export function createChallengePanelView() {
 
         leaderList.appendChild(li);
       });
+    },
+
+    setMyUid(uid) {
+      myUid = uid || null;
     },
 
     onClose(cb) {

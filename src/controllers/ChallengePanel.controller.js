@@ -80,6 +80,11 @@ export function ChallengePanel() {
   let unsubUserDoc = null;
 
     onAuthStateChanged(auth, (user) => {
+        view.setMyUid(user?.uid || null);
+
+        // If you already have last leaderboard cached, rerender it
+        if (lastRows) view.renderLeaderboard(lastRows);
+
         if (!user) {
             if (unsubUserDoc) unsubUserDoc();
             activateFromPointer(null);
@@ -98,7 +103,13 @@ export function ChallengePanel() {
         });
     });
 
+  let lastRows = null;
 
+  unsub = subscribeLeaderboard(challengeId, (rows) => {
+    lastRows = rows;
+    view.renderLeaderboard(rows);
+  });
+  
   /*view.onCreate(async ({ durationSec }) => {
     try {
       view.setFeedback("");
