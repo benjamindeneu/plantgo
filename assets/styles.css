@@ -160,9 +160,9 @@ main{ padding:var(--sp-1); }
   background-repeat: no-repeat;
   background-attachment: fixed;*/
 
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--surface);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 /* Inputs */
