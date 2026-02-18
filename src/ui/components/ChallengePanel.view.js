@@ -25,7 +25,7 @@ export function createChallengePanelView() {
 
       <div id="leaderWrap" style="margin-top:12px">
         <h3 class="muted" data-i18n="challenge.leaderboard">Leaderboard</h3>
-        <ol clas="leaderboard" id="leaderList"></ol>
+        <ol class="leaderboard" id="leaderList"></ol>
 
         <div id="closeWrap" style="display:none; margin-top:12px; text-align:center">
           <button id="btnClose" class="secondary" type="button"
