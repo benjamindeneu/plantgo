@@ -96,7 +96,7 @@ body{
   /*background:var(--bg);*/
   color:var(--text);
 
-  background-image: url("./plantgo_bg1.png");   /* relative to styles.css */
+  background-image: url("./plantgo_bg2.png");   /* relative to styles.css */
   background-size: cover;              /* fill screen */
   background-position: center;         /* center image */
   background-repeat: no-repeat;
