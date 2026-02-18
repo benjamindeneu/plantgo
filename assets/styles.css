@@ -881,7 +881,7 @@ header, .nav{
 /* only icon/plus green; keep label-file text color intact */
 .user-photos .add-shot-icon,
 .user-photos .add-shot-plus {
-  color: var(--green-400);
+  color: var(--green-600);
 }
 
 .user-photos .add-shot-plus {
