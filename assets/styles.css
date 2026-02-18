@@ -86,7 +86,7 @@ html{
 }
 
 body{
-  margin:var(--sp-1);
+  margin:0;
   min-height:100dvh;
   overflow-x:hidden;
   line-height:1.55;
@@ -137,7 +137,7 @@ a:hover{
 /* ---------- 3) LAYOUT ---------- */
 .container{ max-width:900px; margin:0 auto; }
 .app-shell{ display:grid; grid-template-rows:auto 1fr auto; }
-main{ padding:var(--sp-1); }
+main{ padding:var(--sp-3); }
 .footer{ padding:var(--sp-4); text-align:center; color:var(--muted); }
 
 .rule{
@@ -151,7 +151,7 @@ main{ padding:var(--sp-1); }
 .card{
   border:1px solid var(--border);
   border-radius:var(--r-lg);
-  padding:var(--sp-1);
+  padding:var(--sp-2);
   /*background:var(--surface);*/
   box-shadow:var(--shadow);
 
