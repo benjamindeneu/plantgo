@@ -13,7 +13,7 @@ export function createChallengePanelView() {
       <div style="text-align:center">
         <h1 data-i18n="challenge.active.subtitle">Active challenge</h1>
 
-        <div style="display:flex; align-items: center; gap: 8px;">
+        <div style="display:flex; align-items: center; justify-content:center; gap: 8px;">
           <span id="activeLine" style="font-weight:700"></span>
           <span>-</span>
           <span id="timerLine" class="muted" style="display:none"></span>
