@@ -24,7 +24,7 @@ export function createHeaderView({
       <img src="./assets/plantgo_titleimage_1.png" alt="PlantGo" class="brand-title">
     </div>
     <div class="user-area">
-      <select class="user-btn menu-item" id="langSelect" aria-label="Language">
+      <select class="lang-select" id="langSelect" aria-label="Language">
         <option value="en">EN</option>
         <option value="fr">FR</option>
         <option value="de">DE</option>

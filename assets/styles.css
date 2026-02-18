@@ -308,7 +308,18 @@ header, .nav{
   align-items:center;
   gap:10px;
 }
-
+.lang-select{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 12px;
+  border-radius:var(--radius-pill);
+  background:var(--surface);
+  color:var(--text);
+  border:1px solid var(--border);
+  cursor:pointer;
+  box-shadow:var(--shadow-sm);
+}
 #userBtn, .user-btn{
   display:flex;
   align-items:center;
