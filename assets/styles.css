@@ -572,7 +572,8 @@ header, .nav{
 
 .leader-me .leader-name,
 .leader-me .leader-score,
-.leader-me .rank-number {
+.leader-me .rank-number,
+.leader-me .leader-rank {
   /*color: var(--green-700); /* pick your accent; change if you want */
   font-size: 1.4rem;
   font-weight: 900;
