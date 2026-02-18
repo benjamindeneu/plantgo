@@ -5,7 +5,7 @@ await initI18n();
 
 export function createChallengePanelView() {
   const wrap = document.createElement("section");
-  wrap.className = "general-validation";
+  wrap.className = "general-";
 
   wrap.innerHTML = `
     <div id="activeCard" class="card" style="display:none">
