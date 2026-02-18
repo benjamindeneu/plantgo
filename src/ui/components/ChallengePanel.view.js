@@ -13,13 +13,12 @@ export function createChallengePanelView() {
       <div style="text-align:center">
         <h1 data-i18n="challenge.active.subtitle">Active challenge</h1>
 
-        <div id="activeLine" style="font-weight:700"></div>
-
-        <div id="timerLine" class="muted" style="display:none"></div>
-
-        <div id="endedLine" class="muted" style="display:none"
-            data-i18n="challenge.active.ended">
-          Challenge ended
+        <div>
+          <span id="activeLine" style="font-weight:700"></div>
+          <span id="timerLine" class="muted" style="display:none"></div>
+          <span id="endedLine" class="muted" style="display:none" data-i18n="challenge.active.ended">
+            Challenge ended
+          </span>
         </div>
       </div>
 
