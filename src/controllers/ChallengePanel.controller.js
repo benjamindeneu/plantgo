@@ -105,7 +105,7 @@ export function ChallengePanel() {
 
   let lastRows = null;
 
-  unsub = subscribeLeaderboard(challengeId, (rows) => {
+  unsub = subscribeLeaderboard(pointer.id, (rows) => {
     lastRows = rows;
     view.renderLeaderboard(rows);
   });
