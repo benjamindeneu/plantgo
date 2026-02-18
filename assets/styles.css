@@ -524,7 +524,7 @@ header, .nav{
   border-radius: 10px;
   margin-bottom: 6px;
   background: var(--card-bg, #f6f6f6);
-  border: 1px solid transparent;
+  border: 2px solid transparent;
 }
 
 .leader-rank {
