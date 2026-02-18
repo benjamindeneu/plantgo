@@ -414,9 +414,9 @@ header, .nav{
 }
 
 /* ---------- 7) SPECIES LIST / CARDS ---------- */
-.general-validation,
-.gps-section{
+.general-validation {
   text-align:center;
+  padding: var(--sp-4);
   margin-top:var(--sp-8);
   margin-bottom:var(--sp-8);
 }
