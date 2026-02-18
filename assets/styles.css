@@ -97,7 +97,7 @@ body{
   color:var(--text);
 
   background-image: url("./plantgo_bg2.png");   /* relative to styles.css */
-  background-size: cover;              /* fill screen */
+  background-size: contain;              /* fill screen */
   background-position: center;         /* center image */
   background-repeat: no-repeat;
   background-attachment: fixed;        /* optional parallax feel */
@@ -160,9 +160,9 @@ main{ padding:var(--sp-1); }
   background-repeat: no-repeat;
   background-attachment: fixed;*/
 
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.55);
   backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(5px);
 }
 
 /* Inputs */
