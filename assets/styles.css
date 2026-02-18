@@ -86,7 +86,7 @@ html{
 }
 
 body{
-  margin:0;
+  margin:var(--sp-1);
   min-height:100dvh;
   overflow-x:hidden;
   line-height:1.55;
