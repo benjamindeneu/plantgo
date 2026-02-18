@@ -151,7 +151,7 @@ main{ padding:var(--sp-1); }
   border:1px solid var(--border);
   border-radius:var(--r-lg);
   padding:var(--sp-1);
-  background:var(--surface);
+  /*background:var(--surface);*/
   box-shadow:var(--shadow);
 
   /*background-image: url("./plantgo_cardbg1.png");
@@ -159,6 +159,10 @@ main{ padding:var(--sp-1); }
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;*/
+
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* Inputs */
