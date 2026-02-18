@@ -841,10 +841,6 @@ header, .nav{
   opacity: .9;
 }
 
-.user-photos {
-  margin-top: var(--sp-3);
-}
-
 .user-photos.center {
   /*margin-bottom: 8px;*/
   display: flex;
@@ -852,7 +848,7 @@ header, .nav{
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  margin: 2px 0 2px;
+  margin: var(--sp-3) 0 2px;
 }
 .user-photos .shot {
   width: 84px;
