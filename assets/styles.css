@@ -618,21 +618,21 @@ header, .nav{
 
 /* --- NEW: top 3 highlights (same vibe as your old "leader-me") --- */
 .leader-top1 {
-  background: linear-gradient(90deg, #ffe082, #ffd54f);
-  border-color: #e0a800;
-  /*color: #8c6a00;*/
+  background: linear-gradient(90deg, #fff3c4, #ffe08a);
+  border-color: #e6b84d;
+  /*color: #8a6a00;*/
 }
 
 .leader-top2 {
-  background: linear-gradient(90deg, #e0e0e0, #cfcfcf);
-  border-color: #9e9e9e;
-  /*color: #424242;*/
+  background: linear-gradient(90deg, #f0f0f0, #e2e2e2);
+  border-color: #bdbdbd;
+  /*color: #4f4f4f;*/
 }
 
 .leader-top3 {
-  background: linear-gradient(90deg, #f5c6a5, #e6a57e);
-  border-color: #c97c4d;
-  /*color: #6d3f1f;*/
+  background: linear-gradient(90deg, #f6e3d7, #efc9b3);
+  border-color: #d39a74;
+  /*color: #7a4a2a;*/
 }
 
 /* If someone is both top3 and "me", keep the medal background, but still tint your name */
