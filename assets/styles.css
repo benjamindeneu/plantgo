@@ -557,19 +557,9 @@ header, .nav{
   text-align: center;
 }
 
-.rank-number {
-  font-weight: 400;
+.rank-number, .leader-name, .leader-score {
+  font-weight: 500;
   /*color: #777;*/
-  color: #757575;
-}
-
-.leader-name {
-  font-weight: 400;
-  color: #757575;
-}
-
-.leader-score {
-  font-weight: 400;
   color: #757575;
 }
 
@@ -600,8 +590,8 @@ header, .nav{
 .leader-me .rank-number,
 .leader-me .leader-rank {
   /*color: var(--green-700); /* pick your accent; change if you want */
-  font-size: 1.4rem;
-  font-weight: 900;
+  /*font-size: 1.4rem;*/
+  font-weight: 700;
   color: var(--green-700);
 }
 /*.leader-me .leader-name {
