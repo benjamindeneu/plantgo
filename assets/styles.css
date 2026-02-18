@@ -538,11 +538,11 @@ header, .nav{
   display: grid;
   grid-template-columns: 40px 1fr auto;
   align-items: center;
-  padding: 8px 10px;
-  border-radius: 10px;
+  padding: 0px 10px;
+  /*border-radius: 10px;*/
   margin-bottom: 6px;
   background: var(--card-bg, #f6f6f6);
-  border: 2px solid transparent;
+  /*border: 2px solid transparent;*/
 }
 
 .leader-rank {
