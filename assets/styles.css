@@ -625,6 +625,26 @@ header, .nav{
   /*color: #7a4a2a;*/
 }
 
+.rank-flower {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+/* Gold */
+.rank-flower.gold {
+  color: #d4af37;
+}
+
+/* Silver */
+.rank-flower.silver {
+  color: #bfc1c2;
+}
+
+/* Bronze */
+.rank-flower.bronze {
+  color: #cd7f32;
+}
+
 /* If someone is both top3 and "me", keep the medal background, but still tint your name */
 /*.leader-top1.leader-me .leader-name,
 .leader-top2.leader-me .leader-name,

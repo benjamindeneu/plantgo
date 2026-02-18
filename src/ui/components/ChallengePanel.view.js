@@ -129,9 +129,9 @@ export function createChallengePanelView() {
         setTimeout(() => li.classList.remove("leader-flash"), 500);
 
         let medal = "";
-        if (i === 0) medal = "🥇";
-        else if (i === 1) medal = "🥈";
-        else if (i === 2) medal = "🥉";
+        if (i === 0) medal = `<span class="rank-flower gold">✿</span>`;
+        else if (i === 1) medal = `<span class="rank-flower silver">✿</span>`;
+        else if (i === 2) medal = `<span class="rank-flower bronze">✿</span>`;
         else medal = `<span class="rank-number">#${i + 1}</span>`;
 
         li.innerHTML = `
