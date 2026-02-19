@@ -148,13 +148,15 @@ export function createResultModalView() {
     const LEAF_COLORS = ["#00C853", "#00E676", "#2ECC71", "#00BFA5", "#1DE9B6"];
     const FLOWER_COLORS = ["#FF2D95", "#FF4FB3", "#FF5A5F", "#FF7A18", "#FFA62B"];
 
-    // Nicer shapes (slimmer leaf, clean flower)
+    // shapes
     const leaf = confetti.shapeFromPath({
-      path: "M12 1 C19 4 22 10 18 16 C15 20 10 23 6 20 C2 17 2 9 12 1 Z"
+      path: "M12 2 C7 5,4 10,6 14 C8 18,14 19,18 16 C20 13,20 8,12 2 Z"
     });
+
     const flower = confetti.shapeFromPath({
-      path: "M12 2 C13.6 5 16.6 5.2 18.6 4.2 C18 6.8 19.6 9 22 10 C19.6 11 18 13.2 18.6 15.8 C16.6 14.8 13.6 15 12 18 C10.4 15 7.4 14.8 5.4 15.8 C6 13.2 4.4 11 2 10 C4.4 9 6 6.8 5.4 4.2 C7.4 5.2 10.4 5 12 2 Z"
+      path: "M12 6 C13.8 3.5 17 5 16.2 8 C19 7.2 20.5 10.5 18 12.2 C20.5 13.9 19 17.2 16.2 16.4 C17 19 13.8 20.5 12 18 C10.2 20.5 7 19 7.8 16.4 C5 17.2 3.5 13.9 6 12.2 C3.5 10.5 5 7.2 7.8 8 C7 5 10.2 3.5 12 6 Z"
     });
+
 
     const rand = (a, b) => a + Math.random() * (b - a);
 
@@ -163,15 +165,15 @@ export function createResultModalView() {
 
     for (let i = 0; i < microShots; i++) {
       // randomize the feel per micro-shot
-      const startVelocity = rand(46, 78);
-      const spread = rand(75, 120);
-      const ticks = Math.floor(rand(220, 420));   // lifetime
-      const gravity = rand(0.9, 1.35);
-      const drift = rand(-0.65, 0.65);
+      const startVelocity = rand(28, 52);
+      const spread = rand(78, 120);
+      const ticks = Math.floor(rand(180, 320));
+      const gravity = rand(1.15, 1.85);
+      const drift = rand(-0.45, 0.45);
 
-      // small origin jitter but still “one burst”
-      const ox = origin.x + rand(-0.02, 0.02);
-      const oy = origin.y + rand(-0.01, 0.01);
+      // small origin jitter (keeps it organic)
+      const ox = origin.x + rand(-0.018, 0.018);
+      const oy = origin.y + rand(-0.010, 0.010);
 
       // Leaves
       confetti({
