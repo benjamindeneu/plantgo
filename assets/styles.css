@@ -810,6 +810,15 @@ header, .nav{
   box-shadow:var(--shadow-sm);
 }
 
+#globalConfettiCanvas{
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 99999;
+}
+
 /* ---------- 10) RARITY CHIPS ---------- */
 .points-btn{
   border: 0;

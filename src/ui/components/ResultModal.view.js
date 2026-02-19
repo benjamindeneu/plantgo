@@ -129,77 +129,119 @@ export function createResultModalView() {
     });
   }
 
-  function fireNatureConfettiInsideModal() {
+  function getGlobalConfetti() {
     const conf = window.confetti;
     if (typeof conf !== "function") {
       console.warn("canvas-confetti not loaded (window.confetti missing)");
-      return;
+      return null;
     }
 
-    const modalContent = overlay.querySelector(".modal-content.result");
-    if (!modalContent) return;
-
-    // Create/reuse a canvas inside the modal
-    let confettiCanvas = modalContent.querySelector("#modalConfetti");
-    if (!confettiCanvas) {
-      confettiCanvas = document.createElement("canvas");
-      confettiCanvas.id = "modalConfetti";
-      confettiCanvas.style.position = "absolute";
-      confettiCanvas.style.inset = "0";
-      confettiCanvas.style.width = "100%";
-      confettiCanvas.style.height = "100%";
-      confettiCanvas.style.pointerEvents = "none";
-      confettiCanvas.style.zIndex = "999";
-      modalContent.appendChild(confettiCanvas);
+    // Create/reuse one fullscreen canvas
+    let canvas = document.getElementById("globalConfettiCanvas");
+    if (!canvas) {
+      canvas = document.createElement("canvas");
+      canvas.id = "globalConfettiCanvas";
+      document.body.appendChild(canvas);
     }
 
-    const myConfetti = conf.create(confettiCanvas, { resize: true, useWorker: true });
+    // Create a confetti instance bound to that canvas
+    return conf.create(canvas, { resize: true, useWorker: true });
+  }
 
-    // Origin: middle X, at "level info" Y
-    const contentRect = modalContent.getBoundingClientRect();
-    const levelWrap = modalContent.querySelector(".level-wrap.at-top") || modalContent.querySelector(".level-wrap");
-    const levelRect = (levelWrap || modalContent).getBoundingClientRect();
+  // Better palettes (fresh greens + pink/orange)
+  const LEAF_COLORS = [
+    "#00C853", // vivid green
+    "#00BFA5", // teal-green
+    "#1DE9B6", // mint
+    "#2ECC71", // fresh green
+    "#00E676", // neon-ish but clean
+  ];
 
-    const origin = {
-      x: 0.5,
-      y: Math.max(0, Math.min(1, ((levelRect.top - contentRect.top) + levelRect.height * 0.55) / contentRect.height))
-    };
+  const FLOWER_COLORS = [
+    "#FF2D95", // hot pink
+    "#FF4FB3", // pink
+    "#FF6F61", // coral
+    "#FF7A18", // orange
+    "#FFA62B", // warm orange
+  ];
 
-    // Modern palette (adjust to your UI)
-    const leafColors = ["#1f6b4e", "#2f7a58", "#4fb18a", "#9fe3c6"];
-    const flowerColors = ["#d7b46a", "#f4e2a6", "#9aa3ad", "#e7edf5", "#b77a55", "#f0c3a7"];
+  // Leaf + flower silhouettes via SVG paths
+  function getNatureShapes() {
+    const conf = window.confetti;
+    if (!conf) return null;
 
-    // Longer, nicer “gravity” effect by running multiple small bursts for ~4s
+    // Some builds expose shapeFromPath; if not, we warn.
+    if (typeof conf.shapeFromPath !== "function") {
+      console.warn("confetti.shapeFromPath not available with this build.");
+      return null;
+    }
+
+    const leaf = conf.shapeFromPath({
+      // clean leaf silhouette
+      path: "M12 2 C18 4 22 10 20 16 C18 22 12 24 8 20 C4 16 6 8 12 2 Z",
+    });
+
+    const flower = conf.shapeFromPath({
+      // rounded 6-petal style
+      path: "M12 2 C13.8 4.4 16.4 5 18.8 4.2 C18 6.6 18.6 9.2 21 11 C18.6 12.8 18 15.4 18.8 17.8 C16.4 17 13.8 17.6 12 20 C10.2 17.6 7.6 17 5.2 17.8 C6 15.4 5.4 12.8 3 11 C5.4 9.2 6 6.6 5.2 4.2 C7.6 5 10.2 4.4 12 2 Z",
+    });
+
+    return { leaf, flower };
+  }
+
+  function fireLevelUpConfetti() {
+    const myConfetti = getGlobalConfetti();
+    if (!myConfetti) return;
+
+    const shapes = getNatureShapes();
+
+    // Origin: center X, Y at the level info area (viewport-based)
+    const levelWrap =
+      overlay.querySelector(".level-wrap.at-top") ||
+      overlay.querySelector(".level-wrap") ||
+      overlay;
+
+    const r = levelWrap.getBoundingClientRect();
+    const x = 0.5;
+    const y = Math.max(0, Math.min(1, (r.top + r.height * 0.55) / window.innerHeight));
+
+    const origin = { x, y };
+
+    // Run multiple small bursts for a longer, nicer gravity arc
     const duration = 4200;
     const end = Date.now() + duration;
 
     (function frame() {
+      // Leaves (slightly larger)
       myConfetti({
-        particleCount: 18,
-        startVelocity: 55,
+        particleCount: 16,
+        startVelocity: 58,  // pop upward
         spread: 85,
-        ticks: 260,
-        gravity: 1.15,
-        drift: (Math.random() * 0.6 - 0.3),
-        scalar: 0.9,
+        ticks: 280,         // stay longer
+        gravity: 1.15,      // nicer fall
+        drift: (Math.random() * 0.8 - 0.4),
+        scalar: 1.05,
         origin,
-        colors: leafColors
+        colors: LEAF_COLORS,
+        // If custom shapes exist use them, otherwise fallback to "circle"
+        shapes: shapes?.leaf ? [shapes.leaf] : ["circle"],
       });
 
+      // Flowers (a bit smaller)
       myConfetti({
         particleCount: 10,
-        startVelocity: 50,
+        startVelocity: 54,
         spread: 80,
-        ticks: 260,
+        ticks: 280,
         gravity: 1.1,
-        drift: (Math.random() * 0.6 - 0.3),
-        scalar: 0.85,
+        drift: (Math.random() * 0.8 - 0.4),
+        scalar: 0.95,
         origin,
-        colors: flowerColors
+        colors: FLOWER_COLORS,
+        shapes: shapes?.flower ? [shapes.flower] : ["square"],
       });
 
       if (Date.now() < end) requestAnimationFrame(frame);
-      else setTimeout(() => confettiCanvas.remove(), 700);
     })();
   }
 
@@ -353,7 +395,7 @@ export function createResultModalView() {
       await animateProgress(qs("#levelProgress"), fromPct, toPct, { ease: "easeOut" });
 
       if (leveledUp) {
-        fireNatureConfettiInsideModal();
+        fireLevelUpConfetti();
       }
 
       qs("#levelFrom").textContent = toLevel;
