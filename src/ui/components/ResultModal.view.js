@@ -1,5 +1,7 @@
 // src/ui/components/ResultModal.view.js
 import { t, translateDom } from "../../language/i18n.js";
+import confetti from "https://esm.sh/canvas-confetti";
+
 
 export function createResultModalView() {
   const overlay = document.createElement("div");
@@ -130,17 +132,12 @@ export function createResultModalView() {
   }
 
   function fireNatureConfettiInsideModal() {
-    const conf = window.confetti;
-    if (typeof conf !== "function") {
-      console.warn("canvas-confetti not loaded (window.confetti missing)");
-      return;
-    }
+    // Find the modal content area (so confetti is clipped to it)
+    const content = overlay.querySelector(".modal-content.result");
+    if (!content) return;
 
-    const modalContent = overlay.querySelector(".modal-content.result");
-    if (!modalContent) return;
-
-    // Create/reuse a canvas inside the modal
-    let confettiCanvas = modalContent.querySelector("#modalConfetti");
+    // Create or reuse a canvas inside the modal content
+    let confettiCanvas = content.querySelector("#modalConfetti");
     if (!confettiCanvas) {
       confettiCanvas = document.createElement("canvas");
       confettiCanvas.id = "modalConfetti";
@@ -150,40 +147,57 @@ export function createResultModalView() {
       confettiCanvas.style.height = "100%";
       confettiCanvas.style.pointerEvents = "none";
       confettiCanvas.style.zIndex = "999";
-      modalContent.appendChild(confettiCanvas);
+      content.appendChild(confettiCanvas);
     }
 
-    const myConfetti = conf.create(confettiCanvas, { resize: true, useWorker: true });
+    // Create instance bound to this canvas (same as your old code)
+    const myConfetti = confetti.create(confettiCanvas, {
+      resize: true,
+      useWorker: true,
+    });
 
-    // Origin: middle X, at "level info" Y
-    const contentRect = modalContent.getBoundingClientRect();
-    const levelWrap = modalContent.querySelector(".level-wrap.at-top") || modalContent.querySelector(".level-wrap");
-    const levelRect = (levelWrap || modalContent).getBoundingClientRect();
+    // ✅ Origin: center X, and Y at the "level info" area
+    const contentRect = content.getBoundingClientRect();
+    const levelWrap = content.querySelector(".level-wrap.at-top") || content.querySelector(".level-wrap");
+    const levelRect = (levelWrap || content).getBoundingClientRect();
 
-    const origin = {
-      x: 0.5,
-      y: Math.max(0, Math.min(1, ((levelRect.top - contentRect.top) + levelRect.height * 0.55) / contentRect.height))
-    };
+    const originX = 0.5;
+    const originY = Math.max(
+      0,
+      Math.min(1, ((levelRect.top - contentRect.top) + levelRect.height * 0.55) / contentRect.height)
+    );
 
-    // Modern palette (adjust to your UI)
+    // ✅ Custom shapes (leaf + flower) using SVG path strings
+    const leafShape = confetti.shapeFromPath({
+      // simple leaf silhouette
+      path: "M12 2 C18 4 22 10 20 16 C18 22 12 24 8 20 C4 16 6 8 12 2 Z",
+    });
+
+    const flowerShape = confetti.shapeFromPath({
+      // simple 6-petal flower-like shape
+      path: "M12 2 C13.8 4.4 16.4 5 18.8 4.2 C18 6.6 18.6 9.2 21 11 C18.6 12.8 18 15.4 18.8 17.8 C16.4 17 13.8 17.6 12 20 C10.2 17.6 7.6 17 5.2 17.8 C6 15.4 5.4 12.8 3 11 C5.4 9.2 6 6.6 5.2 4.2 C7.6 5 10.2 4.4 12 2 Z",
+    });
+
+    // ✅ Modern palette (tweak to match your UI)
     const leafColors = ["#1f6b4e", "#2f7a58", "#4fb18a", "#9fe3c6"];
     const flowerColors = ["#d7b46a", "#f4e2a6", "#9aa3ad", "#e7edf5", "#b77a55", "#f0c3a7"];
 
-    // Longer, nicer “gravity” effect by running multiple small bursts for ~4s
-    const duration = 4200;
-    const end = Date.now() + duration;
+    // Fire a few bursts for longer, nicer effect
+    const durationMs = 4200;
+    const end = Date.now() + durationMs;
 
     (function frame() {
       myConfetti({
-        particleCount: 18,
-        startVelocity: 55,
-        spread: 85,
-        ticks: 260,
-        gravity: 1.15,
-        drift: (Math.random() * 0.6 - 0.3),
+        particleCount: 14,
+        startVelocity: 55,     // pop upward
+        spread: 85,            // cone
+        ticks: 260,            // longer life (gravity visible)
+        gravity: 1.15,         // stronger = more “real” fall
+        drift: (Math.random() * 0.6 - 0.3), // slight sideways
         scalar: 0.9,
-        origin,
-        colors: leafColors
+        origin: { x: originX, y: originY },
+        shapes: [leafShape],
+        colors: leafColors,
       });
 
       myConfetti({
@@ -194,12 +208,13 @@ export function createResultModalView() {
         gravity: 1.1,
         drift: (Math.random() * 0.6 - 0.3),
         scalar: 0.85,
-        origin,
-        colors: flowerColors
+        origin: { x: originX, y: originY },
+        shapes: [flowerShape],
+        colors: flowerColors,
       });
 
       if (Date.now() < end) requestAnimationFrame(frame);
-      else setTimeout(() => confettiCanvas.remove(), 700);
+      else setTimeout(() => confettiCanvas?.remove(), 600); // cleanup
     })();
   }
 
