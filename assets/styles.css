@@ -810,44 +810,90 @@ header, .nav{
   box-shadow:var(--shadow-sm);
 }
 
-/* Confetti layer sits above modal content but doesn't block clicks */
+/* Top layer for confetti (no click blocking) */
 .nature-confetti-layer{
   position: absolute;
   inset: 0;
   pointer-events: none;
   overflow: hidden;
-  z-index: 50;
+  z-index: 60;
 }
 
+/* Base particle */
 .nature-confetti{
   position: absolute;
+  width: var(--sz, 16px);
+  height: var(--sz, 16px);
   transform: translate(-50%, -50%);
-  font-size: var(--sz, 18px);
-  animation:
-    nature-pop var(--dur, 1600ms) cubic-bezier(.2,.8,.2,1) var(--delay, 0ms) forwards;
+  opacity: 0;
+  animation: nature-fall var(--dur, 1600ms) cubic-bezier(.18,.8,.2,1) var(--delay, 0ms) forwards;
   will-change: transform, opacity;
-  filter: saturate(1.05);
+  /* subtle “modern” crispness */
+  filter: drop-shadow(0 1px 0 rgba(0,0,0,.06));
 }
 
-@keyframes nature-pop{
+/* Motion */
+@keyframes nature-fall{
   0%{
     opacity: 0;
-    transform: translate(-50%, -50%) translate(0,0) rotate(0deg) scale(.6);
+    transform: translate(-50%, -50%) translate(0,0) rotate(0deg) scale(.75);
   }
   10%{
     opacity: 1;
-    transform: translate(-50%, -50%) translate(calc(var(--dx)*.18), -40px) rotate(calc(var(--rot)*.2)) scale(1);
+    transform: translate(-50%, -50%) translate(calc(var(--dx) * .16), -34px) rotate(calc(var(--rot) * .2)) scale(1);
   }
   100%{
     opacity: 0;
-    transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(.9);
+    transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(.95);
   }
 }
 
-/* Optional: tone it down on small screens */
-@media (max-width: 420px){
-  .nature-confetti{ font-size: calc(var(--sz, 18px) * 0.9); }
+/* --------- SHAPES ---------- */
+
+/* Leaf: sleek teardrop (clip-path) */
+.nature-confetti.leaf{
+  border-radius: 999px;
+  clip-path: polygon(50% 0%, 78% 14%, 94% 44%, 78% 78%, 50% 100%, 22% 78%, 6% 44%, 22% 14%);
 }
+
+/* Flower: rounded “petal” star */
+.nature-confetti.flower{
+  border-radius: 12px;
+  clip-path: polygon(
+    50% 0%, 62% 16%, 82% 18%, 74% 38%, 90% 50%, 74% 62%, 82% 82%,
+    62% 84%, 50% 100%, 38% 84%, 18% 82%, 26% 62%, 10% 50%, 26% 38%,
+    18% 18%, 38% 16%
+  );
+}
+
+/* --------- COLOR THEMES (modern shaded like medals) ---------- */
+/* You can tune these to your app palette */
+
+/* Leaves (greens) */
+.nature-confetti.leaf.leaf-1{
+  background: linear-gradient(135deg, #2f7a58, #6cc7a2);
+}
+.nature-confetti.leaf.leaf-2{
+  background: linear-gradient(135deg, #1f6b4e, #9fe3c6);
+}
+.nature-confetti.leaf.leaf-3{
+  background: linear-gradient(135deg, #2a8a62, #4fb18a);
+}
+
+/* Flowers (soft modern medal-ish shades, not too saturated) */
+.nature-confetti.flower.flw-1{
+  background: linear-gradient(135deg, #d7b46a, #f4e2a6); /* gold-ish */
+}
+.nature-confetti.flower.flw-2{
+  background: linear-gradient(135deg, #9aa3ad, #e7edf5); /* silver-ish */
+}
+.nature-confetti.flower.flw-3{
+  background: linear-gradient(135deg, #b77a55, #f0c3a7); /* bronze-ish */
+}
+
+/* Optional: slightly different aspect ratios for variety */
+.nature-confetti.leaf{ height: calc(var(--sz) * 1.25); }
+.nature-confetti.flower{ width: calc(var(--sz) * 1.1); }
 
 /* ---------- 10) RARITY CHIPS ---------- */
 .points-btn{
