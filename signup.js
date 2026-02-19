@@ -9,7 +9,11 @@ import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-
 
 import { initI18n, t } from "./src/language/i18n.js";
 
-// Init translations first (same as login)
+// Init translations
+const savedLang = localStorage.getItem("lang");
+if (savedLang) {
+  document.documentElement.lang = savedLang;
+}
 await initI18n();
 
 const langSelect = document.getElementById("langSelect");
