@@ -131,9 +131,6 @@ export function createResultModalView() {
   }
 
   function fireLevelUpConfetti() {
-    console.log("[confetti] level up fired"); // remove later
-
-    // Respect reduced motion
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
 
     const levelWrap =
@@ -147,64 +144,71 @@ export function createResultModalView() {
       y: Math.max(0, Math.min(1, (r.top + r.height * 0.55) / window.innerHeight)),
     };
 
-    // Colors you want
+    // Fresh intense greens + pink/orange
     const LEAF_COLORS = ["#00C853", "#00E676", "#2ECC71", "#00BFA5", "#1DE9B6"];
     const FLOWER_COLORS = ["#FF2D95", "#FF4FB3", "#FF5A5F", "#FF7A18", "#FFA62B"];
 
-    // Try custom shapes if available
-    let leafShape = null;
-    let flowerShape = null;
+    // Nicer shapes (slimmer leaf, clean flower)
+    const leaf = confetti.shapeFromPath({
+      path: "M12 1 C19 4 22 10 18 16 C15 20 10 23 6 20 C2 17 2 9 12 1 Z"
+    });
+    const flower = confetti.shapeFromPath({
+      path: "M12 2 C13.6 5 16.6 5.2 18.6 4.2 C18 6.8 19.6 9 22 10 C19.6 11 18 13.2 18.6 15.8 C16.6 14.8 13.6 15 12 18 C10.4 15 7.4 14.8 5.4 15.8 C6 13.2 4.4 11 2 10 C4.4 9 6 6.8 5.4 4.2 C7.4 5.2 10.4 5 12 2 Z"
+    });
 
-    if (typeof confetti.shapeFromPath === "function") {
-      leafShape = confetti.shapeFromPath({
-        path: "M12 2 C18 4 22 10 20 16 C18 22 12 24 8 20 C4 16 6 8 12 2 Z",
-      });
-      flowerShape = confetti.shapeFromPath({
-        path: "M12 2 C13.8 4.4 16.4 5 18.8 4.2 C18 6.6 18.6 9.2 21 11 C18.6 12.8 18 15.4 18.8 17.8 C16.4 17 13.8 17.6 12 20 C10.2 17.6 7.6 17 5.2 17.8 C6 15.4 5.4 12.8 3 11 C5.4 9.2 6 6.6 5.2 4.2 C7.6 5 10.2 4.4 12 2 Z",
-      });
-    } else {
-      console.warn("[confetti] shapeFromPath unavailable in this build, using fallback shapes");
-    }
+    const rand = (a, b) => a + Math.random() * (b - a);
 
-    const end = Date.now() + 1000;
+    // ✅ “One burst” made of several instant micro-shots (same moment)
+    const microShots = 8; // increase to 10 if you want more variety
 
-    (function frame() {
+    for (let i = 0; i < microShots; i++) {
+      // randomize the feel per micro-shot
+      const startVelocity = rand(46, 78);
+      const spread = rand(75, 120);
+      const ticks = Math.floor(rand(220, 420));   // lifetime
+      const gravity = rand(0.9, 1.35);
+      const drift = rand(-0.65, 0.65);
+
+      // small origin jitter but still “one burst”
+      const ox = origin.x + rand(-0.02, 0.02);
+      const oy = origin.y + rand(-0.01, 0.01);
+
+      // Leaves
       confetti({
-        flat: true,
-        particleCount: 9,
-        startVelocity: 62,
-        spread: 90,
-        ticks: 320,
-        gravity: 1.15,
-        drift: (Math.random() * 0.8 - 0.4),
-        scalar: 3.0,
-        origin,
+        particleCount: Math.floor(rand(8, 14)),
+        startVelocity,
+        spread,
+        ticks,
+        gravity,
+        drift,
+        scalar: rand(0.95, 1.35),
+        origin: { x: ox, y: oy },
         colors: LEAF_COLORS,
-        // fallback to default "square" if no custom shape
-        shapes: leafShape ? [leafShape] : ["square"],
-        zIndex: 99999,
-        disableForReducedMotion: true,
-      });
-
-      confetti({
+        shapes: [leaf],
         flat: true,
-        particleCount: 6,
-        startVelocity: 58,
-        spread: 86,
-        ticks: 320,
-        gravity: 1.10,
-        drift: (Math.random() * 0.8 - 0.4),
-        scalar: 2.5,
-        origin,
-        colors: FLOWER_COLORS,
-        shapes: flowerShape ? [flowerShape] : ["circle"],
         zIndex: 99999,
         disableForReducedMotion: true,
       });
 
-      if (Date.now() < end) requestAnimationFrame(frame);
-    })();
+      // Flowers
+      confetti({
+        particleCount: Math.floor(rand(6, 11)),
+        startVelocity: startVelocity * rand(0.85, 1.05),
+        spread: spread * rand(0.9, 1.05),
+        ticks: Math.floor(ticks * rand(0.9, 1.1)),
+        gravity: gravity * rand(0.9, 1.05),
+        drift: drift + rand(-0.2, 0.2),
+        scalar: rand(0.85, 1.15),
+        origin: { x: ox, y: oy },
+        colors: FLOWER_COLORS,
+        shapes: [flower],
+        flat: true,
+        zIndex: 99999,
+        disableForReducedMotion: true,
+      });
+    }
   }
+
 
   function showBadge(container, badge) {
     return new Promise((r) => {
