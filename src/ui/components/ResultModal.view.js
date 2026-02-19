@@ -1,6 +1,6 @@
 // src/ui/components/ResultModal.view.js
 import { t, translateDom } from "../../language/i18n.js";
-import confetti from "https://unpkg.com/canvas-confetti@1.6.0/dist/confetti.module.mjs";
+import confetti from "https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.module.mjs";
 
 export function createResultModalView() {
   const overlay = document.createElement("div");
