@@ -966,17 +966,45 @@ header, .nav{
 @media (max-width:380px){
   .level-badge{ font-size:11.5px; padding:5px 10px; }
 }
+
 /* ---- Desktop → show app in a mobile-shaped frame ---- */
+/* Desktop: keep the whole app (including background) in a mobile-width column */
 @media (min-width: 900px) {
+  /* 1) Stop the background from painting across the entire desktop */
   body {
+    background: none !important;           /* IMPORTANT: desktop only */
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    isolation: isolate;                     /* keeps ::before behind content */
   }
 
-  .app-shell {
-    width: 420px;              /* typical mobile width */
+  /* 2) Repaint the SAME background, but only inside a centered “mobile shape” */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 420px;                           /* mobile width */
     max-width: 420px;
-    min-height: 100vh;
+    height: 100vh;
+    z-index: -1;
+
+    background-image: url("./plantgo_bg4.png");   /* relative to styles.css */
+    background-size: 100% 100%;              /* fill screen stretch */
+    background-position: center;         /* center image */
+    background-repeat: no-repeat;
+    background-attachment: fixed;        /* optional parallax feel */
+  }
+
+  /* 3) Constrain header/main/footer to the same width */
+  header,
+  footer,
+  .app-shell {
+    width: 420px;
+    max-width: 420px;
   }
 }
 
