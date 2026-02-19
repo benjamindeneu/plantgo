@@ -1,6 +1,6 @@
 // src/ui/components/ResultModal.view.js
 import { t, translateDom } from "../../language/i18n.js";
-import confetti from "https://esm.sh/canvas-confetti@1.6.0";
+import confetti from "https://unpkg.com/canvas-confetti@1.6.0/dist/confetti.module.mjs";
 
 export function createResultModalView() {
   const overlay = document.createElement("div");
@@ -87,18 +87,6 @@ export function createResultModalView() {
     cls === "epic-points"      ? t("result.rarity.epic") :
     cls === "rare-points"      ? t("result.rarity.rare") :
                                  t("result.rarity.common");
-  
-  const SHAPES = {
-    leaf: confetti.shapeFromPath({
-      path: "M12 2 C18 4 22 10 20 16 C18 22 12 24 8 20 C4 16 6 8 12 2 Z",
-    }),
-    flower: confetti.shapeFromPath({
-      path: "M12 2 C13.8 4.4 16.4 5 18.8 4.2 C18 6.6 18.6 9.2 21 11 C18.6 12.8 18 15.4 18.8 17.8 C16.4 17 13.8 17.6 12 20 C10.2 17.6 7.6 17 5.2 17.8 C6 15.4 5.4 12.8 3 11 C5.4 9.2 6 6.6 5.2 4.2 C7.6 5 10.2 4.4 12 2 Z",
-    }),
-  };
-  const LEAF_COLORS = ["#00C853", "#00E676", "#1BFF8A", "#00BFA5", "#2ECC71"];
-  const FLOWER_COLORS = ["#FF2D95", "#FF4FB3", "#FF5A5F", "#FF7A18", "#FFA62B"];
-
 
   function getEaseFn(name) {
     switch ((name || "linear").toLowerCase()) {
@@ -142,20 +130,9 @@ export function createResultModalView() {
     });
   }
 
-  function getGlobalConfetti() {
-    let canvas = document.getElementById("globalConfettiCanvas");
-    if (!canvas) {
-      canvas = document.createElement("canvas");
-      canvas.id = "globalConfettiCanvas";
-      document.body.appendChild(canvas);
-    }
-    return confetti.create(canvas, { resize: true, useWorker: true });
-  }
-
   function fireLevelUpConfetti() {
-    const myConfetti = getGlobalConfetti();
-
-    // Origin: center X; Y = level info line (in viewport)
+    // Fullscreen (library creates its own fixed canvas), not clipped by modal
+    // Better motion defaults + respects reduced motion:
     const levelWrap =
       overlay.querySelector(".level-wrap.at-top") ||
       overlay.querySelector(".level-wrap") ||
@@ -167,24 +144,52 @@ export function createResultModalView() {
       y: Math.max(0, Math.min(1, (r.top + r.height * 0.55) / window.innerHeight)),
     };
 
-    // Longer effect: multiple bursts over ~4.5s
+    // ✅ Leaf + flower shapes (real silhouettes)
+    const leaf = confetti.shapeFromPath({
+      path: "M12 2 C18 4 22 10 20 16 C18 22 12 24 8 20 C4 16 6 8 12 2 Z",
+    });
+
+    const flower = confetti.shapeFromPath({
+      path: "M12 2 C13.8 4.4 16.4 5 18.8 4.2 C18 6.6 18.6 9.2 21 11 C18.6 12.8 18 15.4 18.8 17.8 C16.4 17 13.8 17.6 12 20 C10.2 17.6 7.6 17 5.2 17.8 C6 15.4 5.4 12.8 3 11 C5.4 9.2 6 6.6 5.2 4.2 C7.6 5 10.2 4.4 12 2 Z",
+    });
+
+    // ✅ Better palettes
+    const LEAF_COLORS = [
+      "#00C853", // vivid fresh green
+      "#00E676", // bright green
+      "#2ECC71", // fresh
+      "#00BFA5", // green-teal
+      "#1DE9B6", // mint
+    ];
+
+    const FLOWER_COLORS = [
+      "#FF2D95", // hot pink
+      "#FF4FB3", // pink
+      "#FF5A5F", // coral-pink
+      "#FF7A18", // orange
+      "#FFA62B", // warm orange
+    ];
+
+    // Long + nice gravity: run small bursts for ~4.5s
     const end = Date.now() + 4500;
 
     (function frame() {
-      myConfetti({
+      confetti({
         particleCount: 18,
         startVelocity: 62,
         spread: 90,
-        ticks: 320,     // longer = more visible gravity arc
-        gravity: 1.15,
+        ticks: 320,                 // stays longer
+        gravity: 1.15,              // nice fall
         drift: (Math.random() * 0.8 - 0.4),
         scalar: 1.05,
         origin,
+        shapes: [leaf],
         colors: LEAF_COLORS,
-        shapes: [SHAPES.leaf],
+        zIndex: 99999,
+        disableForReducedMotion: true,
       });
 
-      myConfetti({
+      confetti({
         particleCount: 12,
         startVelocity: 58,
         spread: 86,
@@ -193,8 +198,10 @@ export function createResultModalView() {
         drift: (Math.random() * 0.8 - 0.4),
         scalar: 0.95,
         origin,
+        shapes: [flower],
         colors: FLOWER_COLORS,
-        shapes: [SHAPES.flower],
+        zIndex: 99999,
+        disableForReducedMotion: true,
       });
 
       if (Date.now() < end) requestAnimationFrame(frame);
