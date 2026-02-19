@@ -253,6 +253,12 @@ button.secondary{
   font-size: 1.3em;
 }
 
+.lang-wrapper {
+  display: flex;
+  justify-content: center;
+  margin: var(--sp-2);
+}
+
 /* ---------- 5) HEADER / NAV / USER MENU ---------- */
 header, .nav{
   display:flex;
