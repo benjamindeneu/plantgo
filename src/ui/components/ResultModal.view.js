@@ -170,13 +170,14 @@ export function createResultModalView() {
 
     (function frame() {
       confetti({
-        particleCount: 18,
+        flat: true,
+        particleCount: 9,
         startVelocity: 62,
         spread: 90,
         ticks: 320,
         gravity: 1.15,
         drift: (Math.random() * 0.8 - 0.4),
-        scalar: 1.05,
+        scalar: 3.0,
         origin,
         colors: LEAF_COLORS,
         // fallback to default "square" if no custom shape
@@ -186,13 +187,14 @@ export function createResultModalView() {
       });
 
       confetti({
-        particleCount: 12,
+        flat: true,
+        particleCount: 6,
         startVelocity: 58,
         spread: 86,
         ticks: 320,
         gravity: 1.10,
         drift: (Math.random() * 0.8 - 0.4),
-        scalar: 0.95,
+        scalar: 2.5,
         origin,
         colors: FLOWER_COLORS,
         shapes: flowerShape ? [flowerShape] : ["circle"],
