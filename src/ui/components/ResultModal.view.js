@@ -129,6 +129,75 @@ export function createResultModalView() {
     });
   }
 
+  function burstNatureConfetti(rootEl, opts = {}) {
+    // Respect reduced motion
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+
+    const bursts = opts.bursts ?? 1;
+
+    // Ensure layer exists
+    let layer = rootEl.querySelector(".nature-confetti-layer");
+    if (!layer) {
+      layer = document.createElement("div");
+      layer.className = "nature-confetti-layer";
+      rootEl.appendChild(layer);
+    }
+
+    // A small palette system: "leaf" and "flower" each has variants
+    const particles = [
+      { kind: "leaf", theme: "leaf-1" },
+      { kind: "leaf", theme: "leaf-2" },
+      { kind: "leaf", theme: "leaf-3" },
+      { kind: "flower", theme: "flw-1" },
+      { kind: "flower", theme: "flw-2" },
+      { kind: "flower", theme: "flw-3" },
+    ];
+
+    const spawnBurst = () => {
+      const count = 36;
+      const spread = 120;
+
+      // spawn near level bar (top area)
+      const originX = 50 + (Math.random() * 18 - 9); // 41–59%
+      const originY = 14 + (Math.random() * 8);      // 14–22%
+
+      for (let i = 0; i < count; i++) {
+        const pDef = particles[(Math.random() * particles.length) | 0];
+
+        const el = document.createElement("span");
+        el.className = `nature-confetti ${pDef.kind} ${pDef.theme}`;
+
+        const angle = (-spread / 2) + Math.random() * spread; // degrees
+        const dist = 160 + Math.random() * 260;
+        const dx = Math.cos((angle * Math.PI) / 180) * dist;
+        const dy = 420 + Math.random() * 280;
+
+        const rot = (Math.random() * 720 - 360) | 0;
+        const dur = 1100 + Math.random() * 950;
+        const delay = Math.random() * 140;
+
+        // sizes by kind
+        const base = pDef.kind === "leaf" ? 12 : 10;
+        const size = base + Math.random() * 16;
+
+        el.style.left = `${originX}%`;
+        el.style.top = `${originY}%`;
+        el.style.setProperty("--dx", `${dx}px`);
+        el.style.setProperty("--dy", `${dy}px`);
+        el.style.setProperty("--rot", `${rot}deg`);
+        el.style.setProperty("--dur", `${dur}ms`);
+        el.style.setProperty("--delay", `${delay}ms`);
+        el.style.setProperty("--sz", `${size}px`);
+
+        layer.appendChild(el);
+        setTimeout(() => el.remove(), dur + delay + 250);
+      }
+    };
+
+    for (let b = 0; b < bursts; b++) setTimeout(spawnBurst, b * 260);
+  }
+
+
   function showBadge(container, badge) {
     return new Promise((r) => {
       const node = document.createElement("div");
@@ -271,9 +340,16 @@ export function createResultModalView() {
       qs("#finalTotal").textContent = String(finalTotal);
       qs("#finalTotalWrap").style.display = "block";
 
-      const { fromPct } = calcFromLevel(currentTotalBefore);
+      const { fromLevel, fromPct } = calcFromLevel(currentTotalBefore);
       const { toLevel, toPct } = calcToLevel(currentTotalBefore + finalTotal);
+
+      const leveledUp = toLevel > fromLevel;
+
       await animateProgress(qs("#levelProgress"), fromPct, toPct, { ease: "easeOut" });
+
+      if (leveledUp) {
+        burstNatureConfetti(overlay, { bursts: Math.min(3, toLevel - fromLevel) });
+      }
 
       qs("#levelFrom").textContent = toLevel;
       qs("#levelTo").textContent = toLevel + 1;

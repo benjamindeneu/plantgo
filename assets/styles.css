@@ -810,6 +810,45 @@ header, .nav{
   box-shadow:var(--shadow-sm);
 }
 
+/* Confetti layer sits above modal content but doesn't block clicks */
+.nature-confetti-layer{
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 50;
+}
+
+.nature-confetti{
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: var(--sz, 18px);
+  animation:
+    nature-pop var(--dur, 1600ms) cubic-bezier(.2,.8,.2,1) var(--delay, 0ms) forwards;
+  will-change: transform, opacity;
+  filter: saturate(1.05);
+}
+
+@keyframes nature-pop{
+  0%{
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(0,0) rotate(0deg) scale(.6);
+  }
+  10%{
+    opacity: 1;
+    transform: translate(-50%, -50%) translate(calc(var(--dx)*.18), -40px) rotate(calc(var(--rot)*.2)) scale(1);
+  }
+  100%{
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(.9);
+  }
+}
+
+/* Optional: tone it down on small screens */
+@media (max-width: 420px){
+  .nature-confetti{ font-size: calc(var(--sz, 18px) * 0.9); }
+}
+
 /* ---------- 10) RARITY CHIPS ---------- */
 .points-btn{
   border: 0;
