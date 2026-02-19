@@ -12,8 +12,27 @@ import { initI18n, t } from "./src/language/i18n.js";
 // Init translations first (same as login)
 await initI18n();
 
+const langSelect = document.getElementById("langSelect");
 const form = document.getElementById("signupForm");
 const messageEl = document.getElementById("signupMessage");
+
+if (langSelect) {
+  // Set current value based on active language
+  langSelect.value = document.documentElement.lang || "en";
+
+  langSelect.addEventListener("change", async (e) => {
+    const newLang = e.target.value;
+
+    // Save language
+    localStorage.setItem("lang", newLang);
+
+    // Update <html lang="">
+    document.documentElement.lang = newLang;
+
+    // Re-init i18n to reload translations
+    await initI18n();
+  });
+}
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
