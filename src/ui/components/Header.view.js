@@ -23,16 +23,6 @@ export function createHeaderView({
       <img src="./assets/plantgo_logo2.png" alt="PlantGo logo" class="brand-logo">
       <img src="./assets/plantgo_titleimage_1.png" alt="PlantGo" class="brand-title">
     </div>
-    <div class="lang-wrapper">
-      <select class="lang-select" id="langSelect" aria-label="Language">
-        <option value="en">🇬🇧 EN</option>
-        <option value="fr">🇫🇷 FR</option>
-        <option value="de">🇩🇪 DE</option>
-        <option value="it">🇮🇹 IT</option>
-        <option value="es">🇪🇸 ES</option>
-        <option value="pt">🇵🇹 PT</option>
-      </select>
-    </div>
     <div class="user-area">
       <button id="userBtn" class="user-btn" aria-haspopup="menu" aria-expanded="false" type="button">
         <span class="user-name">${user?.displayName ?? "User"}</span>
@@ -49,6 +39,16 @@ export function createHeaderView({
         }
         <button class="menu-item" role="menuitem" id="menuChallenge">🏁 Challenge</button>
         <button class="menu-item danger" role="menuitem" id="menuLogout">🚪 Log out</button>
+        <div class="lang-wrapper">
+          <select class="lang-select" id="langSelect" aria-label="Language">
+            <option value="en">🇬🇧 EN</option>
+            <option value="fr">🇫🇷 FR</option>
+            <option value="de">🇩🇪 DE</option>
+            <option value="it">🇮🇹 IT</option>
+            <option value="es">🇪🇸 ES</option>
+            <option value="pt">🇵🇹 PT</option>
+          </select>
+        </div>
       </div>
     </div>
   `;
