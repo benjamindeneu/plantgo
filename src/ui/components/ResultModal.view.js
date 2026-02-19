@@ -8,6 +8,7 @@ export function createResultModalView() {
 
   overlay.innerHTML = `
     <div class="modal-content result">
+      <canvas class="confetti-canvas" aria-hidden="true"></canvas>
       <!-- LEVEL TOP -->
       <div class="level-wrap at-top">
         <div class="level-line">
@@ -69,6 +70,8 @@ export function createResultModalView() {
   `;
 
   translateDom(overlay);
+
+  const confetti = createNatureConfettiEngine(overlay);
 
   overlay.querySelector("#doneBtn").addEventListener("click", () => overlay.remove());
   const qs = (sel) => overlay.querySelector(sel);
@@ -213,6 +216,225 @@ export function createResultModalView() {
     for (let b = 0; b < bursts; b++) setTimeout(spawnBurst, b * 320);
   }
 
+  function createNatureConfettiEngine(rootEl) {
+    const canvas = rootEl.querySelector(".confetti-canvas");
+    if (!canvas) return null;
+
+    const ctx = canvas.getContext("2d", { alpha: true });
+    let W = 0, H = 0, dpr = 1;
+
+    const particles = [];
+    let raf = 0;
+    let running = false;
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      W = Math.max(1, Math.floor(rect.width));
+      H = Math.max(1, Math.floor(rect.height));
+      canvas.width = Math.floor(W * dpr);
+      canvas.height = Math.floor(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    // call once + on resize
+    resize();
+    const ro = new ResizeObserver(() => resize());
+    ro.observe(canvas);
+
+    // palettes (tune to match your UI)
+    const leafPal = [
+      ["#1f6b4e", "#9fe3c6"],
+      ["#2f7a58", "#6cc7a2"],
+      ["#2a8a62", "#4fb18a"],
+    ];
+    const flowerPal = [
+      ["#d7b46a", "#f4e2a6"], // gold-ish
+      ["#9aa3ad", "#e7edf5"], // silver-ish
+      ["#b77a55", "#f0c3a7"], // bronze-ish
+    ];
+
+    function rand(a, b) { return a + Math.random() * (b - a); }
+
+    // Draw a modern “leaf” (simple bezier + gradient)
+    function drawLeaf(x, y, r, rot, c1, c2) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+
+      const w = r * 0.9;
+      const h = r * 1.35;
+
+      const grad = ctx.createLinearGradient(-w, -h, w, h);
+      grad.addColorStop(0, c1);
+      grad.addColorStop(1, c2);
+
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      // teardrop-ish leaf
+      ctx.moveTo(0, -h);
+      ctx.bezierCurveTo(w, -h * 0.65, w, h * 0.25, 0, h);
+      ctx.bezierCurveTo(-w, h * 0.25, -w, -h * 0.65, 0, -h);
+      ctx.closePath();
+      ctx.fill();
+
+      // subtle midrib highlight
+      ctx.globalAlpha = 0.18;
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = Math.max(1, r * 0.08);
+      ctx.beginPath();
+      ctx.moveTo(0, -h * 0.75);
+      ctx.quadraticCurveTo(r * 0.15, 0, 0, h * 0.72);
+      ctx.stroke();
+
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
+
+    // Draw a “flower” as 6 rounded petals + gradient
+    function drawFlower(x, y, r, rot, c1, c2) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+
+      const grad = ctx.createLinearGradient(-r, -r, r, r);
+      grad.addColorStop(0, c1);
+      grad.addColorStop(1, c2);
+
+      ctx.fillStyle = grad;
+
+      const petals = 6;
+      for (let i = 0; i < petals; i++) {
+        ctx.save();
+        ctx.rotate((i * Math.PI * 2) / petals);
+        ctx.beginPath();
+        // rounded petal (capsule-like)
+        const pw = r * 0.55;
+        const ph = r * 1.15;
+        ctx.moveTo(0, -ph);
+        ctx.quadraticCurveTo(pw, -ph * 0.6, pw, 0);
+        ctx.quadraticCurveTo(pw, ph * 0.55, 0, ph * 0.75);
+        ctx.quadraticCurveTo(-pw, ph * 0.55, -pw, 0);
+        ctx.quadraticCurveTo(-pw, -ph * 0.6, 0, -ph);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // center
+      ctx.globalAlpha = 0.25;
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.28, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
+
+    function spawnBurst({ x, y, count = 44 }) {
+      // physics knobs
+      const gravity = 1200;       // px/s^2
+      const airDrag = 0.985;      // velocity damping per frame-ish (we apply via dt)
+      const spinDrag = 0.985;
+      const baseUp = 720;         // initial upward speed
+      const side = 520;           // sideways speed
+      const wind = rand(-40, 40); // gentle bias
+
+      for (let i = 0; i < count; i++) {
+        const isLeaf = Math.random() < 0.6;
+
+        const [c1, c2] = (isLeaf ? leafPal : flowerPal)[(Math.random() * 3) | 0];
+        const size = rand(8, 18) * (isLeaf ? 1.2 : 1.0);
+
+        // angle mostly upward (-90°), allow spread
+        const ang = (-Math.PI / 2) + rand(-0.95, 0.95);
+        const speed = rand(baseUp * 0.75, baseUp * 1.15);
+
+        particles.push({
+          kind: isLeaf ? "leaf" : "flower",
+          x, y,
+          vx: Math.cos(ang) * rand(side * 0.45, side * 1.0) + wind,
+          vy: Math.sin(ang) * speed,
+          g: gravity * rand(0.9, 1.15),
+          drag: rand(airDrag * 0.985, airDrag),
+          w: rand(-6.5, 6.5),      // angular vel
+          wDrag: rand(spinDrag * 0.985, spinDrag),
+          rot: rand(0, Math.PI * 2),
+          r: size,
+          life: rand(2.8, 4.2),     // seconds
+          age: 0,
+          c1, c2,
+          sway: rand(0.8, 1.6),     // wind wobble strength
+          phase: rand(0, Math.PI * 2),
+        });
+      }
+
+      if (!running) {
+        running = true;
+        tick(performance.now());
+      }
+    }
+
+    function tick(t) {
+      raf = requestAnimationFrame(tick);
+      // dt in seconds
+      const now = t;
+      tick.last = tick.last || now;
+      const dt = Math.min(0.033, (now - tick.last) / 1000);
+      tick.last = now;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // if nothing left, stop
+      if (!particles.length) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+        running = false;
+        return;
+      }
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.age += dt;
+
+        // fade out toward end
+        const fade = Math.max(0, Math.min(1, 1 - (p.age / p.life)));
+        const alpha = fade * fade; // nicer fade curve
+
+        // wind sway (makes it feel natural)
+        const sway = Math.sin((p.age * 3.2) + p.phase) * 18 * p.sway;
+
+        // integrate physics
+        p.vy += p.g * dt;
+        p.vx *= Math.pow(p.drag, dt * 60);
+        p.vy *= Math.pow(p.drag, dt * 60);
+        p.rot += p.w * dt;
+        p.w *= Math.pow(p.wDrag, dt * 60);
+
+        p.x += (p.vx + sway) * dt;
+        p.y += p.vy * dt;
+
+        // draw
+        ctx.globalAlpha = alpha;
+        if (p.kind === "leaf") drawLeaf(p.x, p.y, p.r, p.rot, p.c1, p.c2);
+        else drawFlower(p.x, p.y, p.r, p.rot, p.c1, p.c2);
+
+        // cleanup
+        if (p.age >= p.life || p.y > H + 60) particles.splice(i, 1);
+      }
+
+      ctx.globalAlpha = 1;
+    }
+
+    function destroy() {
+      if (raf) cancelAnimationFrame(raf);
+      ro.disconnect();
+      particles.length = 0;
+      running = false;
+    }
+
+    return { spawnBurst, destroy, resize };
+  }
 
 
   function showBadge(container, badge) {
@@ -364,8 +586,16 @@ export function createResultModalView() {
 
       await animateProgress(qs("#levelProgress"), fromPct, toPct, { ease: "easeOut" });
 
-      if (leveledUp) {
-        burstNatureConfetti(overlay, { bursts: Math.min(3, toLevel - fromLevel) });
+      if (leveledUp && confetti) {
+        // origin: middle horizontally, at the level information line vertically
+        const rootRect = overlay.getBoundingClientRect();
+        const anchor = overlay.querySelector(".level-wrap.at-top") || overlay.querySelector(".level-wrap");
+        const aRect = anchor ? anchor.getBoundingClientRect() : rootRect;
+
+        const x = (rootRect.width * 0.5);
+        const y = (aRect.top - rootRect.top) + (aRect.height * 0.55);
+
+        confetti.spawnBurst({ x, y, count: 52 });
       }
 
       qs("#levelFrom").textContent = toLevel;

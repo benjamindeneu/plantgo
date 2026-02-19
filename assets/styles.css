@@ -684,7 +684,7 @@ header, .nav{
 
 
 /* ---------- 9) RESULT MODAL / PROGRESS ---------- */
-.result-modal .modal-content.result{ overflow:hidden; }
+.result-modal .modal-content.result{ overflow:hidden; position: relative; }
 .result-head{ display:flex; flex-direction:column; gap:var(--sp-2); }
 .result-body{ display:grid; gap:var(--sp-2); }
 
@@ -808,6 +808,15 @@ header, .nav{
   background:#1f2a22;
   color:#fff;
   box-shadow:var(--shadow-sm);
+}
+
+.confetti-canvas{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 80;
 }
 
 /* Top layer for confetti (no click blocking) */
