@@ -819,36 +819,45 @@ header, .nav{
   z-index: 60;
 }
 
-/* Base particle */
 .nature-confetti{
   position: absolute;
   width: var(--sz, 16px);
   height: var(--sz, 16px);
   transform: translate(-50%, -50%);
   opacity: 0;
-  animation: nature-fall var(--dur, 1600ms) cubic-bezier(.18,.8,.2,1) var(--delay, 0ms) forwards;
   will-change: transform, opacity;
-  /* subtle “modern” crispness */
   filter: drop-shadow(0 1px 0 rgba(0,0,0,.06));
+  animation: nature-burst var(--dur, 3200ms) cubic-bezier(.18,.8,.2,1) var(--delay, 0ms) forwards;
 }
 
-/* Motion */
-@keyframes nature-fall{
+/* ✅ Upward pop first, then gravity fall */
+@keyframes nature-burst{
   0%{
     opacity: 0;
     transform: translate(-50%, -50%) translate(0,0) rotate(0deg) scale(.75);
   }
-  10%{
+  8%{
     opacity: 1;
-    transform: translate(-50%, -50%) translate(calc(var(--dx) * .16), -34px) rotate(calc(var(--rot) * .2)) scale(1);
   }
+  /* peak after burst upward */
+  35%{
+    opacity: 1;
+    transform:
+      translate(-50%, -50%)
+      translate(calc(var(--dx) * 0.55), var(--dyUp))
+      rotate(calc(var(--rot) * 0.45))
+      scale(1);
+  }
+  /* fall down (adds --fall) */
   100%{
     opacity: 0;
-    transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(.95);
+    transform:
+      translate(-50%, -50%)
+      translate(var(--dx), calc(var(--dyUp) + var(--fall)))
+      rotate(var(--rot))
+      scale(.95);
   }
 }
-
-/* --------- SHAPES ---------- */
 
 /* Leaf: sleek teardrop (clip-path) */
 .nature-confetti.leaf{
@@ -865,9 +874,6 @@ header, .nav{
     18% 18%, 38% 16%
   );
 }
-
-/* --------- COLOR THEMES (modern shaded like medals) ---------- */
-/* You can tune these to your app palette */
 
 /* Leaves (greens) */
 .nature-confetti.leaf.leaf-1{

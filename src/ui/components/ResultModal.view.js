@@ -130,7 +130,6 @@ export function createResultModalView() {
   }
 
   function burstNatureConfetti(rootEl, opts = {}) {
-    // Respect reduced motion
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
 
     const bursts = opts.bursts ?? 1;
@@ -143,7 +142,18 @@ export function createResultModalView() {
       rootEl.appendChild(layer);
     }
 
-    // A small palette system: "leaf" and "flower" each has variants
+    // Compute origin: horizontally centered, vertically at the level info
+    // We target the top strip (level-wrap) because that's exactly what you described.
+    const anchor = rootEl.querySelector(".level-wrap.at-top") || rootEl.querySelector(".level-wrap") || rootEl;
+    const rootRect = rootEl.getBoundingClientRect();
+    const aRect = anchor.getBoundingClientRect();
+
+    const originXpx = rootRect.left + rootRect.width * 0.5;     // center horizontally
+    const originYpx = aRect.top + aRect.height * 0.55;          // around level text line
+
+    const originXPct = ((originXpx - rootRect.left) / rootRect.width) * 100;
+    const originYPct = ((originYpx - rootRect.top) / rootRect.height) * 100;
+
     const particles = [
       { kind: "leaf", theme: "leaf-1" },
       { kind: "leaf", theme: "leaf-2" },
@@ -154,48 +164,55 @@ export function createResultModalView() {
     ];
 
     const spawnBurst = () => {
-      const count = 36;
-      const spread = 120;
-
-      // spawn near level bar (top area)
-      const originX = 50 + (Math.random() * 18 - 9); // 41–59%
-      const originY = 14 + (Math.random() * 8);      // 14–22%
+      const count = 42; // a bit more for “celebration”
+      const spread = 140; // wider burst fan
 
       for (let i = 0; i < count; i++) {
         const pDef = particles[(Math.random() * particles.length) | 0];
-
         const el = document.createElement("span");
         el.className = `nature-confetti ${pDef.kind} ${pDef.theme}`;
 
-        const angle = (-spread / 2) + Math.random() * spread; // degrees
-        const dist = 160 + Math.random() * 260;
-        const dx = Math.cos((angle * Math.PI) / 180) * dist;
-        const dy = 420 + Math.random() * 280;
+        // 🎯 Start exactly at the requested origin
+        el.style.left = `${originXPct}%`;
+        el.style.top = `${originYPct}%`;
 
-        const rot = (Math.random() * 720 - 360) | 0;
-        const dur = 1100 + Math.random() * 950;
-        const delay = Math.random() * 140;
+        // Longer life
+        const dur = 2600 + Math.random() * 1200; // 2.6s–3.8s
+        const delay = Math.random() * 180;
 
-        // sizes by kind
+        // Size variety
         const base = pDef.kind === "leaf" ? 12 : 10;
-        const size = base + Math.random() * 16;
+        const size = base + Math.random() * 18;
 
-        el.style.left = `${originX}%`;
-        el.style.top = `${originY}%`;
+        // Burst direction: UP first
+        // angle in degrees (0 = right, -90 = up)
+        const angle = (-160 + Math.random() * 140); // -160..-20 (mostly upward, slight sides)
+        const power = 240 + Math.random() * 260;    // initial push magnitude
+
+        const dx = Math.cos((angle * Math.PI) / 180) * power;
+        const dyUp = Math.sin((angle * Math.PI) / 180) * power; // negative value = up
+
+        // Total fall distance (gravity will bring it down)
+        const fall = 520 + Math.random() * 420;
+
+        const rot = (Math.random() * 980 - 490) | 0;
+
         el.style.setProperty("--dx", `${dx}px`);
-        el.style.setProperty("--dy", `${dy}px`);
+        el.style.setProperty("--dyUp", `${dyUp}px`);
+        el.style.setProperty("--fall", `${fall}px`);
         el.style.setProperty("--rot", `${rot}deg`);
         el.style.setProperty("--dur", `${dur}ms`);
         el.style.setProperty("--delay", `${delay}ms`);
         el.style.setProperty("--sz", `${size}px`);
 
         layer.appendChild(el);
-        setTimeout(() => el.remove(), dur + delay + 250);
+        setTimeout(() => el.remove(), dur + delay + 300);
       }
     };
 
-    for (let b = 0; b < bursts; b++) setTimeout(spawnBurst, b * 260);
+    for (let b = 0; b < bursts; b++) setTimeout(spawnBurst, b * 320);
   }
+
 
 
   function showBadge(container, badge) {
