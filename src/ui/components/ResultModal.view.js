@@ -1,6 +1,5 @@
 // src/ui/components/ResultModal.view.js
 import { t, translateDom } from "../../language/i18n.js";
-import confetti from "https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.module.mjs";
 
 export function createResultModalView() {
   const overlay = document.createElement("div");
@@ -131,81 +130,209 @@ export function createResultModalView() {
   }
 
   function fireLevelUpConfetti() {
-    // Fullscreen (library creates its own fixed canvas), not clipped by modal
-    // Better motion defaults + respects reduced motion:
+    // Respect reduced motion
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+
+    // --- fullscreen canvas (not clipped by modal) ---
+    let canvas = document.getElementById("globalNatureConfetti");
+    if (!canvas) {
+      canvas = document.createElement("canvas");
+      canvas.id = "globalNatureConfetti";
+      document.body.appendChild(canvas);
+    }
+    const ctx = canvas.getContext("2d", { alpha: true });
+
+    function resize() {
+      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      canvas.width = Math.floor(window.innerWidth * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+      canvas.style.width = "100vw";
+      canvas.style.height = "100vh";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+
+    // --- origin: center X, Y at level info line ---
     const levelWrap =
       overlay.querySelector(".level-wrap.at-top") ||
       overlay.querySelector(".level-wrap") ||
       overlay;
 
     const r = levelWrap.getBoundingClientRect();
-    const origin = {
-      x: 0.5,
-      y: Math.max(0, Math.min(1, (r.top + r.height * 0.55) / window.innerHeight)),
-    };
+    const ox = window.innerWidth * 0.5;
+    const oy = r.top + r.height * 0.55;
 
-    // ✅ Leaf + flower shapes (real silhouettes)
-    const leaf = confetti.shapeFromPath({
-      path: "M12 2 C18 4 22 10 20 16 C18 22 12 24 8 20 C4 16 6 8 12 2 Z",
+    // --- palettes (fresh greens + pink/orange flowers) ---
+    const LEAF = ["#00C853", "#00E676", "#2ECC71", "#00BFA5", "#1DE9B6"];
+    const FLOWER = ["#FF2D95", "#FF4FB3", "#FF5A5F", "#FF7A18", "#FFA62B"];
+
+    // --- build particles ---
+    const parts = [];
+    const N = 120; // total particles (adjust)
+
+    const rand = (a, b) => a + Math.random() * (b - a);
+
+    for (let i = 0; i < N; i++) {
+      const isLeaf = Math.random() < 0.62;
+      const col = (isLeaf ? LEAF : FLOWER)[(Math.random() * (isLeaf ? LEAF.length : FLOWER.length)) | 0];
+
+      // mostly upward burst with spread
+      const ang = (-Math.PI / 2) + rand(-0.95, 0.95);
+      const speed = rand(520, 820);
+
+      parts.push({
+        kind: isLeaf ? "leaf" : "flower",
+        x: ox,
+        y: oy,
+        vx: Math.cos(ang) * rand(220, 520),
+        vy: Math.sin(ang) * speed,          // negative initially (up)
+        rot: rand(0, Math.PI * 2),
+        vr: rand(-8, 8),                    // spin
+        s: rand(isLeaf ? 10 : 9, isLeaf ? 18 : 16),
+        col,
+        life: rand(3.2, 4.8),               // seconds
+        t: 0,
+        phase: rand(0, Math.PI * 2),
+        sway: rand(0.6, 1.4),
+      });
+    }
+
+    // --- draw shapes (real silhouettes) ---
+    function drawLeaf(p) {
+      const w = p.s * 0.85;
+      const h = p.s * 1.35;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+
+      // gradient fill for a “modern” look
+      const g = ctx.createLinearGradient(-w, -h, w, h);
+      g.addColorStop(0, p.col);
+      g.addColorStop(1, "#ffffff");
+      ctx.globalAlpha = 0.18;
+      ctx.fillStyle = g;
+      ctx.globalAlpha = 1;
+
+      ctx.fillStyle = p.col;
+      ctx.beginPath();
+      ctx.moveTo(0, -h);
+      ctx.bezierCurveTo(w, -h * 0.65, w, h * 0.25, 0, h);
+      ctx.bezierCurveTo(-w, h * 0.25, -w, -h * 0.65, 0, -h);
+      ctx.closePath();
+      ctx.fill();
+
+      // small highlight vein
+      ctx.globalAlpha = 0.18;
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = Math.max(1, p.s * 0.07);
+      ctx.beginPath();
+      ctx.moveTo(0, -h * 0.75);
+      ctx.quadraticCurveTo(p.s * 0.12, 0, 0, h * 0.7);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      ctx.restore();
+    }
+
+    function drawFlower(p) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+
+      ctx.fillStyle = p.col;
+      const petals = 6;
+      const r0 = p.s * 0.85;
+      const r1 = p.s * 0.45;
+
+      ctx.beginPath();
+      for (let i = 0; i < petals; i++) {
+        const a = (i * Math.PI * 2) / petals;
+        const x = Math.cos(a) * r0;
+        const y = Math.sin(a) * r0;
+        ctx.moveTo(x + r1, y);
+        ctx.arc(x, y, r1, 0, Math.PI * 2);
+      }
+      ctx.fill();
+
+      // center
+      ctx.globalAlpha = 0.22;
+      ctx.fillStyle = "#fff";
+      ctx.beginPath();
+      ctx.arc(0, 0, p.s * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      ctx.restore();
+    }
+
+    // --- physics loop (nice gravity) ---
+    let last = performance.now();
+    const G = 1200;       // gravity px/s²
+    const DRAG = 0.985;   // air drag
+    const WIND = rand(-35, 35);
+
+    function tick(now) {
+      const dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+      for (let i = parts.length - 1; i >= 0; i--) {
+        const p = parts[i];
+        p.t += dt;
+
+        // fade at end
+        const fade = Math.max(0, 1 - p.t / p.life);
+        ctx.globalAlpha = fade * fade;
+
+        // sway + wind drift
+        const sway = Math.sin(p.t * 3.2 + p.phase) * 18 * p.sway;
+
+        // integrate
+        p.vy += G * dt;
+        p.vx = (p.vx + WIND * dt) * Math.pow(DRAG, dt * 60);
+        p.vy = p.vy * Math.pow(DRAG, dt * 60);
+        p.x += (p.vx + sway) * dt;
+        p.y += p.vy * dt;
+        p.rot += p.vr * dt;
+
+        // draw
+        if (p.kind === "leaf") drawLeaf(p);
+        else drawFlower(p);
+
+        // remove dead/offscreen
+        if (p.t >= p.life || p.y > window.innerHeight + 80) parts.splice(i, 1);
+      }
+
+      ctx.globalAlpha = 1;
+
+      if (parts.length) requestAnimationFrame(tick);
+      else {
+        // cleanup canvas after done (optional)
+        setTimeout(() => {
+          const c = document.getElementById("globalNatureConfetti");
+          c?.remove();
+        }, 300);
+      }
+    }
+
+    // keep canvas correct while running
+    const onResize = () => resize();
+    window.addEventListener("resize", onResize, { passive: true });
+
+    requestAnimationFrame((t) => {
+      last = t;
+      requestAnimationFrame(tick);
     });
 
-    const flower = confetti.shapeFromPath({
-      path: "M12 2 C13.8 4.4 16.4 5 18.8 4.2 C18 6.6 18.6 9.2 21 11 C18.6 12.8 18 15.4 18.8 17.8 C16.4 17 13.8 17.6 12 20 C10.2 17.6 7.6 17 5.2 17.8 C6 15.4 5.4 12.8 3 11 C5.4 9.2 6 6.6 5.2 4.2 C7.6 5 10.2 4.4 12 2 Z",
-    });
-
-    // ✅ Better palettes
-    const LEAF_COLORS = [
-      "#00C853", // vivid fresh green
-      "#00E676", // bright green
-      "#2ECC71", // fresh
-      "#00BFA5", // green-teal
-      "#1DE9B6", // mint
-    ];
-
-    const FLOWER_COLORS = [
-      "#FF2D95", // hot pink
-      "#FF4FB3", // pink
-      "#FF5A5F", // coral-pink
-      "#FF7A18", // orange
-      "#FFA62B", // warm orange
-    ];
-
-    // Long + nice gravity: run small bursts for ~4.5s
-    const end = Date.now() + 4500;
-
-    (function frame() {
-      confetti({
-        particleCount: 18,
-        startVelocity: 62,
-        spread: 90,
-        ticks: 320,                 // stays longer
-        gravity: 1.15,              // nice fall
-        drift: (Math.random() * 0.8 - 0.4),
-        scalar: 1.05,
-        origin,
-        shapes: [leaf],
-        colors: LEAF_COLORS,
-        zIndex: 99999,
-        disableForReducedMotion: true,
-      });
-
-      confetti({
-        particleCount: 12,
-        startVelocity: 58,
-        spread: 86,
-        ticks: 320,
-        gravity: 1.10,
-        drift: (Math.random() * 0.8 - 0.4),
-        scalar: 0.95,
-        origin,
-        shapes: [flower],
-        colors: FLOWER_COLORS,
-        zIndex: 99999,
-        disableForReducedMotion: true,
-      });
-
-      if (Date.now() < end) requestAnimationFrame(frame);
-    })();
+    // remove resize listener when finished
+    const cleanupCheck = setInterval(() => {
+      if (!document.getElementById("globalNatureConfetti")) {
+        window.removeEventListener("resize", onResize);
+        clearInterval(cleanupCheck);
+      }
+    }, 500);
   }
 
   function showBadge(container, badge) {
