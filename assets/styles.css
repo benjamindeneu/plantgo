@@ -987,8 +987,8 @@ header, .nav{
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 420px;                           /* mobile width */
-    max-width: 420px;
+    width: 620px;                           /* mobile width */
+    max-width: 620px;
     height: 100vh;
     z-index: -1;
 
@@ -1003,8 +1003,8 @@ header, .nav{
   header,
   footer,
   .app-shell {
-    width: 420px;
-    max-width: 420px;
+    width: 620px;
+    max-width: 620px;
   }
 }
 
