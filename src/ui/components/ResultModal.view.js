@@ -226,61 +226,52 @@ export function createResultModalView() {
       y: Math.max(0, Math.min(1, (r.top + r.height * 0.55) / window.innerHeight)),
     };
 
-    const LEAF_COLORS = ["#00C853", "#00E676", "#2ECC71", "#00BFA5", "#1DE9B6"];
-    const FLOWER_COLORS = ["#FF2D95", "#FF4FB3", "#FF5A5F", "#FF7A18", "#FFA62B"];
+    // Refined organic palette
+    const LEAF_COLORS = ["#27ae60", "#2ecc71", "#a2d149"];
+    const FLOWER_COLORS = ["#ff79c6", "#ffb86c", "#ff5555"];
 
+    // A more elegant, tapered leaf with a slight curve
     const leaf = confetti.shapeFromPath({
-      path: "M12 2 C7 5,4 10,6 14 C8 18,14 19,18 16 C20 13,20 8,12 2 Z"
+      path: "M10 20C10 20 1 15 1 8C1 1 10 0 10 0C10 0 19 1 19 8C19 15 10 20 10 20Z" 
     });
 
+    // A clean 5-petal cherry blossom/daisy shape
     const flower = confetti.shapeFromPath({
-      path: "M12 6 C13.8 6 15.2 4.6 15.2 2.8 C15.2 1.8 14.6 1 13.8 0.8 C13 0.6 12.4 1.2 12 2.2 C11.6 1.2 11 0.6 10.2 0.8 C9.4 1 8.8 1.8 8.8 2.8 C8.8 4.6 10.2 6 12 6 Z M18 10 C19.8 10 21.2 8.6 21.2 6.8 C21.2 5.8 20.6 5 19.8 4.8 C19 4.6 18.4 5.2 18 6.2 C17.6 5.2 17 4.6 16.2 4.8 C15.4 5 14.8 5.8 14.8 6.8 C14.8 8.6 16.2 10 18 10 Z M18 18 C19.8 18 21.2 16.6 21.2 14.8 C21.2 13.8 20.6 13 19.8 12.8 C19 12.6 18.4 13.2 18 14.2 C17.6 13.2 17 12.6 16.2 12.8 C15.4 13 14.8 13.8 14.8 14.8 C14.8 16.6 16.2 18 18 18 Z M12 23.2 C13.8 23.2 15.2 21.8 15.2 20 C15.2 19 14.6 18.2 13.8 18 C13 17.8 12.4 18.4 12 19.4 C11.6 18.4 11 17.8 10.2 18 C9.4 18.2 8.8 19 8.8 20 C8.8 21.8 10.2 23.2 12 23.2 Z M6 18 C7.8 18 9.2 16.6 9.2 14.8 C9.2 13.8 8.6 13 7.8 12.8 C7 12.6 6.4 13.2 6 14.2 C5.6 13.2 5 12.6 4.2 12.8 C3.4 13 2.8 13.8 2.8 14.8 C2.8 16.6 4.2 18 6 18 Z M6 10 C7.8 10 9.2 8.6 9.2 6.8 C9.2 5.8 8.6 5 7.8 4.8 C7 4.6 6.4 5.2 6 6.2 C5.6 5.2 5 4.6 4.2 4.8 C3.4 5 2.8 5.8 2.8 6.8 C2.8 8.6 4.2 10 6 10 Z"
+      path: "M12 12c2.5 0 4.5-2 4.5-4.5S14.5 3 12 3s-4.5 2-4.5 4.5S9.5 12 12 12zm0 0c0 2.5 2 4.5 4.5 4.5s4.5-2 4.5-4.5-2-4.5-4.5-4.5-4.5 2-4.5 4.5zm0 0c-2.5 0-4.5 2-4.5 4.5S9.5 21 12 21s4.5-2 4.5-4.5-2-4.5-4.5-4.5zm0 0c0-2.5-2-4.5-4.5-4.5S3 9.5 3 12s2 4.5 4.5 4.5 4.5-2 4.5-4.5z"
     });
 
-    const fire = (particleRatio, opts) => {
-      confetti({
-        ...opts,
-        origin: { x: origin.x, y: origin.y },
-        particleCount: Math.floor(200 * particleRatio),
-        disableForReducedMotion: true,
-        zIndex: 99999,
-      });
+    const commonConfig = {
+      origin,
+      ticks: 250,
+      gravity: 0.8,
+      decay: 0.94,
+      flat: false, // Allows the shapes to flip in 3D space
+      zIndex: 9999,
     };
 
-    // 1. Initial High Burst (The "Pop")
-    fire(0.25, {
-      spread: 40,
-      startVelocity: 55,
-      scalar: 1.2,
-      shapes: ["circle", "square"], // Mix in standard shapes for "filler"
-      colors: [...LEAF_COLORS, ...FLOWER_COLORS],
+    // Fire Leaves (Fluttering)
+    confetti({
+      ...commonConfig,
+      particleCount: 15,
+      shapes: [leaf],
+      colors: LEAF_COLORS,
+      scalar: 1.5,
+      drift: 1,
+      spread: 80,
     });
 
-    // 2. Wide Mid-Shot (The "Bloom")
+    // Fire Flowers (Floating)
     setTimeout(() => {
-      fire(0.2, {
-        spread: 100,
-        startVelocity: 35,
-        scalar: 2.0,
-        gravity: 0.8, // Lighter gravity for big shapes
-        shapes: [leaf, flower],
-        colors: LEAF_COLORS,
-      });
-    }, 100);
-
-    // 3. The "After-Drift" (Organic Fall)
-    setTimeout(() => {
-      fire(0.3, {
-        spread: 160,
-        startVelocity: 25,
-        decay: 0.92,
-        scalar: 1.5,
-        gravity: 0.6,
-        drift: 0.5,
+      confetti({
+        ...commonConfig,
+        particleCount: 10,
         shapes: [flower],
         colors: FLOWER_COLORS,
+        scalar: 2.2,
+        drift: -1,
+        spread: 120,
       });
-    }, 250);
+    }, 150);
   }
 
 
