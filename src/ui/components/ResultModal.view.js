@@ -288,7 +288,7 @@ export function createResultModalView() {
       });
     }, 250);
   }
-
+  
   function fireLevelUpConfetti() {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
 
@@ -316,14 +316,14 @@ export function createResultModalView() {
       path: "M 12 2 C 20 5 22 15 12 22 C 2 15 4 5 12 2 Z"
     });
 
-    // We split the firing function into two specific "cannons"
     const fireLeaves = (particleRatio, opts) => {
       confetti({
         ...opts,
+        scalar: opts.scalar * 0.6, // Force leaves to be 40% smaller
         origin: { x: origin.x + randomInRange(-0.02, 0.02), y: origin.y + randomInRange(-0.02, 0.02) },
         particleCount: Math.floor(200 * particleRatio),
         shapes: [leaf],
-        colors: LEAF_COLORS, // Strictly Green
+        colors: LEAF_COLORS,
         disableForReducedMotion: true,
         zIndex: 99999,
         flat: true, 
@@ -333,55 +333,58 @@ export function createResultModalView() {
     const fireFlowers = (particleRatio, opts) => {
       confetti({
         ...opts,
+        scalar: opts.scalar * 1.5, // Force flowers to be 50% larger
         origin: { x: origin.x + randomInRange(-0.02, 0.02), y: origin.y + randomInRange(-0.02, 0.02) },
         particleCount: Math.floor(200 * particleRatio),
         shapes: [flower],
-        colors: FLOWER_COLORS, // Strictly Pink/Orange
+        colors: FLOWER_COLORS,
         disableForReducedMotion: true,
         zIndex: 99999,
         flat: true, 
       });
     };
 
-    // 1. Initial High Burst (The "Pop") - 80% leaves, 20% flowers
+    // 1. Initial High Burst (The "Pop") 
     const popOpts = {
-      spread: randomInRange(35, 45),
-      startVelocity: randomInRange(50, 60),
-      scalar: randomInRange(1.0, 1.4),
-      angle: randomInRange(85, 95),
+      spread: randomInRange(50, 70), // Wider spread right away
+      startVelocity: randomInRange(45, 55),
+      scalar: randomInRange(1.0, 1.2), // Base size
+      angle: randomInRange(80, 100),
+      gravity: 0.6, // Light gravity so they hang in the air
       ticks: 200
     };
-    fireLeaves(0.20, popOpts);
+    // Heavily skewing the count towards leaves
+    fireLeaves(0.35, popOpts); 
     fireFlowers(0.05, popOpts);
 
-    // 2. Wide Mid-Shot (The "Bloom") - 80% leaves, 20% flowers
+    // 2. Wide Mid-Shot (The "Bloom")
     setTimeout(() => {
       const bloomOpts = {
-        spread: randomInRange(90, 110),
+        spread: randomInRange(100, 130),
         startVelocity: randomInRange(30, 40),
-        scalar: randomInRange(1.5, 2.1),
-        gravity: randomInRange(0.7, 0.9),
-        drift: randomInRange(-0.5, 0.5),
+        scalar: randomInRange(1.2, 1.5), // Base size
+        gravity: randomInRange(0.4, 0.6), // Very floaty
+        decay: 0.92, // More air resistance
+        drift: randomInRange(-1, 1), // Stronger sweep left/right
         ticks: 300
       };
-      fireLeaves(0.16, bloomOpts);
+      fireLeaves(0.25, bloomOpts);
       fireFlowers(0.04, bloomOpts);
     }, randomInRange(80, 120));
 
-    // 3. The "After-Drift" (Organic Fall) - 50% leaves, 50% flowers
+    // 3. The "After-Drift" (Organic Fall)
     setTimeout(() => {
       const driftOpts = {
-        spread: randomInRange(140, 180),
+        spread: randomInRange(150, 200),
         startVelocity: randomInRange(20, 30),
         decay: randomInRange(0.9, 0.94),
-        scalar: randomInRange(2.0, 2.4), 
-        gravity: randomInRange(0.5, 0.7),
-        drift: randomInRange(-1, 1),
+        scalar: randomInRange(1.4, 1.8), // Base size
+        gravity: randomInRange(0.3, 0.5), // Gliding fall
+        drift: randomInRange(-2, 2), // Heavy wind pushing them sideways
         ticks: 500
       };
-      // Increased flower ratio here since it's the beautiful falling petals finale
-      fireLeaves(0.15, driftOpts);
-      fireFlowers(0.15, driftOpts);
+      fireLeaves(0.25, driftOpts);
+      fireFlowers(0.06, driftOpts);
     }, randomInRange(230, 270));
   }
 
