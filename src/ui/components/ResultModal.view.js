@@ -304,25 +304,23 @@ export function createResultModalView() {
     };
 
     const randomInRange = (min, max) => Math.random() * (max - min) + min;
-    
-    // Helper to grab a random item (used for both colors and shapes now)
     const getRandomItem = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
     const LEAF_COLORS = ["#27ae60", "#2ecc71", "#a2d149"];
     const FLOWER_COLORS = ["#ff79c6", "#ffb86c"];
 
-    // Symmetrical 5-petal daisy (looks great facing the camera without rotation)
+    // Symmetrical 5-petal daisy
     const flower = confetti.shapeFromPath({
       path: "M 9.1 8.0 A 4.5 4.5 0 1 1 14.9 8.0 A 4.5 4.5 0 1 1 16.8 13.5 A 4.5 4.5 0 1 1 12.0 17.0 A 4.5 4.5 0 1 1 7.2 13.5 A 4.5 4.5 0 1 1 9.1 8.0 Z"
     });
 
-    // PRE-ROTATED LEAVES: 4 distinct SVG paths to fake 2D rotation
-    const leafUp = confetti.shapeFromPath({ path: "M 12 2 C 20 5 22 15 12 22 C 2 15 4 5 12 2 Z" });
-    const leafRight = confetti.shapeFromPath({ path: "M 22 12 C 19 20 9 22 2 12 C 9 2 19 4 22 12 Z" });
-    const leafDown = confetti.shapeFromPath({ path: "M 12 22 C 4 19 2 9 12 2 C 22 9 20 19 12 22 Z" });
-    const leafLeft = confetti.shapeFromPath({ path: "M 2 12 C 5 4 15 2 22 12 C 15 20 5 19 2 12 Z" });
+    // DIAGONAL LEAVES: 4 distinct 45-degree SVG paths to fake natural 2D rotation
+    const leafTopRight = confetti.shapeFromPath({ path: "M2 22 C 2 10 10 2 22 2 C 22 14 14 22 2 22 Z" });
+    const leafTopLeft = confetti.shapeFromPath({ path: "M22 22 C 22 10 14 2 2 2 C 2 14 10 22 22 22 Z" });
+    const leafBottomRight = confetti.shapeFromPath({ path: "M2 2 C 2 14 10 22 22 22 C 22 10 14 2 2 2 Z" });
+    const leafBottomLeft = confetti.shapeFromPath({ path: "M22 2 C 22 14 14 22 2 22 C 2 10 10 2 22 2 Z" });
     
-    const rotatedLeaves = [leafUp, leafRight, leafDown, leafLeft];
+    const diagonalLeaves = [leafTopRight, leafTopLeft, leafBottomRight, leafBottomLeft];
 
     const fireBatch = (count, isFlower, baseSettings) => {
       for (let i = 0; i < count; i++) {
@@ -333,19 +331,18 @@ export function createResultModalView() {
           },
           particleCount: 1, 
           
-          // Pick a random pre-rotated leaf, or the flower
-          shapes: isFlower ? [flower] : [getRandomItem(rotatedLeaves)],
+          // Pick a random diagonal leaf, or the flower
+          shapes: isFlower ? [flower] : [getRandomItem(diagonalLeaves)],
           colors: [getRandomItem(isFlower ? FLOWER_COLORS : LEAF_COLORS)],
           disableForReducedMotion: true,
           zIndex: 99999,
-          flat: true, // Forces 2D camera-facing mode
+          flat: true, // Forces 2D camera-facing mode (disables the 3D wave/wobble)
           
-          // TIGHTER PHYSICS: Smaller random ranges so they don't fly too far away
           spread: baseSettings.spread + randomInRange(-5, 5),
           startVelocity: baseSettings.startVelocity + randomInRange(-4, 4),
           gravity: baseSettings.gravity + randomInRange(-0.05, 0.05),
           decay: baseSettings.decay + randomInRange(-0.005, 0.005),
-          drift: baseSettings.drift + randomInRange(-0.2, 0.2), // Subtler horizontal flutter
+          drift: baseSettings.drift + randomInRange(-0.2, 0.2), 
           ticks: baseSettings.ticks + randomInRange(-20, 50),
           angle: baseSettings.angle + randomInRange(-5, 5),
           
