@@ -212,7 +212,7 @@ export function createResultModalView() {
     }
   }
 
-  function fireLevelUpConfetti() {
+  function fireLevelUpConfettiOld2() {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
 
     const levelWrap =
@@ -289,7 +289,7 @@ export function createResultModalView() {
     }, 250);
   }
 
-  function fireLevelUpConfettiOld2() {
+  function fireLevelUpConfetti() {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
 
     const levelWrap =
@@ -308,7 +308,7 @@ export function createResultModalView() {
 
     // Refined organic palette
     const LEAF_COLORS = ["#27ae60", "#2ecc71", "#a2d149"];
-    const FLOWER_COLORS = ["#ff79c6", "#ffb86c", "#ff5555"];
+    const FLOWER_COLORS = ["#ff79c6", "#ffb86c"];
 
     // A true 5-petal cherry blossom/plumeria shape
     const flower = confetti.shapeFromPath({
@@ -344,6 +344,7 @@ export function createResultModalView() {
       angle: randomInRange(85, 95), // Not perfectly straight up
       shapes: botanicalMix, // Removed circles/squares here
       colors: [...LEAF_COLORS, ...FLOWER_COLORS],
+      flat: true,
     });
 
     // 2. Wide Mid-Shot (The "Bloom") - Primarily Leaves
@@ -356,6 +357,7 @@ export function createResultModalView() {
         drift: randomInRange(-0.5, 0.5), // Adds a slight horizontal "wind" breeze
         shapes: botanicalMix, 
         colors: LEAF_COLORS,
+        flat: true,
       });
     }, randomInRange(80, 120)); // Randomized the timeout delay
 
@@ -370,6 +372,7 @@ export function createResultModalView() {
         drift: randomInRange(-1, 1), // Stronger varying wind for floating petals
         shapes: botanicalMix, 
         colors: FLOWER_COLORS,
+        flat: true,
       });
     }, randomInRange(230, 270));
   }
