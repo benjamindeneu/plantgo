@@ -288,7 +288,7 @@ export function createResultModalView() {
       });
     }, 250);
   }
-  
+
   function fireLevelUpConfetti() {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
 
@@ -316,7 +316,6 @@ export function createResultModalView() {
       path: "M 12 2 C 20 5 22 15 12 22 C 2 15 4 5 12 2 Z"
     });
 
-    // THE LOOP LAUNCHER: This forces every single particle to be unique
     const fireBatch = (count, isFlower, baseSettings) => {
       for (let i = 0; i < count; i++) {
         confetti({
@@ -324,24 +323,25 @@ export function createResultModalView() {
             x: origin.x + randomInRange(-0.03, 0.03), 
             y: origin.y + randomInRange(-0.03, 0.03) 
           },
-          particleCount: 1, // Only 1 particle per call
+          particleCount: 1, 
           shapes: isFlower ? [flower] : [leaf],
           colors: isFlower ? FLOWER_COLORS : LEAF_COLORS,
           disableForReducedMotion: true,
           zIndex: 99999,
           flat: true, 
           
-          // Base settings + heavily randomized offsets for EVERY particle
+          // Randomize each particle around our base settings
           spread: baseSettings.spread + randomInRange(-30, 30),
           startVelocity: baseSettings.startVelocity + randomInRange(-15, 15),
           gravity: baseSettings.gravity + randomInRange(-0.2, 0.3),
           decay: baseSettings.decay + randomInRange(-0.02, 0.02),
-          drift: baseSettings.drift + randomInRange(-1.5, 1.5),
+          // Symmetrical flutter (no more constant rightward wind)
+          drift: baseSettings.drift + randomInRange(-0.8, 0.8),
           ticks: baseSettings.ticks + randomInRange(-50, 200),
           angle: baseSettings.angle + randomInRange(-20, 20),
           
-          // Leaves stay small (0.4-0.7), Flowers stay big (1.4-1.9)
-          scalar: isFlower ? randomInRange(1.4, 1.9) : randomInRange(0.4, 0.7),
+          // Leaves are now larger (0.9 to 1.3), Flowers stay big (1.4 to 1.9)
+          scalar: isFlower ? randomInRange(1.4, 1.9) : randomInRange(0.9, 1.3),
         });
       }
     };
@@ -350,13 +350,13 @@ export function createResultModalView() {
     const popBase = {
       spread: 60, startVelocity: 50, gravity: 0.6, decay: 0.9, drift: 0, ticks: 200, angle: 90
     };
-    fireBatch(60, false, popBase); // 60 unique leaves
-    fireBatch(8, true, popBase);   // 8 unique flowers
+    fireBatch(60, false, popBase); 
+    fireBatch(8, true, popBase);   
 
     // 2. Wide Mid-Shot (The "Bloom")
     setTimeout(() => {
       const bloomBase = {
-        spread: 120, startVelocity: 35, gravity: 0.4, decay: 0.92, drift: 0.5, ticks: 300, angle: 90
+        spread: 120, startVelocity: 35, gravity: 0.4, decay: 0.92, drift: 0, ticks: 300, angle: 90
       };
       fireBatch(50, false, bloomBase); 
       fireBatch(6, true, bloomBase);
@@ -365,7 +365,7 @@ export function createResultModalView() {
     // 3. The "After-Drift" (Organic Fall)
     setTimeout(() => {
       const driftBase = {
-        spread: 180, startVelocity: 25, gravity: 0.3, decay: 0.94, drift: 1.5, ticks: 500, angle: 90
+        spread: 180, startVelocity: 25, gravity: 0.3, decay: 0.94, drift: 0, ticks: 500, angle: 90
       };
       fireBatch(40, false, driftBase); 
       fireBatch(10, true, driftBase);
