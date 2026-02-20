@@ -212,7 +212,7 @@ export function createResultModalView() {
     }
   }
 
-  function fireLevelUpConfetti() {
+  function fireLevelUpConfettiOld2() {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
 
     const levelWrap =
@@ -230,15 +230,17 @@ export function createResultModalView() {
     const LEAF_COLORS = ["#27ae60", "#2ecc71", "#a2d149"];
     const FLOWER_COLORS = ["#ff79c6", "#ffb86c", "#ff5555"];
 
-    // A more elegant, tapered leaf with a slight curve
-    const leaf = confetti.shapeFromPath({
-      path: "M10 20C10 20 1 15 1 8C1 1 10 0 10 0C10 0 19 1 19 8C19 15 10 20 10 20Z" 
+    // A true 5-petal cherry blossom/plumeria shape
+    const flower = confetti.shapeFromPath({
+      path: "M12 12c0-2.7 2.2-5 5-5s5 2.2 5 5-2.2 5-5 5-5-2.2-5-5zm-1.5-1.1c-1.6-2.2-1.1-5.3 1.1-6.9 2.2-1.6 5.3-1.1 6.9 1.1 1.6 2.2 1.1 5.3-1.1 6.9-2.2 1.6-5.3 1.1-6.9-1.1zm-4.7 6.1c1.1-2.5 4-3.7 6.5-2.6 2.5 1.1 3.7 4 2.6 6.5-1.1 2.5-4 3.7-6.5 2.6-2.5-1.1-3.7-4-2.6-6.5zm-1.8-8.2c2.5-1.1 5.4.1 6.5 2.6 1.1 2.5-.1 5.4-2.6 6.5-2.5 1.1-5.4-.1-6.5-2.6-1.1-2.5.1-5.4 2.6-6.5zM7.1 20.2c-2.2-1.6-2.7-4.7-1.1-6.9 1.6-2.2 4.7-2.7 6.9-1.1 2.2 1.6 2.7 4.7 1.1 6.9-1.6 2.2-4.7 2.7-6.9 1.1z"
     });
 
-    // A clean 5-petal cherry blossom/daisy shape
-    const flower = confetti.shapeFromPath({
-      path: "M12 12c2.5 0 4.5-2 4.5-4.5S14.5 3 12 3s-4.5 2-4.5 4.5S9.5 12 12 12zm0 0c0 2.5 2 4.5 4.5 4.5s4.5-2 4.5-4.5-2-4.5-4.5-4.5-4.5 2-4.5 4.5zm0 0c-2.5 0-4.5 2-4.5 4.5S9.5 21 12 21s4.5-2 4.5-4.5-2-4.5-4.5-4.5zm0 0c0-2.5-2-4.5-4.5-4.5S3 9.5 3 12s2 4.5 4.5 4.5 4.5-2 4.5-4.5z"
+    // An asymmetric "willow" leaf that flutters better
+    const leaf = confetti.shapeFromPath({
+      path: "M2 18C2 18 5 16 7 11C9 6 8 1 8 1C8 1 12 4 13 9C14 14 11 20 11 20C11 20 6 22 2 18Z"
     });
+
+    const botanicalMix = [leaf, leaf, leaf, leaf, flower];
 
     const fire = (particleRatio, opts) => {
       confetti({
@@ -251,39 +253,125 @@ export function createResultModalView() {
     };
 
     // 1. Initial High Burst (The "Pop")
+    // Using standard shapes for the "inner" core explosion
     fire(0.25, {
       spread: 40,
       startVelocity: 55,
       scalar: 1.2,
-      shapes: ["circle", "square"], // Mix in standard shapes for "filler"
+      shapes: ["circle", "square"], 
       colors: [...LEAF_COLORS, ...FLOWER_COLORS],
     });
 
-    // 2. Wide Mid-Shot (The "Bloom")
+    // 2. Wide Mid-Shot (The "Bloom") - Primarily Leaves
     setTimeout(() => {
       fire(0.2, {
         spread: 100,
         startVelocity: 35,
-        scalar: 2.0,
-        gravity: 0.8, // Lighter gravity for big shapes
-        shapes: [leaf, flower],
+        scalar: 1.8,
+        gravity: 0.8,
+        shapes: botanicalMix, // 80% leaf, 20% flower
         colors: LEAF_COLORS,
       });
     }, 100);
 
-    // 3. The "After-Drift" (Organic Fall)
+    // 3. The "After-Drift" (Organic Fall) - Mostly falling petals
     setTimeout(() => {
       fire(0.3, {
         spread: 160,
         startVelocity: 25,
         decay: 0.92,
-        scalar: 1.5,
+        scalar: 2.2, // Flowers look nice larger
         gravity: 0.6,
         drift: 0.5,
-        shapes: [flower],
+        shapes: botanicalMix, // 80% leaf, 20% flower
         colors: FLOWER_COLORS,
       });
     }, 250);
+  }
+
+  function fireLevelUpConfetti() {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
+
+    const levelWrap =
+      overlay.querySelector(".level-wrap.at-top") ||
+      overlay.querySelector(".level-wrap") ||
+      overlay;
+
+    const r = levelWrap.getBoundingClientRect();
+    const origin = {
+      x: 0.5,
+      y: Math.max(0, Math.min(1, (r.top + r.height * 0.55) / window.innerHeight)),
+    };
+
+    // Utility to create organic randomness
+    const randomInRange = (min, max) => Math.random() * (max - min) + min;
+
+    // Refined organic palette
+    const LEAF_COLORS = ["#27ae60", "#2ecc71", "#a2d149"];
+    const FLOWER_COLORS = ["#ff79c6", "#ffb86c", "#ff5555"];
+
+    // A true 5-petal cherry blossom/plumeria shape
+    const flower = confetti.shapeFromPath({
+      path: "M12 12c0-2.7 2.2-5 5-5s5 2.2 5 5-2.2 5-5 5-5-2.2-5-5zm-1.5-1.1c-1.6-2.2-1.1-5.3 1.1-6.9 2.2-1.6 5.3-1.1 6.9 1.1 1.6 2.2 1.1 5.3-1.1 6.9-2.2 1.6-5.3 1.1-6.9-1.1zm-4.7 6.1c1.1-2.5 4-3.7 6.5-2.6 2.5 1.1 3.7 4 2.6 6.5-1.1 2.5-4 3.7-6.5 2.6-2.5-1.1-3.7-4-2.6-6.5zm-1.8-8.2c2.5-1.1 5.4.1 6.5 2.6 1.1 2.5-.1 5.4-2.6 6.5-2.5 1.1-5.4-.1-6.5-2.6-1.1-2.5.1-5.4 2.6-6.5zM7.1 20.2c-2.2-1.6-2.7-4.7-1.1-6.9 1.6-2.2 4.7-2.7 6.9-1.1 2.2 1.6 2.7 4.7 1.1 6.9-1.6 2.2-4.7 2.7-6.9 1.1z"
+    });
+
+    // An asymmetric "willow" leaf that flutters better
+    const leaf = confetti.shapeFromPath({
+      path: "M2 18C2 18 5 16 7 11C9 6 8 1 8 1C8 1 12 4 13 9C14 14 11 20 11 20C11 20 6 22 2 18Z"
+    });
+
+    const botanicalMix = [leaf, leaf, leaf, leaf, flower];
+
+    const fire = (particleRatio, opts) => {
+      confetti({
+        ...opts,
+        // Add slight randomness to the starting pixel so it feels less robotic
+        origin: { 
+          x: origin.x + randomInRange(-0.02, 0.02), 
+          y: origin.y + randomInRange(-0.02, 0.02) 
+        },
+        particleCount: Math.floor(200 * particleRatio),
+        disableForReducedMotion: true,
+        zIndex: 99999,
+      });
+    };
+
+    // 1. Initial High Burst (The "Pop")
+    fire(0.25, {
+      spread: randomInRange(35, 45),
+      startVelocity: randomInRange(50, 60),
+      scalar: randomInRange(1.0, 1.4),
+      angle: randomInRange(85, 95), // Not perfectly straight up
+      shapes: botanicalMix, // Removed circles/squares here
+      colors: [...LEAF_COLORS, ...FLOWER_COLORS],
+    });
+
+    // 2. Wide Mid-Shot (The "Bloom") - Primarily Leaves
+    setTimeout(() => {
+      fire(0.2, {
+        spread: randomInRange(90, 110),
+        startVelocity: randomInRange(30, 40),
+        scalar: randomInRange(1.5, 2.1),
+        gravity: randomInRange(0.7, 0.9),
+        drift: randomInRange(-0.5, 0.5), // Adds a slight horizontal "wind" breeze
+        shapes: botanicalMix, 
+        colors: LEAF_COLORS,
+      });
+    }, randomInRange(80, 120)); // Randomized the timeout delay
+
+    // 3. The "After-Drift" (Organic Fall) - Mostly falling petals
+    setTimeout(() => {
+      fire(0.3, {
+        spread: randomInRange(140, 180),
+        startVelocity: randomInRange(20, 30),
+        decay: randomInRange(0.9, 0.94),
+        scalar: randomInRange(2.0, 2.4), 
+        gravity: randomInRange(0.5, 0.7),
+        drift: randomInRange(-1, 1), // Stronger varying wind for floating petals
+        shapes: botanicalMix, 
+        colors: FLOWER_COLORS,
+      });
+    }, randomInRange(230, 270));
   }
 
 
