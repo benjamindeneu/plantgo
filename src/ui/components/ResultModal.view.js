@@ -304,6 +304,9 @@ export function createResultModalView() {
     };
 
     const randomInRange = (min, max) => Math.random() * (max - min) + min;
+    
+    // Helper to force the library to pick exactly one random color per particle
+    const getRandomColor = (colorsArray) => colorsArray[Math.floor(Math.random() * colorsArray.length)];
 
     const LEAF_COLORS = ["#27ae60", "#2ecc71", "#a2d149"];
     const FLOWER_COLORS = ["#ff79c6", "#ffb86c"];
@@ -320,52 +323,58 @@ export function createResultModalView() {
       for (let i = 0; i < count; i++) {
         confetti({
           origin: { 
-            x: origin.x + randomInRange(-0.03, 0.03), 
-            y: origin.y + randomInRange(-0.03, 0.03) 
+            x: origin.x + randomInRange(-0.02, 0.02), 
+            y: origin.y + randomInRange(-0.02, 0.02) 
           },
           particleCount: 1, 
           shapes: isFlower ? [flower] : [leaf],
-          colors: isFlower ? FLOWER_COLORS : LEAF_COLORS,
+          // Pass only ONE distinct color so it mixes perfectly
+          colors: [getRandomColor(isFlower ? FLOWER_COLORS : LEAF_COLORS)],
           disableForReducedMotion: true,
           zIndex: 99999,
           flat: true, 
           
-          // Randomize each particle around our base settings
-          spread: baseSettings.spread + randomInRange(-30, 30),
-          startVelocity: baseSettings.startVelocity + randomInRange(-15, 15),
-          gravity: baseSettings.gravity + randomInRange(-0.2, 0.3),
-          decay: baseSettings.decay + randomInRange(-0.02, 0.02),
-          // Symmetrical flutter (no more constant rightward wind)
-          drift: baseSettings.drift + randomInRange(-0.8, 0.8),
-          ticks: baseSettings.ticks + randomInRange(-50, 200),
-          angle: baseSettings.angle + randomInRange(-20, 20),
+          // 1. Independent rotation & spin
+          rotation: randomInRange(0, 360),
+          spin: randomInRange(-0.8, 0.8),
+
+          // 3. Tighter randomness ranges so they don't get pushed too far
+          spread: baseSettings.spread + randomInRange(-15, 15),
+          startVelocity: baseSettings.startVelocity + randomInRange(-8, 8),
+          gravity: baseSettings.gravity + randomInRange(-0.1, 0.15),
+          decay: baseSettings.decay + randomInRange(-0.01, 0.01),
+          drift: baseSettings.drift + randomInRange(-0.4, 0.4), // Softer horizontal flutter
+          ticks: baseSettings.ticks + randomInRange(-20, 50),
+          angle: baseSettings.angle + randomInRange(-10, 10),
           
-          // Leaves are now larger (0.9 to 1.3), Flowers stay big (1.4 to 1.9)
           scalar: isFlower ? randomInRange(1.4, 1.9) : randomInRange(0.9, 1.3),
         });
       }
     };
 
-    // 1. Initial High Burst (The "Pop") 
+    // 1. Initial High Burst (The "Pop")
+    // Gravity increased to 0.8
     const popBase = {
-      spread: 60, startVelocity: 50, gravity: 0.6, decay: 0.9, drift: 0, ticks: 200, angle: 90
+      spread: 50, startVelocity: 45, gravity: 0.8, decay: 0.9, drift: 0, ticks: 200, angle: 90
     };
     fireBatch(60, false, popBase); 
     fireBatch(8, true, popBase);   
 
     // 2. Wide Mid-Shot (The "Bloom")
+    // Gravity increased to 0.65
     setTimeout(() => {
       const bloomBase = {
-        spread: 120, startVelocity: 35, gravity: 0.4, decay: 0.92, drift: 0, ticks: 300, angle: 90
+        spread: 90, startVelocity: 35, gravity: 0.65, decay: 0.92, drift: 0, ticks: 300, angle: 90
       };
       fireBatch(50, false, bloomBase); 
       fireBatch(6, true, bloomBase);
     }, randomInRange(80, 120));
 
     // 3. The "After-Drift" (Organic Fall)
+    // Gravity increased to 0.5
     setTimeout(() => {
       const driftBase = {
-        spread: 180, startVelocity: 25, gravity: 0.3, decay: 0.94, drift: 0, ticks: 500, angle: 90
+        spread: 130, startVelocity: 25, gravity: 0.5, decay: 0.94, drift: 0, ticks: 500, angle: 90
       };
       fireBatch(40, false, driftBase); 
       fireBatch(10, true, driftBase);
