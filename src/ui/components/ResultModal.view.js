@@ -240,38 +240,50 @@ export function createResultModalView() {
       path: "M12 12c2.5 0 4.5-2 4.5-4.5S14.5 3 12 3s-4.5 2-4.5 4.5S9.5 12 12 12zm0 0c0 2.5 2 4.5 4.5 4.5s4.5-2 4.5-4.5-2-4.5-4.5-4.5-4.5 2-4.5 4.5zm0 0c-2.5 0-4.5 2-4.5 4.5S9.5 21 12 21s4.5-2 4.5-4.5-2-4.5-4.5-4.5zm0 0c0-2.5-2-4.5-4.5-4.5S3 9.5 3 12s2 4.5 4.5 4.5 4.5-2 4.5-4.5z"
     });
 
-    const commonConfig = {
-      origin,
-      ticks: 250,
-      gravity: 0.8,
-      decay: 0.94,
-      flat: false, // Allows the shapes to flip in 3D space
-      zIndex: 9999,
+    const fire = (particleRatio, opts) => {
+      confetti({
+        ...opts,
+        origin: { x: origin.x, y: origin.y },
+        particleCount: Math.floor(200 * particleRatio),
+        disableForReducedMotion: true,
+        zIndex: 99999,
+      });
     };
 
-    // Fire Leaves (Fluttering)
-    confetti({
-      ...commonConfig,
-      particleCount: 15,
-      shapes: [leaf],
-      colors: LEAF_COLORS,
-      scalar: 1.5,
-      drift: 1,
-      spread: 80,
+    // 1. Initial High Burst (The "Pop")
+    fire(0.25, {
+      spread: 40,
+      startVelocity: 55,
+      scalar: 1.2,
+      shapes: ["circle", "square"], // Mix in standard shapes for "filler"
+      colors: [...LEAF_COLORS, ...FLOWER_COLORS],
     });
 
-    // Fire Flowers (Floating)
+    // 2. Wide Mid-Shot (The "Bloom")
     setTimeout(() => {
-      confetti({
-        ...commonConfig,
-        particleCount: 10,
+      fire(0.2, {
+        spread: 100,
+        startVelocity: 35,
+        scalar: 2.0,
+        gravity: 0.8, // Lighter gravity for big shapes
+        shapes: [leaf, flower],
+        colors: LEAF_COLORS,
+      });
+    }, 100);
+
+    // 3. The "After-Drift" (Organic Fall)
+    setTimeout(() => {
+      fire(0.3, {
+        spread: 160,
+        startVelocity: 25,
+        decay: 0.92,
+        scalar: 1.5,
+        gravity: 0.6,
+        drift: 0.5,
         shapes: [flower],
         colors: FLOWER_COLORS,
-        scalar: 2.2,
-        drift: -1,
-        spread: 120,
       });
-    }, 150);
+    }, 250);
   }
 
 
