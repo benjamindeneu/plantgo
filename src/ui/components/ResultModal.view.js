@@ -347,7 +347,7 @@ export function createResultModalView() {
           ticks: baseSettings.ticks + randomInRange(-20, 50),
           angle: baseSettings.angle + randomInRange(-10, 10),
           
-          scalar: isFlower ? randomInRange(1.4, 1.9) : randomInRange(0.9, 1.3),
+          scalar: isFlower ? randomInRange(1.9, 2.3) : randomInRange(1.1, 1.5),
         });
       }
     };
@@ -357,7 +357,7 @@ export function createResultModalView() {
     const popBase = {
       spread: 50, startVelocity: 45, gravity: 0.8, decay: 0.9, drift: 0, ticks: 200, angle: 90
     };
-    fireBatch(60, false, popBase); 
+    fireBatch(80, false, popBase); 
     fireBatch(8, true, popBase);   
 
     // 2. Wide Mid-Shot (The "Bloom")
@@ -366,7 +366,7 @@ export function createResultModalView() {
       const bloomBase = {
         spread: 90, startVelocity: 35, gravity: 0.65, decay: 0.92, drift: 0, ticks: 300, angle: 90
       };
-      fireBatch(50, false, bloomBase); 
+      fireBatch(70, false, bloomBase); 
       fireBatch(6, true, bloomBase);
     }, randomInRange(80, 120));
 
@@ -376,7 +376,7 @@ export function createResultModalView() {
       const driftBase = {
         spread: 130, startVelocity: 25, gravity: 0.5, decay: 0.94, drift: 0, ticks: 500, angle: 90
       };
-      fireBatch(40, false, driftBase); 
+      fireBatch(60, false, driftBase); 
       fireBatch(10, true, driftBase);
     }, randomInRange(230, 270));
   }
