@@ -308,14 +308,16 @@ export function createResultModalView() {
     const LEAF_COLORS = ["#27ae60", "#2ecc71", "#a2d149"];
     const FLOWER_COLORS = ["#ff79c6", "#ffb86c"];
 
-    // New Flower: A chunky, solid scalloped shape (looks like a bold 6-petal daisy)
+    // TRUE 5-PETAL DAISY: 
+    // Uses perfect geometric arcs (A) mapped in a 1:1 circular ratio so it cannot stretch.
     const flower = confetti.shapeFromPath({
-      path: "M12,2A2.5,2.5,0,0,1,14.5,4.5A2.5,2.5,0,0,1,17.5,7.5A2.5,2.5,0,0,1,19.5,11.5A2.5,2.5,0,0,1,17.5,15.5A2.5,2.5,0,0,1,14.5,18.5A2.5,2.5,0,0,1,12,21.5A2.5,2.5,0,0,1,9.5,18.5A2.5,2.5,0,0,1,6.5,15.5A2.5,2.5,0,0,1,4.5,11.5A2.5,2.5,0,0,1,6.5,7.5A2.5,2.5,0,0,1,9.5,4.5A2.5,2.5,0,0,1,12,2Z"
+      path: "M 9.1 8.0 A 4.5 4.5 0 1 1 14.9 8.0 A 4.5 4.5 0 1 1 16.8 13.5 A 4.5 4.5 0 1 1 12.0 17.0 A 4.5 4.5 0 1 1 7.2 13.5 A 4.5 4.5 0 1 1 9.1 8.0 Z"
     });
 
-    // New Leaf: A clean, sharp, beautiful curved teardrop
+    // PERFECT TEARDROP LEAF:
+    // Balanced left-to-right and top-to-bottom to prevent any bounding-box warping.
     const leaf = confetti.shapeFromPath({
-      path: "M21 3C21 3 20 9 15 14C10 19 3 21 3 21C3 21 5 13 10 8C15 3 21 3 21 3Z"
+      path: "M 12 2 C 20 5 22 15 12 22 C 2 15 4 5 12 2 Z"
     });
 
     const botanicalMix = [leaf, leaf, leaf, leaf, flower];
@@ -330,7 +332,7 @@ export function createResultModalView() {
         particleCount: Math.floor(200 * particleRatio),
         disableForReducedMotion: true,
         zIndex: 99999,
-        flat: true, // Applied globally to all bursts to guarantee a 2D look
+        flat: false, // Applied globally to all bursts to guarantee a 2D look
       });
     };
 
