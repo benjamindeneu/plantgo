@@ -212,7 +212,7 @@ export function createResultModalView() {
     }
   }
 
-  function fireLevelUpConfettiOld2() {
+  function fireLevelUpConfetti() {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
 
     const levelWrap =
@@ -289,7 +289,7 @@ export function createResultModalView() {
     }, 250);
   }
 
-  function fireLevelUpConfetti() {
+  function fireLevelUpConfettiOld2() {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
 
     const levelWrap =
