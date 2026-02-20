@@ -305,49 +305,51 @@ export function createResultModalView() {
 
     const randomInRange = (min, max) => Math.random() * (max - min) + min;
     
-    // Helper to force the library to pick exactly one random color per particle
-    const getRandomColor = (colorsArray) => colorsArray[Math.floor(Math.random() * colorsArray.length)];
+    // Helper to grab a random item (used for both colors and shapes now)
+    const getRandomItem = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
     const LEAF_COLORS = ["#27ae60", "#2ecc71", "#a2d149"];
     const FLOWER_COLORS = ["#ff79c6", "#ffb86c"];
 
+    // Symmetrical 5-petal daisy (looks great facing the camera without rotation)
     const flower = confetti.shapeFromPath({
       path: "M 9.1 8.0 A 4.5 4.5 0 1 1 14.9 8.0 A 4.5 4.5 0 1 1 16.8 13.5 A 4.5 4.5 0 1 1 12.0 17.0 A 4.5 4.5 0 1 1 7.2 13.5 A 4.5 4.5 0 1 1 9.1 8.0 Z"
     });
 
-    const leaf = confetti.shapeFromPath({
-      path: "M 12 2 C 20 5 22 15 12 22 C 2 15 4 5 12 2 Z"
-    });
+    // PRE-ROTATED LEAVES: 4 distinct SVG paths to fake 2D rotation
+    const leafUp = confetti.shapeFromPath({ path: "M 12 2 C 20 5 22 15 12 22 C 2 15 4 5 12 2 Z" });
+    const leafRight = confetti.shapeFromPath({ path: "M 22 12 C 19 20 9 22 2 12 C 9 2 19 4 22 12 Z" });
+    const leafDown = confetti.shapeFromPath({ path: "M 12 22 C 4 19 2 9 12 2 C 22 9 20 19 12 22 Z" });
+    const leafLeft = confetti.shapeFromPath({ path: "M 2 12 C 5 4 15 2 22 12 C 15 20 5 19 2 12 Z" });
+    
+    const rotatedLeaves = [leafUp, leafRight, leafDown, leafLeft];
 
     const fireBatch = (count, isFlower, baseSettings) => {
       for (let i = 0; i < count; i++) {
         confetti({
           origin: { 
-            x: origin.x + randomInRange(-0.02, 0.02), 
-            y: origin.y + randomInRange(-0.02, 0.02) 
+            x: origin.x + randomInRange(-0.01, 0.01), 
+            y: origin.y + randomInRange(-0.01, 0.01) 
           },
           particleCount: 1, 
-          shapes: isFlower ? [flower] : [leaf],
-          // Pass only ONE distinct color so it mixes perfectly
-          colors: [getRandomColor(isFlower ? FLOWER_COLORS : LEAF_COLORS)],
+          
+          // Pick a random pre-rotated leaf, or the flower
+          shapes: isFlower ? [flower] : [getRandomItem(rotatedLeaves)],
+          colors: [getRandomItem(isFlower ? FLOWER_COLORS : LEAF_COLORS)],
           disableForReducedMotion: true,
           zIndex: 99999,
-          flat: false, 
+          flat: true, // Forces 2D camera-facing mode
           
-          // 1. Independent rotation & spin
-          rotation: randomInRange(0, 360),
-          spin: randomInRange(-0.8, 0.8),
-
-          // 3. Tighter randomness ranges so they don't get pushed too far
-          spread: baseSettings.spread + randomInRange(-15, 15),
-          startVelocity: baseSettings.startVelocity + randomInRange(-8, 8),
-          gravity: baseSettings.gravity + randomInRange(-0.1, 0.15),
-          decay: baseSettings.decay + randomInRange(-0.01, 0.01),
-          drift: baseSettings.drift + randomInRange(-0.4, 0.4), // Softer horizontal flutter
+          // TIGHTER PHYSICS: Smaller random ranges so they don't fly too far away
+          spread: baseSettings.spread + randomInRange(-5, 5),
+          startVelocity: baseSettings.startVelocity + randomInRange(-4, 4),
+          gravity: baseSettings.gravity + randomInRange(-0.05, 0.05),
+          decay: baseSettings.decay + randomInRange(-0.005, 0.005),
+          drift: baseSettings.drift + randomInRange(-0.2, 0.2), // Subtler horizontal flutter
           ticks: baseSettings.ticks + randomInRange(-20, 50),
-          angle: baseSettings.angle + randomInRange(-10, 10),
+          angle: baseSettings.angle + randomInRange(-5, 5),
           
-          scalar: isFlower ? randomInRange(1.9, 2.3) : randomInRange(1.1, 1.5),
+          scalar: isFlower ? randomInRange(1.4, 1.9) : randomInRange(0.9, 1.3),
         });
       }
     };
