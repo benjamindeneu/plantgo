@@ -332,7 +332,7 @@ export function createResultModalView() {
           colors: [getRandomColor(isFlower ? FLOWER_COLORS : LEAF_COLORS)],
           disableForReducedMotion: true,
           zIndex: 99999,
-          flat: true, 
+          flat: false, 
           
           // 1. Independent rotation & spin
           rotation: randomInRange(0, 360),
