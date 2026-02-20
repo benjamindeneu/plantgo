@@ -295,7 +295,7 @@ export function createResultModalView() {
     const levelWrap =
       document.querySelector(".level-wrap.at-top") ||
       document.querySelector(".level-wrap") ||
-      document.body; // Adjusted slightly to ensure a safe fallback
+      document.body;
 
     const r = levelWrap.getBoundingClientRect();
     const origin = {
@@ -308,72 +308,82 @@ export function createResultModalView() {
     const LEAF_COLORS = ["#27ae60", "#2ecc71", "#a2d149"];
     const FLOWER_COLORS = ["#ff79c6", "#ffb86c"];
 
-    // TRUE 5-PETAL DAISY: 
-    // Uses perfect geometric arcs (A) mapped in a 1:1 circular ratio so it cannot stretch.
     const flower = confetti.shapeFromPath({
       path: "M 9.1 8.0 A 4.5 4.5 0 1 1 14.9 8.0 A 4.5 4.5 0 1 1 16.8 13.5 A 4.5 4.5 0 1 1 12.0 17.0 A 4.5 4.5 0 1 1 7.2 13.5 A 4.5 4.5 0 1 1 9.1 8.0 Z"
     });
 
-    // PERFECT TEARDROP LEAF:
-    // Balanced left-to-right and top-to-bottom to prevent any bounding-box warping.
     const leaf = confetti.shapeFromPath({
       path: "M 12 2 C 20 5 22 15 12 22 C 2 15 4 5 12 2 Z"
     });
 
-    const botanicalMix = [leaf, leaf, leaf, leaf, flower];
-
-    const fire = (particleRatio, opts) => {
+    // We split the firing function into two specific "cannons"
+    const fireLeaves = (particleRatio, opts) => {
       confetti({
         ...opts,
-        origin: { 
-          x: origin.x + randomInRange(-0.02, 0.02), 
-          y: origin.y + randomInRange(-0.02, 0.02) 
-        },
+        origin: { x: origin.x + randomInRange(-0.02, 0.02), y: origin.y + randomInRange(-0.02, 0.02) },
         particleCount: Math.floor(200 * particleRatio),
+        shapes: [leaf],
+        colors: LEAF_COLORS, // Strictly Green
         disableForReducedMotion: true,
         zIndex: 99999,
-        flat: false, // Applied globally to all bursts to guarantee a 2D look
+        flat: true, 
       });
     };
 
-    // 1. Initial High Burst (The "Pop")
-    fire(0.25, {
+    const fireFlowers = (particleRatio, opts) => {
+      confetti({
+        ...opts,
+        origin: { x: origin.x + randomInRange(-0.02, 0.02), y: origin.y + randomInRange(-0.02, 0.02) },
+        particleCount: Math.floor(200 * particleRatio),
+        shapes: [flower],
+        colors: FLOWER_COLORS, // Strictly Pink/Orange
+        disableForReducedMotion: true,
+        zIndex: 99999,
+        flat: true, 
+      });
+    };
+
+    // 1. Initial High Burst (The "Pop") - 80% leaves, 20% flowers
+    const popOpts = {
       spread: randomInRange(35, 45),
       startVelocity: randomInRange(50, 60),
       scalar: randomInRange(1.0, 1.4),
       angle: randomInRange(85, 95),
-      shapes: botanicalMix,
-      colors: [...LEAF_COLORS, ...FLOWER_COLORS],
-    });
+      ticks: 200
+    };
+    fireLeaves(0.20, popOpts);
+    fireFlowers(0.05, popOpts);
 
-    // 2. Wide Mid-Shot (The "Bloom") - Primarily Leaves
+    // 2. Wide Mid-Shot (The "Bloom") - 80% leaves, 20% flowers
     setTimeout(() => {
-      fire(0.2, {
+      const bloomOpts = {
         spread: randomInRange(90, 110),
         startVelocity: randomInRange(30, 40),
         scalar: randomInRange(1.5, 2.1),
         gravity: randomInRange(0.7, 0.9),
         drift: randomInRange(-0.5, 0.5),
-        shapes: botanicalMix, 
-        colors: LEAF_COLORS,
-      });
+        ticks: 300
+      };
+      fireLeaves(0.16, bloomOpts);
+      fireFlowers(0.04, bloomOpts);
     }, randomInRange(80, 120));
 
-    // 3. The "After-Drift" (Organic Fall) - Mostly falling petals
+    // 3. The "After-Drift" (Organic Fall) - 50% leaves, 50% flowers
     setTimeout(() => {
-      fire(0.3, {
+      const driftOpts = {
         spread: randomInRange(140, 180),
         startVelocity: randomInRange(20, 30),
         decay: randomInRange(0.9, 0.94),
         scalar: randomInRange(2.0, 2.4), 
         gravity: randomInRange(0.5, 0.7),
         drift: randomInRange(-1, 1),
-        shapes: botanicalMix, 
-        colors: FLOWER_COLORS,
-      });
+        ticks: 500
+      };
+      // Increased flower ratio here since it's the beautiful falling petals finale
+      fireLeaves(0.15, driftOpts);
+      fireFlowers(0.15, driftOpts);
     }, randomInRange(230, 270));
   }
-
 
   function showBadge(container, badge) {
     return new Promise((r) => {
