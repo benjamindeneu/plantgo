@@ -10,6 +10,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  runTransaction,
   serverTimestamp,
   Timestamp,
   orderBy,
@@ -101,12 +102,20 @@ export async function maybeClearExpiredActiveChallenge(uid) {
   }
 }
 
-export async function createChallenge({ durationSec }) {
+export async function createChallenge({ durationSec, type = "points", speciesList = [] }) {
   const u = auth.currentUser;
   if (!u) throw new Error("Please log in.");
 
   // Clamp to 10–60min
   const dur = Math.max(600, Math.min(3600, Number(durationSec || 1800)));
+
+  const challengeType = type === "species_hunt" ? "species_hunt" : "points";
+  const normalizedSpeciesList = challengeType === "species_hunt"
+    ? speciesList.filter(s => s && s.name)
+    : [];
+  if (challengeType === "species_hunt" && normalizedSpeciesList.length < 2) {
+    throw new Error("No species available to create a Species Hunt.");
+  }
 
   // generate unique code
   let code = "";
@@ -129,6 +138,8 @@ export async function createChallenge({ durationSec }) {
     endAt,
     status: "active",
     durationSec: dur,
+    type: challengeType,
+    speciesList: normalizedSpeciesList,
   });
 
   const username = await getMyDisplayName();
@@ -139,7 +150,11 @@ export async function createChallenge({ durationSec }) {
     username,
     joinedAt: serverTimestamp(),
     score: 0,
+    foundSpecies: [],
   });
+
+  // extract just species names for the activeChallenge pointer (used for fast scoring)
+  const speciesNames = normalizedSpeciesList.map(s => s.name);
 
   // set user's active challenge pointer (single active challenge per user)
   await setUserActiveChallenge(u.uid, {
@@ -147,9 +162,11 @@ export async function createChallenge({ durationSec }) {
     code,
     startAt,
     endAt,
+    type: challengeType,
+    speciesNames,
   });
 
-  return { challengeId: ref.id, code, startAt, endAt };
+  return { challengeId: ref.id, code, startAt, endAt, type: challengeType };
 }
 
 export async function joinChallengeByCode(code) {
@@ -163,13 +180,24 @@ export async function joinChallengeByCode(code) {
   if (endAtMs && Date.now() > endAtMs) throw new Error("This challenge has already ended.");
 
   const username = await getMyDisplayName();
+  const challengeType = challenge.type || "points";
+  const speciesList = Array.isArray(challenge.speciesList) ? challenge.speciesList : [];
+  const speciesNames = speciesList.map(s => s.name).filter(Boolean);
 
-  // ensure member exists
-  await setDoc(
-    doc(db, "challenges", challenge.id, "members", u.uid),
-    { uid: u.uid, username, joinedAt: serverTimestamp(), score: 0 },
-    { merge: true }
-  );
+  // First join: create member doc. Re-join: only update username to preserve progress.
+  const memberRef = doc(db, "challenges", challenge.id, "members", u.uid);
+  const memberSnap = await getDoc(memberRef);
+  if (!memberSnap.exists()) {
+    await setDoc(memberRef, {
+      uid: u.uid,
+      username,
+      joinedAt: serverTimestamp(),
+      score: 0,
+      foundSpecies: [],
+    });
+  } else {
+    await updateDoc(memberRef, { username });
+  }
 
   // set active pointer
   await setUserActiveChallenge(u.uid, {
@@ -177,9 +205,17 @@ export async function joinChallengeByCode(code) {
     code: challenge.code,
     startAt: challenge.startAt,
     endAt: challenge.endAt,
+    type: challengeType,
+    speciesNames,
   });
 
-  return { challengeId: challenge.id, code: challenge.code, startAt: challenge.startAt, endAt: challenge.endAt };
+  return {
+    challengeId: challenge.id,
+    code: challenge.code,
+    startAt: challenge.startAt,
+    endAt: challenge.endAt,
+    type: challengeType,
+  };
 }
 
 export function subscribeLeaderboard(challengeId, cb) {
@@ -212,6 +248,9 @@ export async function applyActiveChallengeScore({
   const ac = userSnap.data()?.activeChallenge;
   if (!ac?.id) return;
 
+  // Skip points scoring for species_hunt challenges (handled by applySpeciesHuntScore)
+  if (ac.type === "species_hunt") return;
+
   const startMs = ac?.startAt?.toMillis ? ac.startAt.toMillis() : null;
   const endMs = ac?.endAt?.toMillis ? ac.endAt.toMillis() : null;
   if (!startMs || !endMs) return;
@@ -223,4 +262,51 @@ export async function applyActiveChallengeScore({
 
   const memberRef = doc(db, "challenges", ac.id, "members", userId);
   await updateDoc(memberRef, { score: increment(pts) });
+}
+
+/**
+ * Species Hunt scorer: checks if speciesName is in the target list,
+ * and atomically marks it as found (once per species per player).
+ */
+export async function applySpeciesHuntScore({
+  userId,
+  speciesName,
+  nowMs = Date.now(),
+}) {
+  if (!speciesName) return;
+
+  const userSnap = await getDoc(doc(db, "users", userId));
+  if (!userSnap.exists()) return;
+
+  const ac = userSnap.data()?.activeChallenge;
+  if (!ac?.id || ac.type !== "species_hunt") return;
+
+  const startMs = ac?.startAt?.toMillis ? ac.startAt.toMillis() : null;
+  const endMs = ac?.endAt?.toMillis ? ac.endAt.toMillis() : null;
+  if (!startMs || !endMs) return;
+  if (nowMs < startMs || nowMs > endMs) return;
+
+  // Check if species is in the target list (case-insensitive)
+  const targetList = Array.isArray(ac.speciesNames) ? ac.speciesNames : [];
+  const normalizedName = String(speciesName).trim().toLowerCase();
+  const isTarget = targetList.some(s => String(s).trim().toLowerCase() === normalizedName);
+  if (!isTarget) return;
+
+  // Use a transaction to atomically check + update foundSpecies to prevent double-counting
+  const memberRef = doc(db, "challenges", ac.id, "members", userId);
+  await runTransaction(db, async (txn) => {
+    const memberSnap = await txn.get(memberRef);
+    if (!memberSnap.exists()) return;
+
+    const foundSpecies = memberSnap.data()?.foundSpecies || [];
+    const alreadyFound = foundSpecies.some(
+      s => String(s).trim().toLowerCase() === normalizedName
+    );
+    if (alreadyFound) return;
+
+    txn.update(memberRef, {
+      foundSpecies: [...foundSpecies, speciesName],
+      score: (memberSnap.data().score || 0) + 1,
+    });
+  });
 }

@@ -148,5 +148,16 @@
   "challenge.active.ended": "Challenge ended",
   "challenge.active.close": "Close leaderboard",
   "challenge.leaderboard": "Leaderboard",
-  "challenge.leaderboard.empty": "No scores yet."
+  "challenge.leaderboard.empty": "No scores yet.",
+
+  "challenge.type.label": "Type",
+  "challenge.type.points": "Points Race",
+  "challenge.type.speciesHunt": "Species Hunt",
+
+  "challenge.speciesHunt.activeSubtitle": "Species Hunt",
+  "challenge.speciesHunt.checklistTitle": "Species to find",
+  "challenge.speciesHunt.scoreLabel": "species",
+  "challenge.speciesHunt.missionsInfo": "{count} species from your missions",
+  "challenge.speciesHunt.noMissions": "No missions cached. Refresh your missions first.",
+  "challenge.speciesHunt.error.minSpecies": "No species available to create a Species Hunt."
 }

@@ -9,7 +9,7 @@ import {
   clearMyActiveChallenge,
 } from "../data/challenges.js";
 
-import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { doc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 import { db } from "../../firebase-config.js";
 import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
@@ -22,6 +22,9 @@ export function ChallengePanel() {
   let endAtMs = null;
   let active = null; // { id, code, endAtMs }
   let lastRows = null;
+  let challengeType = "points";
+  let challengeSpeciesList = [];
+  let unsubMemberDoc = null;
 
   function cleanupLive() {
     if (unsub) { unsub(); unsub = null; }
@@ -55,24 +58,52 @@ export function ChallengePanel() {
     if (!pointer?.id) {
       active = null;
       endAtMs = null;
+      challengeType = "points";
+      challengeSpeciesList = [];
+      if (unsubMemberDoc) { unsubMemberDoc(); unsubMemberDoc = null; }
       cleanupLive();
       view.setActiveChallenge(null);
       view.renderLeaderboard([]);
+      view.renderSpeciesChecklist([], []);
       setEndedUI(false);
       return;
     }
 
     endAtMs = pointer?.endAt?.toMillis ? pointer.endAt.toMillis() : null;
+    challengeType = pointer?.type || "points";
     active = { id: pointer.id, code: pointer.code, endAtMs };
 
-    view.setActiveChallenge({ code: active.code, endsAtMs: endAtMs });
+    view.setActiveChallenge({ code: active.code, endsAtMs: endAtMs, type: challengeType });
 
     cleanupLive();
 
     unsub = subscribeLeaderboard(active.id, (rows) => {
       lastRows = rows;
-      view.renderLeaderboard(rows);
+      view.renderLeaderboard(rows, challengeType);
     });
+
+    // For species_hunt: fetch full mission objects and subscribe to the user's found species
+    if (unsubMemberDoc) { unsubMemberDoc(); unsubMemberDoc = null; }
+
+    if (challengeType === "species_hunt") {
+      // Fetch challenge doc once to get full species list (with mission data)
+      const challengeSnap = await getDoc(doc(db, "challenges", active.id));
+      challengeSpeciesList = challengeSnap.exists()
+        ? (challengeSnap.data()?.speciesList || [])
+        : [];
+
+      const uid = auth.currentUser?.uid;
+      if (uid) {
+        const memberRef = doc(db, "challenges", active.id, "members", uid);
+        unsubMemberDoc = onSnapshot(memberRef, (snap) => {
+          const foundSpecies = snap.exists() ? (snap.data()?.foundSpecies || []) : [];
+          view.renderSpeciesChecklist(challengeSpeciesList, foundSpecies);
+        });
+      }
+    } else {
+      challengeSpeciesList = [];
+      view.renderSpeciesChecklist([], []);
+    }
 
     const isEnded = endAtMs && Date.now() >= endAtMs;
     setEndedUI(isEnded);
@@ -87,7 +118,7 @@ export function ChallengePanel() {
     view.setMyUid(user?.uid || null);
 
     // If you already have last leaderboard cached, rerender it
-    if (lastRows) view.renderLeaderboard(lastRows);
+    if (lastRows) view.renderLeaderboard(lastRows, challengeType);
 
     if (!user) {
       if (unsubUserDoc) unsubUserDoc();
@@ -150,6 +181,7 @@ export function ChallengePanel() {
   // initial state
   view.setActiveChallenge(null);
   view.renderLeaderboard([]);
+  view.renderSpeciesChecklist([], []);
   setEndedUI(false);
 
   return view.element;

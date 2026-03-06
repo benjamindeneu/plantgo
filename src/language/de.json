@@ -148,5 +148,16 @@
   "challenge.active.ended": "Wettbewerb beendet",
   "challenge.active.close": "Bestenliste schließen",
   "challenge.leaderboard": "Bestenliste",
-  "challenge.leaderboard.empty": "Noch keine Punkte."
+  "challenge.leaderboard.empty": "Noch keine Punkte.",
+
+  "challenge.type.label": "Typ",
+  "challenge.type.points": "Punkte-Rennen",
+  "challenge.type.speciesHunt": "Artensuche",
+
+  "challenge.speciesHunt.activeSubtitle": "Artensuche",
+  "challenge.speciesHunt.checklistTitle": "Zu findende Arten",
+  "challenge.speciesHunt.scoreLabel": "Arten",
+  "challenge.speciesHunt.missionsInfo": "{count} Arten aus deinen Missionen",
+  "challenge.speciesHunt.noMissions": "Keine Missionen im Cache. Bitte zuerst Missionen aktualisieren.",
+  "challenge.speciesHunt.error.minSpecies": "Keine Arten verfügbar, um eine Artensuche zu erstellen."
 }

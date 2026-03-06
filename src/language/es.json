@@ -148,5 +148,16 @@
   "challenge.active.ended": "Desafío finalizado",
   "challenge.active.close": "Cerrar clasificación",
   "challenge.leaderboard": "Clasificación",
-  "challenge.leaderboard.empty": "Aún no hay puntuaciones."
+  "challenge.leaderboard.empty": "Aún no hay puntuaciones.",
+
+  "challenge.type.label": "Tipo",
+  "challenge.type.points": "Carrera de puntos",
+  "challenge.type.speciesHunt": "Caza de especies",
+
+  "challenge.speciesHunt.activeSubtitle": "Caza de especies",
+  "challenge.speciesHunt.checklistTitle": "Especies a encontrar",
+  "challenge.speciesHunt.scoreLabel": "especies",
+  "challenge.speciesHunt.missionsInfo": "{count} especies de tus misiones",
+  "challenge.speciesHunt.noMissions": "No hay misiones en caché. Actualiza tus misiones primero.",
+  "challenge.speciesHunt.error.minSpecies": "No hay especies disponibles para crear una caza de especies."
 }

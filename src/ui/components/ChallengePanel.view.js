@@ -1,6 +1,7 @@
 // src/ui/components/ChallengePanel.view.js
 import { t, initI18n, translateDom } from "../../language/i18n.js";
 import { auth } from "../../../firebase-config.js";
+import { MissionCard } from "../../controllers/MissionCard.controller.js";
 await initI18n();
 
 export function createChallengePanelView() {
@@ -26,22 +27,30 @@ export function createChallengePanelView() {
       <div id="leaderWrap" style="margin-top:12px">
         <h3 class="muted" data-i18n="challenge.leaderboard">Leaderboard</h3>
         <ol class="leaderboard" id="leaderList"></ol>
+      </div>
 
-        <div id="closeWrap" style="display:none; margin-top:12px; text-align:center">
-          <button id="btnClose" class="secondary" type="button"
-                  data-i18n="challenge.active.close">
-            Close leaderboard
-          </button>
-        </div>
+      <div id="speciesChecklistWrap" style="display:none; margin-top:16px">
+        <h3 class="muted" data-i18n="challenge.speciesHunt.checklistTitle">Species to find</h3>
+        <div id="speciesChecklist"></div>
+      </div>
+
+      <div id="closeWrap" style="display:none; margin-top:12px; text-align:center">
+        <button id="btnClose" class="secondary" type="button"
+                data-i18n="challenge.active.close">
+          Close leaderboard
+        </button>
       </div>
     </div>
   `;
 
   const activeCard = wrap.querySelector("#activeCard");
+  const activeCardSubtitle = wrap.querySelector("#activeCard h1");
   const activeLine = wrap.querySelector("#activeLine");
   const timerLine = wrap.querySelector("#timerLine");
   const endedLine = wrap.querySelector("#endedLine");
   const leaderList = wrap.querySelector("#leaderList");
+  const speciesChecklistWrap = wrap.querySelector("#speciesChecklistWrap");
+  const speciesChecklist = wrap.querySelector("#speciesChecklist");
   const closeWrap = wrap.querySelector("#closeWrap");
   const btnClose = wrap.querySelector("#btnClose");
 
@@ -69,6 +78,7 @@ export function createChallengePanelView() {
     setActiveChallenge(payload) {
       const code = payload?.code;
       const endsAtMs = payload?.endsAtMs;
+      const type = payload?.type || "points";
 
       if (!code) {
         activeCard.style.display = "none";
@@ -76,6 +86,13 @@ export function createChallengePanelView() {
       }
 
       activeCard.style.display = "block";
+
+      if (activeCardSubtitle) {
+        activeCardSubtitle.textContent = type === "species_hunt"
+          ? t("challenge.speciesHunt.activeSubtitle")
+          : t("challenge.active.subtitle");
+      }
+
       activeLine.textContent = `${t("challenge.active.code")} ${code}`;
 
       if (endsAtMs && Date.now() < endsAtMs) {
@@ -104,8 +121,12 @@ export function createChallengePanelView() {
       }
     },
 
-    renderLeaderboard(rows = []) {
+    renderLeaderboard(rows = [], type = "points") {
       leaderList.innerHTML = "";
+
+      const scoreLabel = type === "species_hunt"
+        ? t("challenge.speciesHunt.scoreLabel")
+        : "pts";
 
       const maxScore = Math.max(...rows.map(r => r.score || 0), 1);
 
@@ -137,7 +158,7 @@ export function createChallengePanelView() {
         li.innerHTML = `
           <div class="leader-rank">${medal}</div>
           <div class="leader-name"></div>
-          <div class="leader-score">${r.score || 0} pts</div>
+          <div class="leader-score">${r.score || 0} ${scoreLabel}</div>
           <div class="leader-bar">
             <div class="leader-bar-fill" style="width:${percent}%"></div>
           </div>
@@ -147,6 +168,34 @@ export function createChallengePanelView() {
         li.querySelector(".leader-name").textContent = r.username || "—";
 
         leaderList.appendChild(li);
+      });
+    },
+
+    renderSpeciesChecklist(speciesList = [], foundSpecies = []) {
+      if (!speciesList.length) {
+        speciesChecklistWrap.style.display = "none";
+        speciesChecklist.innerHTML = "";
+        return;
+      }
+
+      speciesChecklistWrap.style.display = "block";
+      speciesChecklist.innerHTML = "";
+
+      const foundSet = new Set(
+        foundSpecies.map(s => String(s).trim().toLowerCase())
+      );
+
+      speciesList.forEach(species => {
+        const card = MissionCard(species);
+        // Hide the points button — this is a checklist, not a scoring display
+        card.querySelector(".points-btn")?.style.setProperty("display", "none");
+
+        const isFound = foundSet.has(String(species.name || "").trim().toLowerCase());
+        if (isFound) {
+          card.classList.add("challenge-species-found");
+        }
+
+        speciesChecklist.appendChild(card);
       });
     },
 

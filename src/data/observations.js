@@ -12,7 +12,7 @@ import {
   increment,
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
-import { applyActiveChallengeScore } from "./challenges.js";
+import { applyActiveChallengeScore, applySpeciesHuntScore } from "./challenges.js";
 
 /**
  * Save observation and discovery (if first time).
@@ -88,10 +88,16 @@ export async function addObservationAndDiscovery({
     total_points: increment(basePoints + discoveryBonus + missionBonus),
   });
 
-  // 5) Challenge score: BASE ONLY (no bonuses)
+  // 5) Challenge score: BASE ONLY (no bonuses) for points race; species name for species_hunt
   await applyActiveChallengeScore({
     userId,
     pointsToAdd: basePoints,
+    nowMs: Date.now(),
+  });
+
+  await applySpeciesHuntScore({
+    userId,
+    speciesName,
     nowMs: Date.now(),
   });
 
