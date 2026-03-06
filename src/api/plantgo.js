@@ -1,5 +1,5 @@
 // src/api/plantgo.js
-import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL } from "./config.js";
+import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL } from "./config.js";
 
 async function http(url, opts = {}) {
   const res = await fetch(url, opts);
@@ -36,6 +36,18 @@ export async function identifyPlant({ file, lat, lon, model = "best", lang = "en
  */
 export async function fetchMissions({ lat, lon, model = "best", limit = 10, lang = "en" }) {
   return http(SPECIES_PROXY_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ lat, lon, model, limit, lang })
+  });
+}
+
+/**
+ * Fetch species predictions for a given location (used by Species Hunt challenge creation).
+ * Returns { model, predictions: [{ gbif_id, name, vernacular_name, score, is_flowering, is_fruiting }] }
+ */
+export async function fetchPredictions({ lat, lon, model = "best", limit = 10, lang = "en" }) {
+  return http(PREDICTION_PROXY_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lat, lon, model, limit, lang })

@@ -91,6 +91,7 @@
   "missions.card.noBreakdown": "Sem detalhes disponíveis.",
   "missions.card.wikiThumbAlt": "Miniatura da Wikipédia para {name}",
   "missions.card.noImage": "Sem imagem",
+  "missions.card.moreInfo": "Mais info:",
 
   "points.distance": "Observações GBIF próximas (20 km)",
   "points.numberObs": "Número de observações no GBIF",
@@ -157,7 +158,8 @@
   "challenge.speciesHunt.activeSubtitle": "Caça às espécies",
   "challenge.speciesHunt.checklistTitle": "Espécies a encontrar",
   "challenge.speciesHunt.scoreLabel": "espécies",
-  "challenge.speciesHunt.missionsInfo": "{count} espécies das suas missões",
-  "challenge.speciesHunt.noMissions": "Nenhuma missão em cache. Atualize as suas missões primeiro.",
-  "challenge.speciesHunt.error.minSpecies": "Nenhuma espécie disponível para criar uma caça às espécies."
+  "challenge.speciesHunt.infoLocate": "A sua localização será usada para encontrar espécies ao criar.",
+  "challenge.speciesHunt.fetchingSpecies": "A obter espécies para a sua localização…",
+  "challenge.speciesHunt.missionsInfo": "{count} espécies carregadas para esta caça.",
+  "challenge.speciesHunt.error.minSpecies": "Não foram encontradas espécies suficientes para a sua localização. Tente novamente."
 }

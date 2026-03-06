@@ -1,7 +1,6 @@
 // src/ui/components/ChallengePanel.view.js
 import { t, initI18n, translateDom } from "../../language/i18n.js";
-import { auth } from "../../../firebase-config.js";
-import { MissionCard } from "../../controllers/MissionCard.controller.js";
+import { getWikipediaImage } from "../../data/wiki.service.js";
 await initI18n();
 
 export function createChallengePanelView() {
@@ -55,6 +54,9 @@ export function createChallengePanelView() {
   const btnClose = wrap.querySelector("#btnClose");
 
   let closeCb = null;
+  let _lastSpeciesList = [];
+  let _lastFoundSpecies = [];
+  const _imgCache = new Map();
 
   function fmtTimeLeft(ms) {
     const s = Math.max(0, Math.floor(ms / 1000));
@@ -68,9 +70,130 @@ export function createChallengePanelView() {
   });
 
   translateDom(wrap);
-  const currentUid = auth.currentUser?.uid;
+
+  document.addEventListener("i18n:changed", () => {
+    translateDom(wrap);
+    renderChecklist(_lastSpeciesList, _lastFoundSpecies);
+  });
 
   let myUid = null;
+
+  function renderChecklist(speciesList, foundSpecies) {
+    if (!speciesList.length) {
+      speciesChecklistWrap.style.display = "none";
+      speciesChecklist.innerHTML = "";
+      return;
+    }
+
+    speciesChecklistWrap.style.display = "block";
+    speciesChecklist.innerHTML = "";
+
+    const foundSet = new Set(foundSpecies.map(s => String(s).trim().toLowerCase()));
+    const lang = document.documentElement.lang?.split("-")[0] || "en";
+
+    speciesList.forEach((species, i) => {
+      if (i > 0) {
+        const hr = document.createElement("hr");
+        hr.className = "checklist-divider";
+        speciesChecklist.appendChild(hr);
+      }
+
+      const isFound = foundSet.has(String(species.name || "").trim().toLowerCase());
+      const row = document.createElement("div");
+      row.className = "checklist-row" + (isFound ? " checklist-row-found" : "");
+
+      const imgUrl = species.image_url || species.image || "";
+      const binomial = (species.name || "").trim().split(/\s+/).slice(0, 2).join(" ");
+      const wikiUrl = binomial ? `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(binomial)}` : "";
+      const gbifUrl = species.gbif_id ? `https://www.gbif.org/species/${encodeURIComponent(species.gbif_id)}` : "";
+
+      // Build row using DOM to avoid escaping issues
+      const imgWrap = document.createElement("div");
+      imgWrap.className = "checklist-img-wrap";
+      if (imgUrl) {
+        const img = document.createElement("img");
+        img.src = imgUrl; img.alt = ""; img.className = "checklist-img"; img.loading = "lazy";
+        imgWrap.appendChild(img);
+      } else if (species.name) {
+        const cacheKey = species.name.trim().toLowerCase();
+        if (!_imgCache.has(cacheKey)) {
+          _imgCache.set(cacheKey, getWikipediaImage(species.name).catch(() => ""));
+        }
+        _imgCache.get(cacheKey).then(url => {
+          if (url && imgWrap.isConnected) {
+            const img = document.createElement("img");
+            img.src = url; img.alt = ""; img.className = "checklist-img"; img.loading = "lazy";
+            imgWrap.appendChild(img);
+          }
+        });
+      }
+
+      const info = document.createElement("div");
+      info.className = "checklist-info";
+
+      const sciEl = document.createElement("em");
+      sciEl.className = "checklist-sci";
+      sciEl.textContent = species.name || "";
+
+      const commonEl = document.createElement("span");
+      commonEl.className = "checklist-common muted";
+      commonEl.textContent = species.vernacular_name || "";
+
+      const footer = document.createElement("div");
+      footer.className = "checklist-footer";
+
+      const badges = document.createElement("div");
+      badges.className = "checklist-badges";
+      if (species.is_flowering) {
+        const b = document.createElement("span");
+        b.className = "badge flowering-badge is-visible";
+        b.textContent = `🌸 ${t("missions.card.flowering")}`;
+        badges.appendChild(b);
+      }
+      if (species.is_fruiting) {
+        const b = document.createElement("span");
+        b.className = "badge fruiting-badge is-visible";
+        b.textContent = `🍎 ${t("missions.card.fruiting")}`;
+        badges.appendChild(b);
+      }
+
+      const links = document.createElement("div");
+      links.className = "checklist-links";
+      if (wikiUrl) {
+        const a = document.createElement("a");
+        a.href = wikiUrl; a.target = "_blank"; a.rel = "noopener noreferrer";
+        a.className = "wiki-ext-link"; a.setAttribute("aria-label", "Wikipedia");
+        const img = document.createElement("img");
+        img.src = "./assets/wikipedia-logo.svg"; img.alt = "Wikipedia"; img.width = 18; img.height = 18;
+        a.appendChild(img); links.appendChild(a);
+      }
+      if (gbifUrl) {
+        const a = document.createElement("a");
+        a.href = gbifUrl; a.target = "_blank"; a.rel = "noopener noreferrer";
+        a.className = "wiki-ext-link"; a.setAttribute("aria-label", "GBIF");
+        const img = document.createElement("img");
+        img.src = "./assets/gbif-logo.png"; img.alt = "GBIF"; img.width = 18; img.height = 18;
+        a.appendChild(img); links.appendChild(a);
+      }
+
+      footer.appendChild(badges);
+      footer.appendChild(links);
+      info.appendChild(sciEl);
+      info.appendChild(commonEl);
+      info.appendChild(footer);
+      row.appendChild(imgWrap);
+      row.appendChild(info);
+
+      if (isFound) {
+        const mark = document.createElement("div");
+        mark.className = "checklist-found-mark";
+        mark.textContent = "✓";
+        row.appendChild(mark);
+      }
+
+      speciesChecklist.appendChild(row);
+    });
+  }
 
   return {
     element: wrap,
@@ -172,31 +295,9 @@ export function createChallengePanelView() {
     },
 
     renderSpeciesChecklist(speciesList = [], foundSpecies = []) {
-      if (!speciesList.length) {
-        speciesChecklistWrap.style.display = "none";
-        speciesChecklist.innerHTML = "";
-        return;
-      }
-
-      speciesChecklistWrap.style.display = "block";
-      speciesChecklist.innerHTML = "";
-
-      const foundSet = new Set(
-        foundSpecies.map(s => String(s).trim().toLowerCase())
-      );
-
-      speciesList.forEach(species => {
-        const card = MissionCard(species);
-        // Hide the points button — this is a checklist, not a scoring display
-        card.querySelector(".points-btn")?.style.setProperty("display", "none");
-
-        const isFound = foundSet.has(String(species.name || "").trim().toLowerCase());
-        if (isFound) {
-          card.classList.add("challenge-species-found");
-        }
-
-        speciesChecklist.appendChild(card);
-      });
+      _lastSpeciesList = speciesList;
+      _lastFoundSpecies = foundSpecies;
+      renderChecklist(speciesList, foundSpecies);
     },
 
     setMyUid(uid) {

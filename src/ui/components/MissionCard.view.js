@@ -38,11 +38,24 @@ export function createMissionCardView({
       </div>
     </div>
     <div class="wiki-desc muted" id="wikiDesc" style="display:none;"></div>
+    <div id="extLinksCard" class="ext-links-bar" style="display:none">
+      <span class="ext-links-label"></span>
+      <a id="wikiLink" class="wiki-ext-link" target="_blank" rel="noopener noreferrer" style="display:none" aria-label="Wikipedia">
+        <img src="./assets/wikipedia-logo.svg" alt="Wikipedia" width="22" height="22">
+      </a>
+      <a id="gbifLink" class="wiki-ext-link" target="_blank" rel="noopener noreferrer" style="display:none" aria-label="GBIF">
+        <img src="./assets/gbif-logo.png" alt="GBIF" width="22" height="22">
+      </a>
+    </div>
   `;
 
   const missionTitleEl = root.querySelector("#missionTitle");
   const imgWrap = root.querySelector("#imgWrap");
   const pointsBtn = root.querySelector("#pointsBtn");
+  const extLinksCard = root.querySelector("#extLinksCard");
+  const extLinksLabel = root.querySelector(".ext-links-label");
+  const wikiLinkEl = root.querySelector("#wikiLink");
+  const gbifLinkEl = root.querySelector("#gbifLink");
   const badgesEl = root.querySelector("#badges");
   const wikiDescEl = root.querySelector("#wikiDesc");
 
@@ -64,18 +77,7 @@ export function createMissionCardView({
     badgesEl.style.display = html ? "" : "none";
   }
 
-  function formatSciName(name) {
-    const parts = name.trim().split(" ");
-    if (parts.length >= 2) {
-      return parts[0].charAt(0).toUpperCase() +
-            parts[0].slice(1).toLowerCase() +
-            " " +
-            parts[1].toLowerCase();
-    }
-    return name;
-  }
-
-  function refreshI18n() {
+function refreshI18n() {
     if (missionTitleEl) {
       missionTitleEl.textContent = ""; // clear existing content
 
@@ -90,6 +92,8 @@ export function createMissionCardView({
       sciEl.textContent = sciName;
       missionTitleEl.append(sciEl);
     }
+
+    if (extLinksLabel) extLinksLabel.textContent = t("missions.card.moreInfo");
 
     if (pointsBtn) {
       pointsBtn.innerHTML = `${pointsTotal} ${t("missions.card.points")}<br>${escapeHtml(missionLevel)}`;
@@ -133,6 +137,20 @@ export function createMissionCardView({
       }
       wikiDescEl.style.display = "";
       wikiDescEl.textContent = cleaned;
+    },
+
+    setWikiLinkUrl(url) {
+      if (!wikiLinkEl) return;
+      if (url) { wikiLinkEl.href = url; wikiLinkEl.style.display = ""; }
+      else { wikiLinkEl.style.display = "none"; }
+      if (extLinksCard) extLinksCard.style.display = (wikiLinkEl.style.display !== "none" || (gbifLinkEl && gbifLinkEl.style.display !== "none")) ? "" : "none";
+    },
+
+    setGbifLinkUrl(url) {
+      if (!gbifLinkEl) return;
+      if (url) { gbifLinkEl.href = url; gbifLinkEl.style.display = ""; }
+      else { gbifLinkEl.style.display = "none"; }
+      if (extLinksCard) extLinksCard.style.display = (gbifLinkEl.style.display !== "none" || (wikiLinkEl && wikiLinkEl.style.display !== "none")) ? "" : "none";
     },
 
     onPointsClick(cb) { onPoints = cb; },

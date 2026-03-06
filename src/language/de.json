@@ -91,6 +91,7 @@
   "missions.card.noBreakdown": "Keine Aufschlüsselung verfügbar.",
   "missions.card.wikiThumbAlt": "Wikipedia-Vorschaubild für {name}",
   "missions.card.noImage": "Kein Bild",
+  "missions.card.moreInfo": "Mehr Info:",
 
   "points.distance": "GBIF-Beobachtungen in der Nähe (20 km)",
   "points.numberObs": "Anzahl der Beobachtungen auf GBIF",
@@ -157,7 +158,8 @@
   "challenge.speciesHunt.activeSubtitle": "Artensuche",
   "challenge.speciesHunt.checklistTitle": "Zu findende Arten",
   "challenge.speciesHunt.scoreLabel": "Arten",
-  "challenge.speciesHunt.missionsInfo": "{count} Arten aus deinen Missionen",
-  "challenge.speciesHunt.noMissions": "Keine Missionen im Cache. Bitte zuerst Missionen aktualisieren.",
-  "challenge.speciesHunt.error.minSpecies": "Keine Arten verfügbar, um eine Artensuche zu erstellen."
+  "challenge.speciesHunt.infoLocate": "Dein Standort wird beim Erstellen verwendet, um Arten zu finden.",
+  "challenge.speciesHunt.fetchingSpecies": "Arten für deinen Standort werden abgerufen…",
+  "challenge.speciesHunt.missionsInfo": "{count} Arten für diese Suche geladen.",
+  "challenge.speciesHunt.error.minSpecies": "Nicht genug Arten für deinen Standort gefunden. Versuche es erneut."
 }

@@ -91,6 +91,7 @@
   "missions.card.noBreakdown": "Aucun détail disponible.",
   "missions.card.wikiThumbAlt": "Vignette Wikipédia pour {name}",
   "missions.card.noImage": "Aucune image",
+  "missions.card.moreInfo": "Plus d'infos :",
 
   "points.distance": "Observations GBIF à proximité (20 km)",
   "points.numberObs": "Nombre d’observations sur GBIF",
@@ -157,7 +158,8 @@
   "challenge.speciesHunt.activeSubtitle": "Chasse aux espèces",
   "challenge.speciesHunt.checklistTitle": "Espèces à trouver",
   "challenge.speciesHunt.scoreLabel": "espèces",
-  "challenge.speciesHunt.missionsInfo": "{count} espèces de vos missions",
-  "challenge.speciesHunt.noMissions": "Aucune mission en cache. Actualisez vos missions d'abord.",
-  "challenge.speciesHunt.error.minSpecies": "Aucune espèce disponible pour créer une chasse aux espèces."
+  "challenge.speciesHunt.infoLocate": "Votre position sera utilisée pour trouver des espèces à la création.",
+  "challenge.speciesHunt.fetchingSpecies": "Récupération des espèces pour votre position…",
+  "challenge.speciesHunt.missionsInfo": "{count} espèces chargées pour cette chasse.",
+  "challenge.speciesHunt.error.minSpecies": "Pas assez d'espèces trouvées pour votre position. Réessayez."
 }

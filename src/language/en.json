@@ -91,6 +91,7 @@
   "missions.card.noBreakdown": "No breakdown available.",
   "missions.card.wikiThumbAlt": "Wikipedia thumbnail for {name}",
   "missions.card.noImage": "No image",
+  "missions.card.moreInfo": "More info:",
 
   "points.distance": "Nearby GBIF observations (20 km)",
   "points.numberObs": "Number of observations on GBIF",
@@ -157,7 +158,8 @@
   "challenge.speciesHunt.activeSubtitle": "Species Hunt",
   "challenge.speciesHunt.checklistTitle": "Species to find",
   "challenge.speciesHunt.scoreLabel": "species",
-  "challenge.speciesHunt.missionsInfo": "{count} species from your missions",
-  "challenge.speciesHunt.noMissions": "No missions cached. Refresh your missions first.",
-  "challenge.speciesHunt.error.minSpecies": "No species available to create a Species Hunt."
+  "challenge.speciesHunt.infoLocate": "Your location will be used to find species when you create.",
+  "challenge.speciesHunt.fetchingSpecies": "Fetching species for your location…",
+  "challenge.speciesHunt.missionsInfo": "{count} species loaded for this hunt.",
+  "challenge.speciesHunt.error.minSpecies": "Not enough species found for your location. Try again."
 }

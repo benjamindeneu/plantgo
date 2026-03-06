@@ -10,7 +10,17 @@ export function Modal({ title = "", content = "" }) {
         <button class="primary" id="doneBtn" type="button">OK</button>
       </div>
     </div>`;
-  overlay.querySelector("#doneBtn").addEventListener("click", () => overlay.remove());
-  //overlay.querySelector(".close").addEventListener("click", () => overlay.remove());
+
+  document.body.style.overflow = "hidden";
+
+  function close() {
+    overlay.remove();
+    // Restore scroll only if no other modals remain open
+    if (!document.querySelector(".modal.show")) {
+      document.body.style.overflow = "";
+    }
+  }
+
+  overlay.querySelector("#doneBtn").addEventListener("click", close);
   return overlay;
 }

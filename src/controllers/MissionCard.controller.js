@@ -68,6 +68,17 @@ export function MissionCard(species) {
     isFruiting: !!species.is_fruiting,
   });
 
+  // external links
+  if (sciName) {
+    const lang = getUiLang();
+    const binomial = sciName.trim().split(/\s+/).slice(0, 2).join(" ");
+    view.setWikiLinkUrl(`https://${lang}.wikipedia.org/wiki/${encodeURIComponent(binomial)}`);
+  }
+  const gbifId = species.gbif_id ?? species.gbifId;
+  if (gbifId) {
+    view.setGbifLinkUrl(`https://www.gbif.org/species/${gbifId}`);
+  }
+
   // points modal
   const detailObj = species.points?.detail || {};
   view.onPointsClick(() => {

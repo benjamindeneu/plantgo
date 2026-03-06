@@ -2,8 +2,8 @@
 import { Modal } from "../ui/components/Modal.js";
 import { t, translateDom } from "../language/i18n.js";
 import { createChallenge, joinChallengeByCode } from "../data/challenges.js";
-import { auth } from "../../firebase-config.js";
-import { getCachedMissions } from "../data/user.repo.js";
+import { getCurrentPosition } from "../data/geo.service.js";
+import { fetchPredictions } from "../api/plantgo.js";
 
 export function ChallengeModal() {
   const content = `
@@ -74,8 +74,8 @@ export function ChallengeModal() {
 
   const feedback = modal.querySelector("#feedback");
 
-  // Cached missions for species hunt
-  let cachedMissions = [];
+  // Predictions fetched at challenge creation time for species hunt
+  let fetchedPredictions = [];
 
   function show(el, text) {
     el.style.display = text ? "block" : "none";
@@ -86,39 +86,13 @@ export function ChallengeModal() {
     feedback.textContent = text || "";
   }
 
-  function cleanMissionForStorage(m) {
-    const { wiki_extract_html, wiki_extract, description_html, ...rest } = m;
-    return rest;
-  }
-
-  async function loadCreatorMissions() {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
-    try {
-      const data = await getCachedMissions(uid);
-      const missions = Array.isArray(data?.missions_list) ? data.missions_list : [];
-      cachedMissions = missions.map(cleanMissionForStorage);
-      if (cachedMissions.length > 0) {
-        speciesHuntInfo.style.display = "block";
-        speciesHuntInfo.textContent = t("challenge.speciesHunt.missionsInfo").replace(
-          "{count}", cachedMissions.length
-        );
-      } else {
-        speciesHuntInfo.style.display = "block";
-        speciesHuntInfo.textContent = t("challenge.speciesHunt.noMissions");
-      }
-    } catch (e) {
-      speciesHuntInfo.style.display = "block";
-      speciesHuntInfo.textContent = t("challenge.speciesHunt.noMissions");
-    }
-  }
-
   elType?.addEventListener("change", () => {
-    if (elType.value === "species_hunt") {
-      loadCreatorMissions();
-    } else {
+    if (elType.value !== "species_hunt") {
       speciesHuntInfo.style.display = "none";
-      cachedMissions = [];
+      fetchedPredictions = [];
+    } else {
+      speciesHuntInfo.style.display = "block";
+      speciesHuntInfo.textContent = t("challenge.speciesHunt.infoLocate");
     }
   });
 
@@ -130,21 +104,45 @@ export function ChallengeModal() {
     try {
       setFeedback("");
       show(joinOut, "");
-      show(createOut, t("challenge.creating"));
 
       const durationSec = Number(elDuration?.value || 1800);
       const type = elType?.value || "points";
 
-      if (type === "species_hunt" && cachedMissions.length < 2) {
-        show(createOut, "");
-        setFeedback(t("challenge.speciesHunt.error.minSpecies"));
-        return;
+      if (type === "species_hunt") {
+        // Step 1: get location
+        show(createOut, t("identify.feedback.fetchingLocation"));
+        const pos = await getCurrentPosition();
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const lang = document.documentElement.lang || "en";
+
+        // Step 2: fetch predictions from backend
+        show(createOut, t("challenge.speciesHunt.fetchingSpecies"));
+        const data = await fetchPredictions({ lat, lon, lang });
+        const predictions = Array.isArray(data?.predictions) ? data.predictions : [];
+        // Sort by rank ascending (rank 0 = best); fall back to index for species without rank
+        fetchedPredictions = predictions
+          .slice()
+          .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity));
+
+        if (fetchedPredictions.length < 2) {
+          show(createOut, "");
+          setFeedback(t("challenge.speciesHunt.error.minSpecies"));
+          return;
+        }
+
+        speciesHuntInfo.style.display = "block";
+        speciesHuntInfo.textContent = t("challenge.speciesHunt.missionsInfo").replace(
+          "{count}", fetchedPredictions.length
+        );
       }
 
+      // Step 3: create the challenge
+      show(createOut, t("challenge.creating"));
       const res = await createChallenge({
         durationSec,
         type,
-        speciesList: type === "species_hunt" ? cachedMissions : [],
+        speciesList: type === "species_hunt" ? fetchedPredictions : [],
       });
 
       show(createOut, `${t("challenge.created")} ${res.code}`);
