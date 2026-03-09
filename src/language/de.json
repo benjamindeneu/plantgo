@@ -117,8 +117,13 @@
   "result.rarity.epic": "Episch",
   "result.rarity.legendary": "Legendär",
 
+  "result.badge.questComplete": "Aufgabe abgeschlossen!",
   "result.badge.missionSpecies": "Missionsart",
   "result.badge.newSpecies": "Neue Art",
+  "result.badge.nearbyDuplicate": "In der Nähe bereits beobachtet",
+  "result.nearbyDuplicate.locked": "Punkte gesperrt — heute bereits in der Nähe beobachtet",
+  "result.lowConfidence.title": "Es könnte sein:",
+  "result.lowConfidence.message": "Die Konfidenz ist zu niedrig, um diese Beobachtung zu bestätigen. Versuche, weitere Fotos derselben Pflanze zu machen – auch von verschiedenen Organen (Blätter, Blüten, Früchte, Rinde) – um die Vorhersage zu verbessern.",
 
   "challenge.title": "Wettbewerb",
   "challenge.modal.title": "Wettbewerb",
@@ -161,5 +166,17 @@
   "challenge.speciesHunt.infoLocate": "Dein Standort wird beim Erstellen verwendet, um Arten zu finden.",
   "challenge.speciesHunt.fetchingSpecies": "Arten für deinen Standort werden abgerufen…",
   "challenge.speciesHunt.missionsInfo": "{count} Arten für diese Suche geladen.",
-  "challenge.speciesHunt.error.minSpecies": "Nicht genug Arten für deinen Standort gefunden. Versuche es erneut."
+  "challenge.speciesHunt.error.minSpecies": "Nicht genug Arten für deinen Standort gefunden. Versuche es erneut.",
+
+  "quests.title": "Tagesquests",
+  "quests.completed": "Abgeschlossen!",
+  "quests.obs.label": "10 Beobachtungen machen",
+  "quests.obs.desc": "Heute 10 Pflanzen beobachten",
+  "quests.inv.label": "5 Pflanzen im 50m-Radius beobachten",
+  "quests.inv.desc": "5 verschiedene Pflanzen innerhalb von 50 m finden",
+  "quests.mis.label": "Mission erfüllen",
+  "quests.mis.desc": "Mindestens 1 Missionsart beobachten",
+
+  "location.gate.title": "Standort erforderlich",
+  "location.gate.message": "PlantGo benötigt deinen Standort, um Pflanzen zu bestimmen, Missionen zu laden und Wettbewerbe zu erstellen. Bitte aktiviere den Standortzugriff in den Einstellungen deines Browsers oder Geräts, um fortzufahren."
 }

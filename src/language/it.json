@@ -117,8 +117,13 @@
   "result.rarity.epic": "Epica",
   "result.rarity.legendary": "Leggendaria",
 
+  "result.badge.questComplete": "Missione completata!",
   "result.badge.missionSpecies": "Specie della missione",
   "result.badge.newSpecies": "Nuova specie",
+  "result.badge.nearbyDuplicate": "Già osservato nelle vicinanze",
+  "result.nearbyDuplicate.locked": "Punti bloccati — già osservato nelle vicinanze oggi",
+  "result.lowConfidence.title": "Potrebbe essere:",
+  "result.lowConfidence.message": "La confidenza è troppo bassa per convalidare questa osservazione. Prova a scattare altre foto della stessa pianta, includendo organi diversi (foglie, fiori, frutti, corteccia) per migliorare la previsione.",
 
   "challenge.title": "Sfida",
   "challenge.modal.title": "Sfida",
@@ -161,5 +166,17 @@
   "challenge.speciesHunt.infoLocate": "La tua posizione verrà usata per trovare specie alla creazione.",
   "challenge.speciesHunt.fetchingSpecies": "Recupero specie per la tua posizione…",
   "challenge.speciesHunt.missionsInfo": "{count} specie caricate per questa caccia.",
-  "challenge.speciesHunt.error.minSpecies": "Non sono state trovate abbastanza specie per la tua posizione. Riprova."
+  "challenge.speciesHunt.error.minSpecies": "Non sono state trovate abbastanza specie per la tua posizione. Riprova.",
+
+  "quests.title": "Missioni giornaliere",
+  "quests.completed": "Completato!",
+  "quests.obs.label": "Fai 10 osservazioni",
+  "quests.obs.desc": "Osserva 10 piante oggi",
+  "quests.inv.label": "Osserva 5 piante entro 50m",
+  "quests.inv.desc": "Trova 5 piante diverse entro 50 m",
+  "quests.mis.label": "Completa una missione",
+  "quests.mis.desc": "Osserva almeno 1 specie della missione",
+
+  "location.gate.title": "Posizione richiesta",
+  "location.gate.message": "PlantGo ha bisogno della tua posizione per identificare le piante, caricare le missioni e creare sfide. Attiva l'accesso alla posizione nelle impostazioni del browser o del dispositivo per continuare."
 }

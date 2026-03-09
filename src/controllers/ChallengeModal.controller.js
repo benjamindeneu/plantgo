@@ -29,6 +29,13 @@ export function ChallengeModal() {
             <option value="3600">60 min</option>
           </select>
         </div>
+        <div id="modelRow" style="display:none; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px">
+          <label class="muted" for="challengeModel" data-i18n="missions.chooseModel">Model</label>
+          <select id="challengeModel" class="input" style="width:160px">
+            <option value="best" data-i18n="missions.model.auto">Auto</option>
+            <option value="geoplantnet" data-i18n="missions.model.geoplantnet">GeoPlantNet</option>
+          </select>
+        </div>
         <div id="speciesHuntInfo" class="muted" style="margin-top:8px; display:none; font-size:0.9em"></div>
         <div style="margin-top:8px">
           <button id="btnCreate" class="primary" type="button" data-i18n="challenge.create.button">Create</button>
@@ -64,6 +71,8 @@ export function ChallengeModal() {
 
   const elType = modal.querySelector("#challengeType");
   const elDuration = modal.querySelector("#challengeDuration");
+  const modelRow = modal.querySelector("#modelRow");
+  const elModel = modal.querySelector("#challengeModel");
   const speciesHuntInfo = modal.querySelector("#speciesHuntInfo");
   const btnCreate = modal.querySelector("#btnCreate");
   const createOut = modal.querySelector("#createOut");
@@ -87,7 +96,9 @@ export function ChallengeModal() {
   }
 
   elType?.addEventListener("change", () => {
-    if (elType.value !== "species_hunt") {
+    const isHunt = elType.value === "species_hunt";
+    modelRow.style.display = isHunt ? "flex" : "none";
+    if (!isHunt) {
       speciesHuntInfo.style.display = "none";
       fetchedPredictions = [];
     } else {
@@ -118,7 +129,8 @@ export function ChallengeModal() {
 
         // Step 2: fetch predictions from backend
         show(createOut, t("challenge.speciesHunt.fetchingSpecies"));
-        const data = await fetchPredictions({ lat, lon, lang });
+        const model = elModel?.value || "best";
+        const data = await fetchPredictions({ lat, lon, lang, model });
         const predictions = Array.isArray(data?.predictions) ? data.predictions : [];
         // Sort by rank ascending (rank 0 = best); fall back to index for species without rank
         fetchedPredictions = predictions

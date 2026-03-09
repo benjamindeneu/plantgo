@@ -482,7 +482,25 @@ export function createResultModalView() {
       qs("#pointsDetails").innerHTML = "";
     },
 
-    async showResultUI({ speciesName, speciesVernacularName, speciesScore, baseTotal, detail, badges, currentTotalBefore, finalTotal }) {
+    async showLowConfidenceUI({ speciesName, speciesVernacularName, speciesScore }) {
+      qs("#loadingTrack").style.display = "none";
+      qs("#resultTitle").textContent = t("result.lowConfidence.title");
+
+      qs("#speciesNameLine").innerHTML = speciesName ? `<em>${escapeHtml(speciesName)}</em>` : escapeHtml(t("result.unknownSpecies"));
+      qs("#speciesVernacularNameLine").innerHTML = speciesVernacularName ? `<strong>${escapeHtml(speciesVernacularName)}</strong>` : escapeHtml(t("result.noCommonName"));
+      qs("#speciesScoreLine").textContent = `${t("result.confidence")} ${speciesScore ?? ""}`;
+
+      qs(".result-points").style.display = "none";
+      qs("#finalTotalWrap").style.display = "none";
+      qs("#badges").style.display = "none";
+
+      const msg = document.createElement("div");
+      msg.className = "low-confidence-msg";
+      msg.textContent = t("result.lowConfidence.message");
+      qs("#speciesNameDiv").appendChild(msg);
+    },
+
+    async showResultUI({ speciesName, speciesVernacularName, speciesScore, baseTotal, detail, badges, currentTotalBefore, finalTotal, isNearbyDuplicate = false }) {
       const loading = qs("#loadingTrack");
       const title = qs("#resultTitle");
       const speciesLine = qs("#speciesNameLine");
@@ -514,6 +532,33 @@ export function createResultModalView() {
         { total: baseTotal, detail, counterEl, detailsEl, badgeEl },
         { ease: "linear" }
       );
+
+      if (isNearbyDuplicate) {
+        // Wrap all detail lines after the first (base obs) and overlay them with a lock card.
+        // The base obs line + points badge remain fully visible above.
+        const allLines = Array.from(detailsEl.children);
+        if (allLines.length > 1) {
+          const lockedWrap = document.createElement("div");
+          lockedWrap.className = "nearby-locked-wrap";
+          for (let i = 1; i < allLines.length; i++) {
+            lockedWrap.appendChild(allLines[i]);
+          }
+          const lockOverlay = document.createElement("div");
+          lockOverlay.className = "nearby-lock-overlay";
+          lockOverlay.innerHTML = `
+            <div class="nearby-lock-content">
+              <span class="nearby-lock-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true">
+                  <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                </svg>
+              </span>
+              <span class="nearby-lock-text">${escapeHtml(t("result.nearbyDuplicate.locked"))}</span>
+            </div>
+          `;
+          lockedWrap.appendChild(lockOverlay);
+          detailsEl.appendChild(lockedWrap);
+        }
+      }
 
       const rarityClass = getRarity(baseTotal);
       const rarityLabel = rarityText(rarityClass);

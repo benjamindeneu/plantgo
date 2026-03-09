@@ -117,8 +117,13 @@
   "result.rarity.epic": "Épique",
   "result.rarity.legendary": "Légendaire",
 
+  "result.badge.questComplete": "Quête accomplie !",
   "result.badge.missionSpecies": "Espèce de mission",
   "result.badge.newSpecies": "Nouvelle espèce",
+  "result.badge.nearbyDuplicate": "Déjà observé à proximité",
+  "result.nearbyDuplicate.locked": "Points bloqués — déjà observé à proximité aujourd'hui",
+  "result.lowConfidence.title": "Ce pourrait être :",
+  "result.lowConfidence.message": "La confiance est trop faible pour valider cette observation. Essayez de prendre d'autres photos de la même plante, en incluant différents organes (feuilles, fleurs, fruits, écorce) pour améliorer la prédiction.",
 
   "challenge.title": "Défi",
   "challenge.modal.title": "Défi",
@@ -161,5 +166,17 @@
   "challenge.speciesHunt.infoLocate": "Votre position sera utilisée pour trouver des espèces à la création.",
   "challenge.speciesHunt.fetchingSpecies": "Récupération des espèces pour votre position…",
   "challenge.speciesHunt.missionsInfo": "{count} espèces chargées pour cette chasse.",
-  "challenge.speciesHunt.error.minSpecies": "Pas assez d'espèces trouvées pour votre position. Réessayez."
+  "challenge.speciesHunt.error.minSpecies": "Pas assez d'espèces trouvées pour votre position. Réessayez.",
+
+  "quests.title": "Quêtes du jour",
+  "quests.completed": "Complété !",
+  "quests.obs.label": "Faire 10 observations",
+  "quests.obs.desc": "Observer 10 plantes aujourd'hui",
+  "quests.inv.label": "Observer 5 plantes dans un rayon de 50m",
+  "quests.inv.desc": "Trouver 5 plantes différentes en moins de 50 m",
+  "quests.mis.label": "Compléter une mission",
+  "quests.mis.desc": "Observer au moins 1 espèce de mission",
+
+  "location.gate.title": "Localisation requise",
+  "location.gate.message": "PlantGo a besoin de votre position pour identifier les plantes, charger les missions et créer des défis. Veuillez activer la localisation dans les paramètres de votre navigateur ou de votre appareil pour continuer."
 }

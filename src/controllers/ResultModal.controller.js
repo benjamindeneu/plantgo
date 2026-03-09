@@ -3,6 +3,7 @@ import { createResultModalView } from "../ui/components/ResultModal.view.js";
 import { auth, db } from "../../firebase-config.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 import { addObservationAndDiscovery } from "../data/observations.js";
+import { checkAndAwardQuestCompletions, QUEST_BONUS } from "../data/dailyQuests.js";
 import { t } from "../language/i18n.js";
 
 export function ResultModal() {
@@ -22,6 +23,12 @@ export function ResultModal() {
       const plantnet_identify_score = Number(identify?.score ?? 0);
       const detail = (points?.detail && typeof points.detail === "object") ? points.detail : {};
 
+      // Low confidence — show tentative result, do not save observation
+      if (plantnet_identify_score < 0.5) {
+        await view.showLowConfidenceUI({ speciesName, speciesVernacularName, speciesScore: plantnet_identify_score });
+        return;
+      }
+
       const user = auth.currentUser;
       let currentTotalBefore = 0;
       if (user) {
@@ -37,20 +44,49 @@ export function ResultModal() {
       if (missionHit) badges.push({ kind: "mission", emoji: "🎯", label: t("result.badge.missionSpecies"), bonus: 500 });
 
       let discoveryBonus = 0;
+      let isNearbyDuplicate = false;
+      let nearbyPoints = 0;
       if (user) {
-        const { discoveryBonus: got } = await addObservationAndDiscovery({
+        const result = await addObservationAndDiscovery({
           userId: user.uid,
           speciesName,
           lat, lon,
           plantnetImageCode,
           plantnet_identify_score,
           gbif_id: identify?.gbif_id ?? null,
-          pointsMap: detail, // detail keys already stable i18n keys
+          pointsMap: detail,
           total_points: baseTotal,
           extraBonus: missionHit ? 500 : 0,
         });
-        discoveryBonus = got;
+        discoveryBonus = result.discoveryBonus;
+        isNearbyDuplicate = result.isNearbyDuplicate;
+        nearbyPoints = result.nearbyPoints ?? 0;
       }
+
+      // Check if this observation completed any daily quests
+      const completedQuestIds = await checkAndAwardQuestCompletions(user.uid);
+      for (const _ of completedQuestIds) {
+        badges.push({ kind: "quest", emoji: "🏆", label: t("result.badge.questComplete"), bonus: QUEST_BONUS });
+      }
+
+      if (isNearbyDuplicate) {
+        // No discovery badge — nearby duplicates cannot be new discoveries
+        const missionBonus = badges.reduce((s, b) => s + (b.bonus || 0), 0);
+        const finalTotal = nearbyPoints + missionBonus;
+        await view.showResultUI({
+          speciesName,
+          speciesVernacularName,
+          speciesScore: plantnet_identify_score,
+          baseTotal: nearbyPoints,
+          detail,
+          badges,
+          currentTotalBefore,
+          finalTotal,
+          isNearbyDuplicate: true,
+        });
+        return;
+      }
+
       if (discoveryBonus > 0) badges.push({ kind: "new", emoji: "🆕", label: t("result.badge.newSpecies"), bonus: 500 });
 
       const finalTotal = baseTotal + badges.reduce((s, b) => s + (b.bonus || 0), 0);

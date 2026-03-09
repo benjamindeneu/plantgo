@@ -1,11 +1,13 @@
 // src/pages/home_test.app.js
-import { initI18n, translateDom } from "../language/i18n.js";
+import { initI18n, translateDom, t } from "../language/i18n.js";
+import { getCurrentPosition, watchLocationPermission } from "../data/geo.service.js";
 
 import { Header } from "../controllers/Header.controller.js";
 import { IdentifyPanel } from "../controllers/IdentifyPanel.controller.js";
 import { ChallengePanel } from "../controllers/ChallengePanel.controller.js";
 import { MissionsPanel } from "../controllers/MissionsPanel.controller.js";
 import { ChallengeModal } from "../controllers/ChallengeModal.controller.js";
+import { DailyQuests } from "../controllers/DailyQuests.controller.js";
 import { listenUserLevel } from "../user/level.js";
 
 import { auth } from "../../firebase-config.js";
@@ -13,7 +15,51 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 
 await initI18n();
 
+function LocationGate() {
+  const overlay = document.createElement('div');
+  overlay.className = 'location-gate';
+  overlay.setAttribute('aria-live', 'assertive');
+  overlay.setAttribute('role', 'alert');
+  overlay.innerHTML = `
+    <div class="location-gate__card">
+      <div class="location-gate__icon">📍</div>
+      <h2 class="location-gate__title"></h2>
+      <p class="location-gate__message"></p>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const titleEl = overlay.querySelector('.location-gate__title');
+  const msgEl = overlay.querySelector('.location-gate__message');
+
+  const applyTranslations = () => {
+    titleEl.textContent = t('location.gate.title');
+    msgEl.textContent = t('location.gate.message');
+  };
+  applyTranslations();
+  document.addEventListener('i18n:changed', applyTranslations);
+
+  const show = () => overlay.classList.add('location-gate--visible');
+  const hide = () => overlay.classList.remove('location-gate--visible');
+
+  const stopWatch = watchLocationPermission({ onGranted: hide, onDenied: show });
+
+  // Trigger the browser permission prompt immediately; also catch denied state
+  // for browsers that don't support the Permissions API.
+  getCurrentPosition({ enableHighAccuracy: false, timeout: 10000 })
+    .then(hide)
+    .catch(err => { if (err.code === 1) show(); });
+
+  return () => {
+    stopWatch();
+    document.removeEventListener('i18n:changed', applyTranslations);
+    overlay.remove();
+  };
+}
+
 function App() {
+  LocationGate();
+
   let stopLevel = () => {};
 
   // --- Header ---
@@ -38,6 +84,10 @@ function App() {
     onHerbarium: () => { location.href = "./plantdex.html"; }
   });
   headerMount.replaceWith(header);
+
+  // --- Daily Quests ---
+  const dailyQuestsMount = document.getElementById("dailyQuestsRoot");
+  dailyQuestsMount.replaceWith(DailyQuests());
 
   // --- Panels ---
   const identifyMount = document.getElementById("identifyRoot");

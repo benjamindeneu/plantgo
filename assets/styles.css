@@ -204,9 +204,9 @@ input[type="file"]{ display:none; }
 }
 
 /* Buttons — unified (rarity chips opt-out) */
-button:not(.common-points, .rare-points, .epic-points, .legendary-points),
-.points-btn:not(.common-points, .rare-points, .epic-points, .legendary-points),
-.validate-species-btn:not(.common-points, .rare-points, .epic-points, .legendary-points),
+button:not(.common-points, .rare-points, .epic-points, .legendary-points, .dq-nav, .dq-dot),
+.points-btn:not(.common-points, .rare-points, .epic-points, .legendary-points, .dq-nav, .dq-dot),
+.validate-species-btn:not(.common-points, .rare-points, .epic-points, .legendary-points, .dq-nav, .dq-dot),
 #userMenu button{
   --btn-fg:#fff;
   color:var(--btn-fg);
@@ -222,14 +222,14 @@ button:not(.common-points, .rare-points, .epic-points, .legendary-points),
   box-shadow:0 2px 0 rgba(0,0,0,0.06);
   transition: transform var(--duration) var(--easing), filter var(--duration) var(--easing);
 }
-button:hover,
+button:not(.dq-nav, .dq-dot):hover,
 .points-btn:hover,
 .validate-species-btn:hover,
 #userMenu button:hover{
   filter:brightness(1.02);
   transform:translateY(-1px);
 }
-button:active,
+button:not(.dq-nav, .dq-dot):active,
 .points-btn:active,
 .validate-species-btn:active,
 #userMenu button:active{
@@ -793,6 +793,57 @@ header, .nav{
   z-index: 2;
 }
 
+/* ---------- Low confidence result ---------- */
+.low-confidence-msg {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--warning, #ff9800) 12%, transparent);
+  border-left: 3px solid var(--warning, #ff9800);
+  border-radius: 6px;
+  font-size: 0.88em;
+  color: var(--text);
+  text-align: left;
+  line-height: 1.5;
+}
+
+/* ---------- Nearby duplicate lock overlay ---------- */
+.nearby-locked-wrap {
+  position: relative;
+  min-height: 32px;
+}
+.nearby-lock-overlay {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  background: rgba(100, 100, 110, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-sm);
+  z-index: 2;
+}
+.nearby-lock-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  padding: 8px 12px;
+}
+.nearby-lock-icon {
+  display: flex;
+  align-items: center;
+  color: var(--warn-600);
+  flex-shrink: 0;
+}
+.nearby-lock-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.3;
+}
+
 /* ---------- 9) RESULT MODAL / PROGRESS ---------- */
 .result-modal .modal-content.result{ overflow:hidden; position: relative; }
 .result-head{ display:flex; flex-direction:column; gap:var(--sp-2); }
@@ -1134,3 +1185,233 @@ header, .nav{
 }
 
 
+
+/* ---------- Location Gate Overlay ---------- */
+.location-gate {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: color-mix(in srgb, var(--green-900) 70%, transparent);
+  backdrop-filter: blur(6px);
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-6);
+}
+.location-gate--visible {
+  display: flex;
+}
+.location-gate__card {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  padding: var(--sp-8);
+  width: min(92vw, 420px);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  animation: modalIn .2s var(--easing);
+}
+.location-gate__icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+.location-gate__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+.location-gate__message {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.55;
+}
+
+/* ---------- 13) DAILY QUESTS STRIP ---------- */
+.daily-quests {
+  padding: 8px 12px;
+  margin-bottom: var(--sp-2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Left label block */
+.dq-label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.dq-title {
+  font-weight: 700;
+  font-size: 0.68rem;
+  color: var(--green-800);
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.dq-label-bottom {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dq-count {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--muted);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Vertical separator */
+.dq-sep {
+  width: 1px;
+  height: 30px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* Sliding area */
+.dq-body {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding: 2px 0;
+}
+
+.dq-quest {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  position: relative;
+}
+
+.dq-quest-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.dq-quest-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dq-quest-label {
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.dq-reward {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--green-700);
+  opacity: 0.75;
+  line-height: 1;
+}
+
+.dq-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dq-progress-bar-track {
+  flex: 1;
+  height: 4px;
+  background: var(--surface-2);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.dq-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green-500), var(--green-700));
+  border-radius: var(--radius-pill);
+  transition: width 0.4s var(--easing);
+}
+
+.dq-progress-text {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--green-700);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.dq-quest--done .dq-progress-text {
+  color: var(--green-600);
+}
+
+.dq-check {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  background: var(--green-600);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Dots — horizontal row next to count */
+.dq-dots {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 3px;
+}
+
+.dq-dot {
+  width: 6px;
+  height: 6px;
+  min-width: 6px;
+  padding: 0;
+  margin: 0;
+  border-radius: 50%;
+  background: var(--border);
+  border: none;
+  cursor: pointer;
+  transition: background var(--duration) var(--easing), transform var(--duration) var(--easing);
+  box-shadow: none;
+}
+.dq-dot:hover {
+  filter: none;
+  transform: scale(1.3);
+}
+.dq-dot:active {
+  transform: scale(1);
+  filter: none;
+}
+.dq-dot--active {
+  background: var(--green-600);
+  transform: scale(1.2);
+}
+.dq-dot--done {
+  background: var(--green-400);
+}

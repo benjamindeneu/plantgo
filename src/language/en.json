@@ -117,8 +117,13 @@
   "result.rarity.epic": "Epic",
   "result.rarity.legendary": "Legendary",
 
+  "result.badge.questComplete": "Quest completed!",
   "result.badge.missionSpecies": "Mission species",
   "result.badge.newSpecies": "New species",
+  "result.badge.nearbyDuplicate": "Already observed nearby",
+  "result.nearbyDuplicate.locked": "Points locked — already observed nearby today",
+  "result.lowConfidence.title": "It might be:",
+  "result.lowConfidence.message": "Confidence is too low to validate this observation. Try taking more photos of the same plant, including different organs (leaves, flowers, fruits, bark) to improve the prediction.",
 
   "challenge.title": "Challenge",
   "challenge.modal.title": "Challenge",
@@ -161,5 +166,17 @@
   "challenge.speciesHunt.infoLocate": "Your location will be used to find species when you create.",
   "challenge.speciesHunt.fetchingSpecies": "Fetching species for your location…",
   "challenge.speciesHunt.missionsInfo": "{count} species loaded for this hunt.",
-  "challenge.speciesHunt.error.minSpecies": "Not enough species found for your location. Try again."
+  "challenge.speciesHunt.error.minSpecies": "Not enough species found for your location. Try again.",
+
+  "quests.title": "Daily Quests",
+  "quests.completed": "Completed!",
+  "quests.obs.label": "Make 10 observations",
+  "quests.obs.desc": "Observe any 10 plants today",
+  "quests.inv.label": "Observe 5 plants within 50m",
+  "quests.inv.desc": "Find 5 different plants within 50 m",
+  "quests.mis.label": "Complete a mission",
+  "quests.mis.desc": "Observe at least 1 mission species",
+
+  "location.gate.title": "Location Required",
+  "location.gate.message": "PlantGo needs your location to identify plants, load missions, and create challenges. Please enable location access in your browser or device settings to continue."
 }
