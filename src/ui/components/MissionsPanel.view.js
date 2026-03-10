@@ -48,14 +48,18 @@ export function createMissionsPanelView() {
     </div>
 
     <div id="status" aria-live="polite" class="validation-feedback"></div>
-    <div id="list" class="form-grid"></div>
+    <div id="loadingTrack" class="loading-track" style="display:none" aria-hidden="true">
+      <div class="loading-indeterminate"></div>
+    </div>
+    <div id="list" class="form-grid" style="text-align:center"></div>
 
     <!-- model used -->
     <div id="modelLine" class="muted" style="margin-top:8px;text-align:center;display:none;"></div>
   `;
 
-  const statusEl = sec.querySelector("#status");
-  const listEl = sec.querySelector("#list");
+  const statusEl     = sec.querySelector("#status");
+  const loadingTrack = sec.querySelector("#loadingTrack");
+  const listEl       = sec.querySelector("#list");
   const locateBtn = sec.querySelector("#locate");
   const modelEl = sec.querySelector("#modelLine");
   const modelSelect = sec.querySelector("#modelSelect");
@@ -79,6 +83,10 @@ export function createMissionsPanelView() {
     element: sec,
     setStatus(text) {
       statusEl.textContent = text ?? "";
+    },
+
+    setLoading(on) {
+      loadingTrack.style.display = on ? "" : "none";
     },
 
     // UPDATED: accept model too

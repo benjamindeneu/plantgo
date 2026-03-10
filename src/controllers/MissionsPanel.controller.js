@@ -21,6 +21,35 @@ const isFresh = (ts, win = THREE_HOURS_MS) => {
 export function MissionsPanel() {
   const view = createMissionsPanelView();
 
+  async function doLocate() {
+    view.renderMissions([], "");
+    view.setStatus(t("missions.status.fetchingLocation"));
+    view.setLoading(true);
+
+    try {
+      const pos = await getCurrentPosition();
+      view.setStatus(t("missions.status.loading"));
+
+      const user = auth.currentUser;
+      const selectedModel = view.getSelectedModel();
+
+      const { missions, model } = await loadAndMaybePersistMissions(
+        user?.uid,
+        { lat: pos.coords.latitude, lon: pos.coords.longitude },
+        [],
+        selectedModel
+      );
+
+      view.setLoading(false);
+      view.renderMissions(missions, model);
+      view.setStatus("");
+    } catch (e) {
+      console.error("[MissionsPanel] Locate/Fetch error:", e);
+      view.setLoading(false);
+      view.setStatus(e?.message || t("missions.status.locateError"));
+    }
+  }
+
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       view.setStatus(t("missions.status.loginRequired"));
@@ -32,9 +61,8 @@ export function MissionsPanel() {
         view.renderMissions(missions, model);
         view.setStatus("");
       } else {
-        // Keep list empty (it will show missions.empty in the list area)
-        view.renderMissions([], "");
-        view.setStatus(t("missions.empty.hint"));
+        // No fresh cache — auto-trigger location fetch
+        doLocate();
       }
     } catch (e) {
       console.error("[MissionsPanel] Cache load error:", e);
@@ -42,32 +70,7 @@ export function MissionsPanel() {
     }
   });
 
-  view.onLocate(async () => {
-    view.renderMissions([], ""); // shows missions.empty (translated) + hides model line
-    view.setStatus(t("missions.status.fetchingLocation"));
-
-    try {
-      const pos = await getCurrentPosition();
-      view.setStatus(t("missions.status.loading"));
-
-      const user = auth.currentUser;
-
-      const selectedModel = view.getSelectedModel(); // "best" | "geoplantnet"
-
-      const { missions, model } = await loadAndMaybePersistMissions(
-        user?.uid,
-        { lat: pos.coords.latitude, lon: pos.coords.longitude },
-        [],
-        selectedModel
-      );
-
-      view.renderMissions(missions, model);
-      view.setStatus("");
-    } catch (e) {
-      console.error("[MissionsPanel] Locate/Fetch error:", e);
-      view.setStatus(e?.message || t("missions.status.locateError"));
-    }
-  });
+  view.onLocate(doLocate);
 
   return view.element;
 }

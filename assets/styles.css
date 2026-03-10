@@ -179,7 +179,7 @@ main{ padding:var(--sp-3); }
   color:var(--text);
 }
 .form-grid{ display:grid; gap:var(--sp-3); }
-.validation-feedback{ margin-top:var(--sp-3); font-size:.9rem; color:var(--muted); }
+.validation-feedback{ margin-top:var(--sp-3); font-size:.9rem; color:var(--muted); text-align:center; }
 .muted{ color:var(--muted); }
 
 /* File input + label */
@@ -888,6 +888,19 @@ header, .nav{
   width:0%;
   background: linear-gradient(90deg, var(--green-600), var(--green-700));
   transition: width .15s linear;
+}
+
+/* Level-up reached pop animation */
+@keyframes level-reached-pop {
+  0%   { transform: scale(0.7); opacity: 0; }
+  60%  { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+.level-reached-text {
+  display: inline-block;
+  font-weight: 700;
+  color: var(--green-600);
+  animation: level-reached-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 /* Result modal specific bars */

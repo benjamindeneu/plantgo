@@ -100,6 +100,7 @@
   "points.baseObs": "Observação da planta",
 
   "result.level": "Nível",
+  "result.levelReached": "Nível {level} alcançado!",
   "result.yourObservation": "A sua observação:",
   "result.identifying": "A identificar…",
   "result.newObservationOf": "Nova observação de:",

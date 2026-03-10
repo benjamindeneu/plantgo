@@ -292,15 +292,15 @@ export function createResultModalView() {
   function fireLevelUpConfetti() {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
 
-    const levelWrap =
-      document.querySelector(".level-wrap.at-top") ||
-      document.querySelector(".level-wrap") ||
+    const card =
+      document.querySelector(".modal-content.result") ||
+      document.querySelector(".modal-content") ||
       document.body;
 
-    const r = levelWrap.getBoundingClientRect();
+    const r = card.getBoundingClientRect();
     const origin = {
-      x: 0.5,
-      y: Math.max(0, Math.min(1, (r.top + r.height * 0.55) / window.innerHeight)),
+      x: Math.max(0, Math.min(1, (r.left + r.width * 0.5) / window.innerWidth)),
+      y: Math.max(0, Math.min(1, r.bottom / window.innerHeight)),
     };
 
     const randomInRange = (min, max) => Math.random() * (max - min) + min;
@@ -580,15 +580,33 @@ export function createResultModalView() {
 
       const leveledUp = toLevel > fromLevel;
 
-      await animateProgress(qs("#levelProgress"), fromPct, toPct, { ease: "easeOut" });
-
       if (leveledUp) {
-        fireLevelUpConfetti();
-      }
+        // Phase 1: animate to 100%
+        await animateProgress(qs("#levelProgress"), fromPct, 100, { ease: "easeOut" });
 
-      qs("#levelFrom").textContent = toLevel;
-      qs("#levelTo").textContent = toLevel + 1;
-      qs("#levelToLabel").style.opacity = 0.9;
+        // Show "Level X reached!" with a pop
+        const levelLine = qs(".level-line");
+        levelLine.innerHTML = `<span class="level-reached-text">${escapeHtml(t("result.levelReached", { level: toLevel }))}</span>`;
+
+        // Fire confetti at the bottom of the card
+        fireLevelUpConfetti();
+
+        // Instantly reset bar to 0% (no transition)
+        const bar = qs("#levelProgress");
+        bar.style.transition = "none";
+        bar.style.width = "0%";
+        void bar.offsetWidth; // force reflow
+        bar.style.transition = "";
+
+        // Phase 2: animate 0% → final toPct on new level (keep "reached" text)
+        await new Promise((r) => setTimeout(r, 300));
+        await animateProgress(qs("#levelProgress"), 0, toPct, { ease: "easeOut" });
+      } else {
+        await animateProgress(qs("#levelProgress"), fromPct, toPct, { ease: "easeOut" });
+        qs("#levelFrom").textContent = toLevel;
+        qs("#levelTo").textContent = toLevel + 1;
+        qs("#levelToLabel").style.opacity = 0.9;
+      }
 
       // make sure any translated dynamic labels are correct
       refreshI18n();
