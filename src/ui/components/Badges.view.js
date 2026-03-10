@@ -15,12 +15,11 @@ export function createBadgesView() {
   const root = document.createElement("div");
   root.className = "badges-panel";
 
-  // counts = { obs: number, mission: number }
   function render(unlockedSet, counts = {}) {
     root.innerHTML = "";
 
-    const grid = document.createElement("div");
-    grid.className = "badges-grid";
+    const list = document.createElement("div");
+    list.className = "badges-grid";
 
     for (const def of BADGE_DEFINITIONS) {
       const isUnlocked = unlockedSet.has(def.id);
@@ -37,23 +36,22 @@ export function createBadgesView() {
             <div class="badge-card__progress-rail">
               <div class="badge-card__progress-bar" style="width:${pct}%"></div>
             </div>
-            <div class="badge-card__progress-label">${current} / ${def.threshold}</div>
+            <span class="badge-card__progress-label">${current} / ${def.threshold}</span>
           </div>
         `;
-      } else if (!isUnlocked) {
-        progressHtml = `<div class="badge-card__status badge-card__status--locked">🔒</div>`;
       }
 
       card.innerHTML = `
-        <div class="badge-card__emoji">${def.emoji}</div>
+        <div class="badge-card__icon">${def.emoji}</div>
         <div class="badge-card__name">${escapeHtml(t(def.nameKey))}</div>
         <div class="badge-card__desc">${escapeHtml(t(def.descKey))}</div>
-        ${isUnlocked ? `<div class="badge-card__status">✓</div>` : progressHtml}
+        ${progressHtml}
       `;
-      grid.appendChild(card);
+      list.appendChild(card);
     }
 
-    root.appendChild(grid);
+    root.appendChild(list);
+
   }
 
   document.addEventListener("i18n:changed", () => {
