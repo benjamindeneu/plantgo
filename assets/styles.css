@@ -1481,3 +1481,31 @@ header, .nav{
   color: var(--muted);
   font-weight: 400;
 }
+
+.badge-card__progress {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-card__progress-rail {
+  width: 100%;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+  overflow: hidden;
+}
+
+.badge-card__progress-bar {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--green-500);
+  transition: width 0.4s var(--easing);
+}
+
+.badge-card__progress-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+}

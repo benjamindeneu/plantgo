@@ -19,13 +19,13 @@ import {
  * nameKey / descKey are i18n keys resolved at render time.
  */
 export const BADGE_DEFINITIONS = [
-  { id: "obs_1",       emoji: "🌱", nameKey: "badges.obs1.name",       descKey: "badges.obs1.desc" },
-  { id: "obs_100",     emoji: "🌿", nameKey: "badges.obs100.name",     descKey: "badges.obs100.desc" },
-  { id: "obs_1000",    emoji: "🌳", nameKey: "badges.obs1000.name",    descKey: "badges.obs1000.desc" },
-  { id: "mission_1",   emoji: "🎯", nameKey: "badges.mission1.name",   descKey: "badges.mission1.desc" },
-  { id: "mission_10",  emoji: "🏹", nameKey: "badges.mission10.name",  descKey: "badges.mission10.desc" },
-  { id: "mission_100", emoji: "🏆", nameKey: "badges.mission100.name", descKey: "badges.mission100.desc" },
-  { id: "releve_1",    emoji: "🔬", nameKey: "badges.releve1.name",    descKey: "badges.releve1.desc" },
+  { id: "obs_1",       emoji: "🌱", nameKey: "badges.obs1.name",       descKey: "badges.obs1.desc",       countKey: "obs",     threshold: 1 },
+  { id: "obs_100",     emoji: "🌿", nameKey: "badges.obs100.name",     descKey: "badges.obs100.desc",     countKey: "obs",     threshold: 100 },
+  { id: "obs_1000",    emoji: "🌳", nameKey: "badges.obs1000.name",    descKey: "badges.obs1000.desc",    countKey: "obs",     threshold: 1000 },
+  { id: "mission_1",   emoji: "🎯", nameKey: "badges.mission1.name",   descKey: "badges.mission1.desc",   countKey: "mission", threshold: 1 },
+  { id: "mission_10",  emoji: "🏹", nameKey: "badges.mission10.name",  descKey: "badges.mission10.desc",  countKey: "mission", threshold: 10 },
+  { id: "mission_100", emoji: "🏆", nameKey: "badges.mission100.name", descKey: "badges.mission100.desc", countKey: "mission", threshold: 100 },
+  { id: "releve_1",    emoji: "🔬", nameKey: "badges.releve1.name",    descKey: "badges.releve1.desc",    countKey: null,      threshold: null },
 ];
 
 /**
