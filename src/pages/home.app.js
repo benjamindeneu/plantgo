@@ -68,6 +68,7 @@ function App() {
     user: null,
     level: 1,
     onMenu: () => {},
+    onBadges: () => { location.href = "./badges.html"; },
     onChallenge: () => {
       const modal = ChallengeModal();
       document.body.appendChild(modal);

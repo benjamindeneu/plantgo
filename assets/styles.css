@@ -1320,11 +1320,12 @@ header, .nav{
 }
 
 .dq-reward {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 700;
   color: var(--green-700);
-  opacity: 0.75;
-  line-height: 1;
+  opacity: 0.65;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .dq-progress-row {
@@ -1414,4 +1415,69 @@ header, .nav{
 }
 .dq-dot--done {
   background: var(--green-400);
+}
+
+/* ========== BADGES PAGE ========== */
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--sp-4);
+  padding: var(--sp-4) 0;
+}
+
+.badge-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-4) var(--sp-3);
+  border-radius: var(--r-lg);
+  border: 2px solid var(--border);
+  background: var(--surface);
+  text-align: center;
+  transition: transform var(--duration) var(--easing), box-shadow var(--duration) var(--easing);
+}
+
+.badge-card--unlocked {
+  border-color: var(--green-400);
+  background: var(--green-50);
+  box-shadow: var(--shadow-sm);
+}
+
+.badge-card--unlocked:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.badge-card--locked {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+
+.badge-card__emoji {
+  font-size: 2.4rem;
+  line-height: 1;
+}
+
+.badge-card__name {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.badge-card__desc {
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.badge-card__status {
+  font-size: 0.8rem;
+  color: var(--green-700);
+  font-weight: 700;
+}
+
+.badge-card__status--locked {
+  color: var(--muted);
+  font-weight: 400;
 }

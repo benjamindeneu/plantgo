@@ -4,6 +4,7 @@ import { auth, db } from "../../firebase-config.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 import { addObservationAndDiscovery } from "../data/observations.js";
 import { checkAndAwardQuestCompletions, QUEST_BONUS } from "../data/dailyQuests.js";
+import { checkAndUnlockBadges, BADGE_DEFINITIONS } from "../data/badges.js";
 import { t } from "../language/i18n.js";
 
 export function ResultModal() {
@@ -63,10 +64,23 @@ export function ResultModal() {
         nearbyPoints = result.nearbyPoints ?? 0;
       }
 
-      // Check if this observation completed any daily quests
-      const completedQuestIds = await checkAndAwardQuestCompletions(user.uid);
+      // Check if this observation completed any daily quests (+ relevé badge)
+      const { completedQuestIds, newlyUnlockedBadges: questBadges } = await checkAndAwardQuestCompletions(user.uid);
       for (const _ of completedQuestIds) {
         badges.push({ kind: "quest", emoji: "🏆", label: t("result.badge.questComplete"), bonus: QUEST_BONUS });
+      }
+
+      // Check observation-count and mission-count badges
+      const achievementBadgeIds = await checkAndUnlockBadges(user.uid, {
+        obsCount: result.obsCount ?? 0,
+        missionObsCount: result.missionObsCount ?? 0,
+      });
+
+      // Merge all newly unlocked achievement badges (obs/mission from here + relevé from quests)
+      const allNewBadgeIds = [...new Set([...achievementBadgeIds, ...questBadges])];
+      for (const id of allNewBadgeIds) {
+        const def = BADGE_DEFINITIONS.find((b) => b.id === id);
+        if (def) badges.push({ kind: "achievement", emoji: def.emoji, label: t(def.nameKey) });
       }
 
       if (isNearbyDuplicate) {

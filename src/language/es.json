@@ -37,6 +37,7 @@
   "header.language": "Idioma",
   "header.levelShort": "Nv.",
   "header.challenge": "Desafío",
+  "header.badges": "Insignias",
 
   "herbarium.pageTitle": "PlantGo • Herbario",
   "herbarium.title": "Tus descubrimientos",
@@ -178,5 +179,27 @@
   "quests.mis.desc": "Observar al menos 1 especie de misión",
 
   "location.gate.title": "Ubicación requerida",
-  "location.gate.message": "PlantGo necesita tu ubicación para identificar plantas, cargar misiones y crear desafíos. Activa el acceso a la ubicación en los ajustes de tu navegador o dispositivo para continuar."
+  "location.gate.message": "PlantGo necesita tu ubicación para identificar plantas, cargar misiones y crear desafíos. Activa el acceso a la ubicación en los ajustes de tu navegador o dispositivo para continuar.",
+
+  "badges.pageTitle": "PlantGo • Insignias",
+  "badges.title": "Insignias",
+  "badges.loading": "Cargando…",
+  "badges.error": "No se pudieron cargar las insignias.",
+
+  "badges.obs1.name": "Primeros pasos",
+  "badges.obs1.desc": "Tu primera observación vegetal",
+  "badges.obs100.name": "Centenario",
+  "badges.obs100.desc": "100 observaciones realizadas",
+  "badges.obs1000.name": "Botánico",
+  "badges.obs1000.desc": "1000 observaciones realizadas",
+
+  "badges.mission1.name": "En misión",
+  "badges.mission1.desc": "Primera misión completada",
+  "badges.mission10.name": "Especialista",
+  "badges.mission10.desc": "10 misiones completadas",
+  "badges.mission100.name": "Maestro de misiones",
+  "badges.mission100.desc": "100 misiones completadas",
+
+  "badges.releve1.name": "Naturalista",
+  "badges.releve1.desc": "5 especies encontradas en 50 m en un mismo día"
 }

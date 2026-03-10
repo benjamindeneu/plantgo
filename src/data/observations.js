@@ -18,6 +18,7 @@ import {
 
 import { applyActiveChallengeScore, applySpeciesHuntScore } from "./challenges.js";
 
+
 const NEARBY_RADIUS_M = 100;
 
 function haversineMeters(lat1, lon1, lat2, lon2) {
@@ -101,13 +102,23 @@ export async function addObservationAndDiscovery({
     });
 
     const userRef = doc(db, "users", userId);
-    await updateDoc(userRef, { total_points: increment(nearbyPoints + missionBonus) });
+    const userSnap = await getDoc(userRef);
+    const userData = userSnap.data() || {};
+    const newObsCount = (Number(userData.total_observations) || 0) + 1;
+    const newMissionObsCount = (Number(userData.total_mission_observations) || 0) + (missionBonus > 0 ? 1 : 0);
+
+    const updateData = {
+      total_points: increment(nearbyPoints + missionBonus),
+      total_observations: increment(1),
+    };
+    if (missionBonus > 0) updateData.total_mission_observations = increment(1);
+    await updateDoc(userRef, updateData);
 
     // Challenge: base obs points only for points race; species hunt still counts
     await applyActiveChallengeScore({ userId, pointsToAdd: nearbyPoints, nowMs: Date.now() });
     await applySpeciesHuntScore({ userId, speciesName, nowMs: Date.now() });
 
-    return { observationId: observationDoc.id, discoveryBonus: 0, isNearbyDuplicate: true, nearbyPoints };
+    return { observationId: observationDoc.id, discoveryBonus: 0, isNearbyDuplicate: true, nearbyPoints, obsCount: newObsCount, missionObsCount: newMissionObsCount };
   }
 
   // 1) Create observation with base points + initial bonus (discovery unknown yet)
@@ -150,11 +161,19 @@ export async function addObservationAndDiscovery({
     "bonus.mission": missionBonus,
   });
 
-  // 4) Update user's total_points: base + discovery + mission
+  // 4) Update user's total_points: base + discovery + mission + observation counters
   const userRef = doc(db, "users", userId);
-  await updateDoc(userRef, {
+  const userSnap = await getDoc(userRef);
+  const userData = userSnap.data() || {};
+  const newObsCount = (Number(userData.total_observations) || 0) + 1;
+  const newMissionObsCount = (Number(userData.total_mission_observations) || 0) + (missionBonus > 0 ? 1 : 0);
+
+  const userUpdate = {
     total_points: increment(basePoints + discoveryBonus + missionBonus),
-  });
+    total_observations: increment(1),
+  };
+  if (missionBonus > 0) userUpdate.total_mission_observations = increment(1);
+  await updateDoc(userRef, userUpdate);
 
   // 5) Challenge score: BASE ONLY (no bonuses) for points race; species name for species_hunt
   await applyActiveChallengeScore({
@@ -169,5 +188,5 @@ export async function addObservationAndDiscovery({
     nowMs: Date.now(),
   });
 
-  return { observationId: observationDoc.id, discoveryBonus, isNearbyDuplicate: false };
+  return { observationId: observationDoc.id, discoveryBonus, isNearbyDuplicate: false, obsCount: newObsCount, missionObsCount: newMissionObsCount };
 }

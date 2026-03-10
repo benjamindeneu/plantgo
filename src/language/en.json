@@ -37,6 +37,7 @@
   "header.language": "Language",
   "header.levelShort": "Lv.",
   "header.challenge": "Challenge",
+  "header.badges": "Badges",
 
   "herbarium.pageTitle": "PlantGo • Herbarium",
   "herbarium.title": "Your Discoveries",
@@ -178,5 +179,27 @@
   "quests.mis.desc": "Observe at least 1 mission species",
 
   "location.gate.title": "Location Required",
-  "location.gate.message": "PlantGo needs your location to identify plants, load missions, and create challenges. Please enable location access in your browser or device settings to continue."
+  "location.gate.message": "PlantGo needs your location to identify plants, load missions, and create challenges. Please enable location access in your browser or device settings to continue.",
+
+  "badges.pageTitle": "PlantGo • Badges",
+  "badges.title": "Badges",
+  "badges.loading": "Loading…",
+  "badges.error": "Could not load badges.",
+
+  "badges.obs1.name": "First Steps",
+  "badges.obs1.desc": "Made your first plant observation",
+  "badges.obs100.name": "Century",
+  "badges.obs100.desc": "Made 100 plant observations",
+  "badges.obs1000.name": "Botanist",
+  "badges.obs1000.desc": "Made 1000 plant observations",
+
+  "badges.mission1.name": "On a Mission",
+  "badges.mission1.desc": "Completed your first mission",
+  "badges.mission10.name": "Mission Specialist",
+  "badges.mission10.desc": "Completed 10 missions",
+  "badges.mission100.name": "Mission Master",
+  "badges.mission100.desc": "Completed 100 missions",
+
+  "badges.releve1.name": "Naturalist",
+  "badges.releve1.desc": "Found 5 species within 50 m in a single day"
 }

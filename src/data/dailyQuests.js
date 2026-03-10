@@ -13,6 +13,7 @@ import {
   Timestamp,
   increment,
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { checkAndUnlockBadges } from "./badges.js";
 
 export const QUEST_BONUS = 1000;
 
@@ -109,7 +110,12 @@ export async function checkAndAwardQuestCompletions(userId) {
     });
   }
 
-  return newlyCompleted.map(q => q.id);
+  const hasReleve = newlyCompleted.some(q => q.id === "inventory");
+  const newlyUnlockedBadges = hasReleve
+    ? await checkAndUnlockBadges(userId, { hasReleve: true })
+    : [];
+
+  return { completedQuestIds: newlyCompleted.map(q => q.id), newlyUnlockedBadges };
 }
 
 /**

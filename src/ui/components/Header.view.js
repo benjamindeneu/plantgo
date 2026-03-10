@@ -37,6 +37,7 @@ export function createHeaderView({
             ? `<button class="menu-item" role="menuitem" id="menuHome">🏠 Main</button>`
             : `<button class="menu-item" role="menuitem" id="menuHerbarium">📗 Herbarium</button>`
         }
+        <button class="menu-item" role="menuitem" id="menuBadges">🏅 Badges</button>
         <button class="menu-item" role="menuitem" id="menuChallenge">🏁 Challenge</button>
         <button class="menu-item danger" role="menuitem" id="menuLogout">🚪 Log out</button>
         <div class="lang-wrapper">
@@ -63,6 +64,7 @@ export function createHeaderView({
   const logoutBtn = root.querySelector("#menuLogout");
   const langSelect = root.querySelector("#langSelect");
   const challengeMenuBtn = root.querySelector("#menuChallenge");
+  const badgesMenuBtn = root.querySelector("#menuBadges");
 
   // callbacks set by controller
   let onMenuToggle = null;
@@ -70,6 +72,7 @@ export function createHeaderView({
   let onLogout = null;
   let onLanguageChange = null;
   let onChallenge = null;
+  let onBadges = null;
 
   function toggleMenu(force) {
     const willOpen = force !== undefined ? force : menu.style.display === "none";
@@ -97,7 +100,8 @@ export function createHeaderView({
 
     if (langSelect) langSelect.setAttribute("aria-label", t("header.language"));
 
-    if (challengeMenuBtn) {challengeMenuBtn.textContent = `🏁 ${t("header.challenge")}`;}
+    if (challengeMenuBtn) { challengeMenuBtn.textContent = `🏁 ${t("header.challenge")}`; }
+    if (badgesMenuBtn) { badgesMenuBtn.textContent = `🏅 ${t("header.badges")}`; }
   }
 
   document.addEventListener("i18n:changed", () => {
@@ -130,6 +134,11 @@ export function createHeaderView({
     if (onChallenge) onChallenge();
   });
 
+  badgesMenuBtn?.addEventListener("click", () => {
+    toggleMenu(false);
+    if (onBadges) onBadges();
+  });
+
   // initial i18n render
   refreshI18n();
 
@@ -158,5 +167,6 @@ export function createHeaderView({
     setOnLogout(cb) { onLogout = cb; },
     setOnLanguageChange(cb) { onLanguageChange = cb; },
     setOnChallenge(cb) { onChallenge = cb; },
+    setOnBadges(cb) { onBadges = cb; },
   };
 }

@@ -37,6 +37,7 @@
   "header.language": "Sprache",
   "header.levelShort": "Lvl.",
   "header.challenge": "Wettbewerb",
+  "header.badges": "Abzeichen",
 
   "herbarium.pageTitle": "PlantGo • Herbarium",
   "herbarium.title": "Deine Entdeckungen",
@@ -178,5 +179,27 @@
   "quests.mis.desc": "Mindestens 1 Missionsart beobachten",
 
   "location.gate.title": "Standort erforderlich",
-  "location.gate.message": "PlantGo benötigt deinen Standort, um Pflanzen zu bestimmen, Missionen zu laden und Wettbewerbe zu erstellen. Bitte aktiviere den Standortzugriff in den Einstellungen deines Browsers oder Geräts, um fortzufahren."
+  "location.gate.message": "PlantGo benötigt deinen Standort, um Pflanzen zu bestimmen, Missionen zu laden und Wettbewerbe zu erstellen. Bitte aktiviere den Standortzugriff in den Einstellungen deines Browsers oder Geräts, um fortzufahren.",
+
+  "badges.pageTitle": "PlantGo • Abzeichen",
+  "badges.title": "Abzeichen",
+  "badges.loading": "Lädt…",
+  "badges.error": "Abzeichen konnten nicht geladen werden.",
+
+  "badges.obs1.name": "Erste Schritte",
+  "badges.obs1.desc": "Deine erste Pflanzenbeobachtung",
+  "badges.obs100.name": "Jahrhunderter",
+  "badges.obs100.desc": "100 Beobachtungen gemacht",
+  "badges.obs1000.name": "Botaniker",
+  "badges.obs1000.desc": "1000 Beobachtungen gemacht",
+
+  "badges.mission1.name": "Auf Mission",
+  "badges.mission1.desc": "Erste Mission abgeschlossen",
+  "badges.mission10.name": "Missionsspezialist",
+  "badges.mission10.desc": "10 Missionen abgeschlossen",
+  "badges.mission100.name": "Missionsmeister",
+  "badges.mission100.desc": "100 Missionen abgeschlossen",
+
+  "badges.releve1.name": "Naturforscher",
+  "badges.releve1.desc": "5 Arten innerhalb von 50 m an einem Tag gefunden"
 }
