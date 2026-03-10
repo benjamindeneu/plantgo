@@ -91,7 +91,7 @@ export function ResultModal() {
       const allNewBadgeIds = [...new Set([...achievementBadgeIds, ...questBadges])];
       for (const id of allNewBadgeIds) {
         const def = BADGE_DEFINITIONS.find((b) => b.id === id);
-        if (def) badges.push({ kind: "achievement", emoji: def.emoji, label: t(def.nameKey) });
+        if (def) badges.push({ kind: "achievement", emoji: def.emoji, label: t(def.nameKey), desc: t(def.descKey) });
       }
 
       if (isNearbyDuplicate) {

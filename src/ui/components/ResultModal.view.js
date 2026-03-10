@@ -388,15 +388,29 @@ export function createResultModalView() {
     }, randomInRange(230, 270));
   }
 
+  function showAchievementBadge(container, badge) {
+    return new Promise((r) => {
+      const node = document.createElement("div");
+      node.className = "badge-card badge-card--unlocked badge-card--pop";
+      node.innerHTML = `
+        <div class="badge-card__icon">${badge.emoji}</div>
+        <div class="badge-card__name">${escapeHtml(badge.label)}</div>
+        <div class="badge-card__desc">${escapeHtml(badge.desc ?? "")}</div>
+      `;
+      container.appendChild(node);
+      requestAnimationFrame(() => {
+        node.classList.add("in");
+        setTimeout(r, 600);
+      });
+    });
+  }
+
   function showBadge(container, badge) {
     return new Promise((r) => {
       const node = document.createElement("div");
       node.className = "badge big";
-
-      // badge.label should already be translated by controller
       if (badge.rawHTML) node.innerHTML = badge.label;
       else node.innerHTML = `<span class="icon">${badge.emoji}</span><span class="txt">${escapeHtml(badge.label)}</span>${badge.bonus != null ? `<span class="add">+${badge.bonus}</span>` : ""}`;
-
       container.appendChild(node);
       requestAnimationFrame(() => {
         node.classList.add("in");
@@ -568,8 +582,24 @@ export function createResultModalView() {
       valueWrapper.innerHTML = `<span id="pointsCounter">${escapeHtml(counterEl.textContent)}</span> <span class="rarity-label">${escapeHtml(rarityLabel)}</span>`;
 
       if (badges && badges.length) {
-        badgesEl.style.display = "block";
-        for (const b of badges) await showBadge(badgesEl, b);
+        badgesEl.style.display = "flex";
+        const bonusBadges = badges.filter(b => b.kind !== "achievement");
+        const achievementBadges = badges.filter(b => b.kind === "achievement");
+
+        for (const b of bonusBadges) await showBadge(badgesEl, b);
+
+        if (achievementBadges.length) {
+          const title = document.createElement("div");
+          title.className = "achievement-badges-title";
+          title.textContent = t("result.badge.newBadgesUnlocked");
+          badgesEl.appendChild(title);
+
+          const grid = document.createElement("div");
+          grid.className = "achievement-badges-grid";
+          badgesEl.appendChild(grid);
+
+          for (const b of achievementBadges) await showAchievementBadge(grid, b);
+        }
       }
 
       qs("#finalTotal").textContent = String(finalTotal);
