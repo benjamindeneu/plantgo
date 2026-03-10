@@ -167,12 +167,15 @@ export async function addObservationAndDiscovery({
   const userData = userSnap.data() || {};
   const newObsCount = (Number(userData.total_observations) || 0) + 1;
   const newMissionObsCount = (Number(userData.total_mission_observations) || 0) + (missionBonus > 0 ? 1 : 0);
+  const isNewDiscovery = discoveryBonus > 0;
+  const newDiscoveriesCount = (Number(userData.total_discoveries) || 0) + (isNewDiscovery ? 1 : 0);
 
   const userUpdate = {
     total_points: increment(basePoints + discoveryBonus + missionBonus),
     total_observations: increment(1),
   };
   if (missionBonus > 0) userUpdate.total_mission_observations = increment(1);
+  if (isNewDiscovery)   userUpdate.total_discoveries = increment(1);
   await updateDoc(userRef, userUpdate);
 
   // 5) Challenge score: BASE ONLY (no bonuses) for points race; species name for species_hunt
@@ -188,5 +191,14 @@ export async function addObservationAndDiscovery({
     nowMs: Date.now(),
   });
 
-  return { observationId: observationDoc.id, discoveryBonus, isNearbyDuplicate: false, obsCount: newObsCount, missionObsCount: newMissionObsCount };
+  return {
+    observationId: observationDoc.id,
+    discoveryBonus,
+    isNearbyDuplicate: false,
+    obsCount: newObsCount,
+    missionObsCount: newMissionObsCount,
+    discoveriesCount: newDiscoveriesCount,
+    hasEpicObs: basePoints >= 1000,
+    hasLegendaryObs: basePoints >= 1500,
+  };
 }

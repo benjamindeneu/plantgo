@@ -200,5 +200,29 @@
   "badges.mission100.desc": "100 missões concluídas",
 
   "badges.releve1.name": "Naturalista",
-  "badges.releve1.desc": "5 espécies encontradas num raio de 50 m no mesmo dia"
+  "badges.releve1.desc": "5 espécies encontradas num raio de 50 m no mesmo dia",
+
+  "badges.disc10.name": "Explorador",
+  "badges.disc10.desc": "10 espécies únicas descobertas",
+  "badges.disc50.name": "Colecionador",
+  "badges.disc50.desc": "50 espécies únicas descobertas",
+  "badges.disc100.name": "Herbalista",
+  "badges.disc100.desc": "100 espécies únicas descobertas",
+  "badges.disc500.name": "Taxonomista",
+  "badges.disc500.desc": "500 espécies únicas descobertas",
+
+  "badges.perfectDay.name": "Dia perfeito",
+  "badges.perfectDay.desc": "3 missões diárias concluídas num único dia",
+
+  "badges.epicObs.name": "Polegar roxo",
+  "badges.epicObs.desc": "Observação épica realizada (1000+ pts)",
+  "badges.legendaryObs.name": "Descoberta lendária",
+  "badges.legendaryObs.desc": "Observação lendária realizada (1500+ pts)",
+
+  "badges.level5.name": "Em ascensão",
+  "badges.level5.desc": "Nível 5 atingido",
+  "badges.level10.name": "Experiente",
+  "badges.level10.desc": "Nível 10 atingido",
+  "badges.level20.name": "Mestre",
+  "badges.level20.desc": "Nível 20 atingido"
 }

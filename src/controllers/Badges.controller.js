@@ -14,7 +14,7 @@ export function BadgesPanel() {
 
   // Keep latest values from both subscriptions so we can re-render when either changes
   let latestUnlocked = new Set();
-  let latestCounts = { obs: 0, mission: 0 };
+  let latestCounts = { obs: 0, mission: 0, discoveries: 0, level: 1 };
 
   function refresh() {
     view.update(latestUnlocked, latestCounts);
@@ -32,8 +32,10 @@ export function BadgesPanel() {
     unsubUser = onSnapshot(doc(db, "users", user.uid), (snap) => {
       const data = snap.data() ?? {};
       latestCounts = {
-        obs:     Number(data.total_observations      ?? 0),
-        mission: Number(data.total_mission_observations ?? 0),
+        obs:         Number(data.total_observations        ?? 0),
+        mission:     Number(data.total_mission_observations ?? 0),
+        discoveries: Number(data.total_discoveries         ?? 0),
+        level:       Math.floor(1 + (Number(data.total_points) || 0) / 11000),
       };
       refresh();
     });

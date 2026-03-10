@@ -201,5 +201,29 @@
   "badges.mission100.desc": "100 Missionen abgeschlossen",
 
   "badges.releve1.name": "Naturforscher",
-  "badges.releve1.desc": "5 Arten innerhalb von 50 m an einem Tag gefunden"
+  "badges.releve1.desc": "5 Arten innerhalb von 50 m an einem Tag gefunden",
+
+  "badges.disc10.name": "Entdecker",
+  "badges.disc10.desc": "10 einzigartige Arten entdeckt",
+  "badges.disc50.name": "Sammler",
+  "badges.disc50.desc": "50 einzigartige Arten entdeckt",
+  "badges.disc100.name": "Kräuterkundiger",
+  "badges.disc100.desc": "100 einzigartige Arten entdeckt",
+  "badges.disc500.name": "Taxonom",
+  "badges.disc500.desc": "500 einzigartige Arten entdeckt",
+
+  "badges.perfectDay.name": "Perfekter Tag",
+  "badges.perfectDay.desc": "Alle 3 Tagesquests an einem Tag abgeschlossen",
+
+  "badges.epicObs.name": "Grüner Daumen",
+  "badges.epicObs.desc": "Epische Beobachtung gemacht (1000+ Punkte)",
+  "badges.legendaryObs.name": "Legendärer Fund",
+  "badges.legendaryObs.desc": "Legendäre Beobachtung gemacht (1500+ Punkte)",
+
+  "badges.level5.name": "Aufsteigend",
+  "badges.level5.desc": "Stufe 5 erreicht",
+  "badges.level10.name": "Erfahren",
+  "badges.level10.desc": "Stufe 10 erreicht",
+  "badges.level20.name": "Meister",
+  "badges.level20.desc": "Stufe 20 erreicht"
 }

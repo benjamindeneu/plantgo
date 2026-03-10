@@ -201,5 +201,29 @@
   "badges.mission100.desc": "Completed 100 missions",
 
   "badges.releve1.name": "Naturalist",
-  "badges.releve1.desc": "Found 5 species within 50 m in a single day"
+  "badges.releve1.desc": "Found 5 species within 50 m in a single day",
+
+  "badges.disc10.name": "Explorer",
+  "badges.disc10.desc": "Discovered 10 unique species",
+  "badges.disc50.name": "Collector",
+  "badges.disc50.desc": "Discovered 50 unique species",
+  "badges.disc100.name": "Herbalist",
+  "badges.disc100.desc": "Discovered 100 unique species",
+  "badges.disc500.name": "Taxonomist",
+  "badges.disc500.desc": "Discovered 500 unique species",
+
+  "badges.perfectDay.name": "Perfect Day",
+  "badges.perfectDay.desc": "Completed all 3 daily quests in a single day",
+
+  "badges.epicObs.name": "Purple Thumb",
+  "badges.epicObs.desc": "Made an epic observation (1000+ pts)",
+  "badges.legendaryObs.name": "Legendary Find",
+  "badges.legendaryObs.desc": "Made a legendary observation (1500+ pts)",
+
+  "badges.level5.name": "Rising",
+  "badges.level5.desc": "Reached level 5",
+  "badges.level10.name": "Seasoned",
+  "badges.level10.desc": "Reached level 10",
+  "badges.level20.name": "Master",
+  "badges.level20.desc": "Reached level 20"
 }

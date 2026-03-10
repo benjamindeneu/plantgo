@@ -110,12 +110,18 @@ export async function checkAndAwardQuestCompletions(userId) {
     });
   }
 
+  const ALL_QUEST_IDS = ["daily_observations", "inventory", "mission"];
+  const allCompletedToday = [...alreadyCompleted, ...newlyCompleted.map(q => q.id)];
   const hasReleve = newlyCompleted.some(q => q.id === "inventory");
-  const newlyUnlockedBadges = hasReleve
-    ? await checkAndUnlockBadges(userId, { hasReleve: true })
-    : [];
+  const hasPerfectDay = ALL_QUEST_IDS.every(id => allCompletedToday.includes(id));
 
-  return { completedQuestIds: newlyCompleted.map(q => q.id), newlyUnlockedBadges };
+  const questBadgeIds = [];
+  if (hasReleve || hasPerfectDay) {
+    const ids = await checkAndUnlockBadges(userId, { hasReleve, hasPerfectDay });
+    questBadgeIds.push(...ids);
+  }
+
+  return { completedQuestIds: newlyCompleted.map(q => q.id), newlyUnlockedBadges: questBadgeIds, hasPerfectDay };
 }
 
 /**

@@ -136,7 +136,7 @@ a:hover{
 
 /* ---------- 3) LAYOUT ---------- */
 .container{ max-width:900px; margin:0 auto; }
-.app-shell{ display:grid; grid-template-rows:auto 1fr auto; }
+.app-shell{ display:grid; grid-template-rows:auto 1fr auto; grid-template-columns:minmax(0,1fr); }
 main{ padding:var(--sp-3); }
 .footer{ padding:var(--sp-4); text-align:center; color:var(--muted); }
 
@@ -152,6 +152,9 @@ main{ padding:var(--sp-3); }
   border:1px solid var(--border);
   border-radius:var(--r-lg);
   padding:var(--sp-2);
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   /*background:var(--surface);*/
   box-shadow:var(--shadow);
 
@@ -695,6 +698,8 @@ header, .nav{
   gap: 12px;
   padding: 10px 2px;
   transition: opacity 0.2s;
+  min-width: 0;
+  overflow: hidden;
 }
 .checklist-row-found { opacity: 0.5; }
 .checklist-img-wrap {
@@ -713,7 +718,7 @@ header, .nav{
   gap: 2px;
   min-width: 0;
 }
-.checklist-sci { font-size: 1em; font-style: italic; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.checklist-sci { display: block; max-width: 100%; font-size: 1em; font-style: italic; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .checklist-common { font-size: 0.85em; color: var(--text-muted, #888); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .checklist-footer {
   display: flex;
@@ -723,7 +728,7 @@ header, .nav{
   flex-wrap: wrap;
 }
 .checklist-badges { display: flex; gap: 4px; flex-wrap: wrap; }
-.checklist-links { display: flex; gap: 6px; align-items: center; margin-left: auto; }
+.checklist-links { display: flex; gap: 6px; align-items: center; margin-left: auto; flex-shrink: 0; }
 .checklist-found-mark {
   flex-shrink: 0;
   width: 26px;
@@ -1247,6 +1252,9 @@ header, .nav{
   align-items: flex-start;
   gap: 4px;
   flex-shrink: 0;
+  min-width: 0;
+  max-width: 30%;
+  overflow: hidden;
 }
 
 .dq-title {
@@ -1254,7 +1262,10 @@ header, .nav{
   font-size: 0.68rem;
   color: var(--green-800);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   line-height: 1.2;
+  max-width: 100%;
 }
 
 .dq-label-bottom {

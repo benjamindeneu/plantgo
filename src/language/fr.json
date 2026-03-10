@@ -201,5 +201,29 @@
   "badges.mission100.desc": "100 missions accomplies",
 
   "badges.releve1.name": "Naturaliste",
-  "badges.releve1.desc": "5 espèces trouvées dans un rayon de 50 m le même jour"
+  "badges.releve1.desc": "5 espèces trouvées dans un rayon de 50 m le même jour",
+
+  "badges.disc10.name": "Explorateur",
+  "badges.disc10.desc": "10 espèces uniques découvertes",
+  "badges.disc50.name": "Collectionneur",
+  "badges.disc50.desc": "50 espèces uniques découvertes",
+  "badges.disc100.name": "Herbaliste",
+  "badges.disc100.desc": "100 espèces uniques découvertes",
+  "badges.disc500.name": "Taxonomiste",
+  "badges.disc500.desc": "500 espèces uniques découvertes",
+
+  "badges.perfectDay.name": "Journée parfaite",
+  "badges.perfectDay.desc": "3 quêtes journalières complétées en une seule journée",
+
+  "badges.epicObs.name": "Pouce violet",
+  "badges.epicObs.desc": "Observation épique réalisée (1000+ pts)",
+  "badges.legendaryObs.name": "Trouvaille légendaire",
+  "badges.legendaryObs.desc": "Observation légendaire réalisée (1500+ pts)",
+
+  "badges.level5.name": "En progression",
+  "badges.level5.desc": "Niveau 5 atteint",
+  "badges.level10.name": "Expérimenté",
+  "badges.level10.desc": "Niveau 10 atteint",
+  "badges.level20.name": "Maître",
+  "badges.level20.desc": "Niveau 20 atteint"
 }

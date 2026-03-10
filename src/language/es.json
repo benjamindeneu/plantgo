@@ -201,5 +201,29 @@
   "badges.mission100.desc": "100 misiones completadas",
 
   "badges.releve1.name": "Naturalista",
-  "badges.releve1.desc": "5 especies encontradas en 50 m en un mismo día"
+  "badges.releve1.desc": "5 especies encontradas en 50 m en un mismo día",
+
+  "badges.disc10.name": "Explorador",
+  "badges.disc10.desc": "10 especies únicas descubiertas",
+  "badges.disc50.name": "Coleccionista",
+  "badges.disc50.desc": "50 especies únicas descubiertas",
+  "badges.disc100.name": "Herbolario",
+  "badges.disc100.desc": "100 especies únicas descubiertas",
+  "badges.disc500.name": "Taxonomista",
+  "badges.disc500.desc": "500 especies únicas descubiertas",
+
+  "badges.perfectDay.name": "Día perfecto",
+  "badges.perfectDay.desc": "3 misiones diarias completadas en un mismo día",
+
+  "badges.epicObs.name": "Pulgar morado",
+  "badges.epicObs.desc": "Observación épica realizada (1000+ pts)",
+  "badges.legendaryObs.name": "Hallazgo legendario",
+  "badges.legendaryObs.desc": "Observación legendaria realizada (1500+ pts)",
+
+  "badges.level5.name": "En ascenso",
+  "badges.level5.desc": "Nivel 5 alcanzado",
+  "badges.level10.name": "Experimentado",
+  "badges.level10.desc": "Nivel 10 alcanzado",
+  "badges.level20.name": "Maestro",
+  "badges.level20.desc": "Nivel 20 alcanzado"
 }

@@ -47,8 +47,9 @@ export function ResultModal() {
       let discoveryBonus = 0;
       let isNearbyDuplicate = false;
       let nearbyPoints = 0;
+      let obsResult = {};
       if (user) {
-        const result = await addObservationAndDiscovery({
+        obsResult = await addObservationAndDiscovery({
           userId: user.uid,
           speciesName,
           lat, lon,
@@ -59,24 +60,34 @@ export function ResultModal() {
           total_points: baseTotal,
           extraBonus: missionHit ? 500 : 0,
         });
-        discoveryBonus = result.discoveryBonus;
-        isNearbyDuplicate = result.isNearbyDuplicate;
-        nearbyPoints = result.nearbyPoints ?? 0;
+        discoveryBonus = obsResult.discoveryBonus;
+        isNearbyDuplicate = obsResult.isNearbyDuplicate;
+        nearbyPoints = obsResult.nearbyPoints ?? 0;
       }
 
-      // Check if this observation completed any daily quests (+ relevé badge)
+      // Check if this observation completed any daily quests (+ relevé / perfect day badges)
       const { completedQuestIds, newlyUnlockedBadges: questBadges } = await checkAndAwardQuestCompletions(user.uid);
       for (const _ of completedQuestIds) {
         badges.push({ kind: "quest", emoji: "🏆", label: t("result.badge.questComplete"), bonus: QUEST_BONUS });
       }
 
-      // Check observation-count and mission-count badges
+      // Estimate new total points for level badge check
+      const missionBonus = missionHit ? 500 : 0;
+      const questBonus = completedQuestIds.length * QUEST_BONUS;
+      const estimatedNewTotal = currentTotalBefore + baseTotal + discoveryBonus + missionBonus + questBonus;
+      const newLevel = Math.floor(1 + estimatedNewTotal / 11000);
+
+      // Check all achievement badges
       const achievementBadgeIds = await checkAndUnlockBadges(user.uid, {
-        obsCount: result.obsCount ?? 0,
-        missionObsCount: result.missionObsCount ?? 0,
+        obsCount:         obsResult.obsCount         ?? 0,
+        missionObsCount:  obsResult.missionObsCount  ?? 0,
+        discoveriesCount: obsResult.discoveriesCount ?? 0,
+        hasEpicObs:       obsResult.hasEpicObs       ?? false,
+        hasLegendaryObs:  obsResult.hasLegendaryObs  ?? false,
+        level:            newLevel,
       });
 
-      // Merge all newly unlocked achievement badges (obs/mission from here + relevé from quests)
+      // Merge all newly unlocked achievement badges (from obs + quests)
       const allNewBadgeIds = [...new Set([...achievementBadgeIds, ...questBadges])];
       for (const id of allNewBadgeIds) {
         const def = BADGE_DEFINITIONS.find((b) => b.id === id);
