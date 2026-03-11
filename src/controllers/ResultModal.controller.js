@@ -25,7 +25,7 @@ export function ResultModal() {
       const detail = (points?.detail && typeof points.detail === "object") ? points.detail : {};
 
       // Low confidence — show tentative result, do not save observation
-      if (plantnet_identify_score < 0.5) {
+      if (plantnet_identify_score < 0.2) {
         await view.showLowConfidenceUI({ speciesName, speciesVernacularName, speciesScore: plantnet_identify_score });
         return;
       }
