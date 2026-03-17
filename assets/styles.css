@@ -853,6 +853,43 @@ header, .nav{
 .result-modal .modal-content.result{ overflow:hidden; position: relative; }
 .result-head{ display:flex; flex-direction:column; gap:var(--sp-2); }
 .result-body{ display:grid; gap:var(--sp-2); }
+.result-trivia {
+  background: linear-gradient(135deg, #fff8f1, #fff3e6);
+  border: 1px solid #fcd9a8;
+  border-radius: var(--r-lg);
+  padding: var(--sp-3) var(--sp-4) var(--sp-3) var(--sp-3);
+  animation: trivia-fade-in 0.4s var(--easing) both;
+}
+@keyframes trivia-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.trivia-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: #f97316;
+  border-radius: 50%;
+  color: #fff;
+  font-size: .75rem;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1;
+  vertical-align: middle;
+  margin-right: var(--sp-2);
+  flex-shrink: 0;
+  position: relative;
+  top: -1px;
+}
+.result-trivia p {
+  margin: 0;
+  font-size: .9rem;
+  line-height: 1.6;
+  color: #7c3a0a;
+  font-style: italic;
+}
 
 .loading-track{
   position:relative;

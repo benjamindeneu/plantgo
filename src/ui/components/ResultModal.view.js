@@ -61,6 +61,10 @@ export function createResultModalView() {
             <span data-i18n="result.ptsShort">pts</span>
           </div>
         </div>
+
+        <div class="result-trivia" id="triviaWrap" style="display:none">
+          <p id="triviaText"><span class="trivia-icon" aria-hidden="true">i</span></p>
+        </div>
       </div>
 
       <div class="result-actions">
@@ -514,7 +518,7 @@ export function createResultModalView() {
       qs("#speciesNameDiv").appendChild(msg);
     },
 
-    async showResultUI({ speciesName, speciesVernacularName, speciesScore, baseTotal, detail, badges, currentTotalBefore, finalTotal, isNearbyDuplicate = false }) {
+    async showResultUI({ speciesName, speciesVernacularName, speciesScore, baseTotal, detail, badges, currentTotalBefore, finalTotal, isNearbyDuplicate = false, trivia = null }) {
       const loading = qs("#loadingTrack");
       const title = qs("#resultTitle");
       const speciesLine = qs("#speciesNameLine");
@@ -604,6 +608,11 @@ export function createResultModalView() {
 
       qs("#finalTotal").textContent = String(finalTotal);
       qs("#finalTotalWrap").style.display = "block";
+
+      if (trivia) {
+        qs("#triviaText").appendChild(document.createTextNode(trivia));
+        qs("#triviaWrap").style.display = "block";
+      }
 
       const { fromLevel, fromPct } = calcFromLevel(currentTotalBefore);
       const { toLevel, toPct } = calcToLevel(currentTotalBefore + finalTotal);

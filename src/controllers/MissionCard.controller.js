@@ -106,14 +106,22 @@ export function MissionCard(species) {
     species.description_html ||
     ""; // keep this as HTML only
 
-  const existingDescText =
-    (!existingDescHtml && (species.wiki_extract || species.description)) ||
-    ""; // plain text fallback
+  const existingDescText = (!existingDescHtml && species.wiki_extract) || "";
+
+  const backendDesc = typeof species.description === "object" && species.description !== null
+    ? species.description
+    : null;
 
   if (existingDescHtml) {
     view.setWikiDescriptionHtml(existingDescHtml);
   } else if (existingDescText) {
     view.setWikiDescriptionText(existingDescText);
+  } else if (backendDesc?.description) {
+    let html = `<p>${escapeHtml(backendDesc.description)}</p>`;
+    if (backendDesc.habitat) {
+      html += `<p><strong>${escapeHtml(t("missions.card.habitat"))}</strong> ${escapeHtml(backendDesc.habitat)}</p>`;
+    }
+    view.setWikiDescriptionHtml(html);
   } else if (sciName) {
     const lang = getUiLang();
     const cacheKey = `${sciName.trim().toLowerCase()}|${lang}`;

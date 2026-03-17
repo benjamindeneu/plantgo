@@ -17,7 +17,7 @@ export function ResultModal() {
       await view.initLoading({ photos, currentTotalPoints });
     },
 
-    async showResult({ identify, points, lat, lon, plantnetImageCode }) {
+    async showResult({ identify, points, trivia = null, lat, lon, plantnetImageCode }) {
       const speciesName = identify?.name || t("result.unknownSpecies");
       const speciesVernacularName = identify?.vernacularName || t("result.noCommonName");
       const baseTotal = Number(points?.total ?? 0);
@@ -108,6 +108,7 @@ export function ResultModal() {
           currentTotalBefore,
           finalTotal,
           isNearbyDuplicate: true,
+          trivia,
         });
         return;
       }
@@ -125,6 +126,7 @@ export function ResultModal() {
         badges,
         currentTotalBefore,
         finalTotal,
+        trivia,
       });
     },
   };
