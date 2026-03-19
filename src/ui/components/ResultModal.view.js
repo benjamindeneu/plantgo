@@ -1,6 +1,7 @@
 // src/ui/components/ResultModal.view.js
 import { t, translateDom } from "../../language/i18n.js";
 import confetti from "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.module.mjs";
+import { calcFromLevel, calcToLevel, animateProgress, fireLevelUpConfetti } from "../levelProgress.js";
 
 export function createResultModalView() {
   const overlay = document.createElement("div");
@@ -62,6 +63,10 @@ export function createResultModalView() {
           </div>
         </div>
 
+        <div class="result-description" id="descriptionWrap" style="display:none">
+          <div id="descriptionText"></div>
+        </div>
+
         <div class="result-trivia" id="triviaWrap" style="display:none">
           <p id="triviaText"><span class="trivia-icon" aria-hidden="true">i</span></p>
         </div>
@@ -79,8 +84,6 @@ export function createResultModalView() {
   const qs = (sel) => overlay.querySelector(sel);
 
   /* ---------- helpers (visual only) ---------- */
-  const clamp01 = (v) => Math.max(0, Math.min(100, v));
-
   // rarity helpers
   const getRarity = (val) => (val >= 1500 ? "legendary-points" :
                                val >= 1000 ? "epic-points" :
@@ -117,21 +120,6 @@ export function createResultModalView() {
     el.classList.remove("points-pop");
     void el.offsetWidth;
     el.classList.add("points-pop");
-  }
-
-  function animateProgress(el, fromPct, toPct, options = {}) {
-    const duration = 900, start = performance.now();
-    const ease = getEaseFn(options.ease || "linear");
-    return new Promise((res) => {
-      function frame(ts) {
-        const tt = Math.min(1, (ts - start) / duration);
-        const e = ease(tt);
-        const v = Math.round(fromPct + (toPct - fromPct) * e);
-        el.style.width = `${v}%`;
-        if (tt < 1) requestAnimationFrame(frame); else res();
-      }
-      requestAnimationFrame(frame);
-    });
   }
 
   function fireLevelUpConfettiOld() {
@@ -293,105 +281,6 @@ export function createResultModalView() {
     }, 250);
   }
 
-  function fireLevelUpConfetti() {
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
-
-    const card =
-      document.querySelector(".modal-content.result") ||
-      document.querySelector(".modal-content") ||
-      document.body;
-
-    const r = card.getBoundingClientRect();
-    const origin = {
-      x: Math.max(0, Math.min(1, (r.left + r.width * 0.5) / window.innerWidth)),
-      y: Math.max(0, Math.min(1, r.bottom / window.innerHeight)),
-    };
-
-    const randomInRange = (min, max) => Math.random() * (max - min) + min;
-    const getRandomItem = (arr) => arr[Math.floor(Math.random() * arr.length)];
-
-    const LEAF_COLORS = ["#27ae60", "#2ecc71", "#a2d149"];
-    const FLOWER_COLORS = ["#ff79c6", "#ffb86c"];
-
-    // Symmetrical 5-petal daisy
-    const flower = confetti.shapeFromPath({
-      path: "M 9.1 8.0 A 4.5 4.5 0 1 1 14.9 8.0 A 4.5 4.5 0 1 1 16.8 13.5 A 4.5 4.5 0 1 1 12.0 17.0 A 4.5 4.5 0 1 1 7.2 13.5 A 4.5 4.5 0 1 1 9.1 8.0 Z"
-    });
-
-    // THE FULL COMPASS: All 8 directions for maximum 2D rotation variety
-    const leafUp = confetti.shapeFromPath({ path: "M 12 2 C 20 5 22 15 12 22 C 2 15 4 5 12 2 Z" });
-    const leafRight = confetti.shapeFromPath({ path: "M 22 12 C 19 20 9 22 2 12 C 9 2 19 4 22 12 Z" });
-    const leafDown = confetti.shapeFromPath({ path: "M 12 22 C 4 19 2 9 12 2 C 22 9 20 19 12 22 Z" });
-    const leafLeft = confetti.shapeFromPath({ path: "M 2 12 C 5 4 15 2 22 12 C 15 20 5 19 2 12 Z" });
-    
-    const leafTopRight = confetti.shapeFromPath({ path: "M2 22 C 2 10 10 2 22 2 C 22 14 14 22 2 22 Z" });
-    const leafTopLeft = confetti.shapeFromPath({ path: "M22 22 C 22 10 14 2 2 2 C 2 14 10 22 22 22 Z" });
-    const leafBottomRight = confetti.shapeFromPath({ path: "M2 2 C 2 14 10 22 22 22 C 22 10 14 2 2 2 Z" });
-    const leafBottomLeft = confetti.shapeFromPath({ path: "M22 2 C 22 14 14 22 2 22 C 2 10 10 2 22 2 Z" });
-    
-    const allLeaves = [
-      leafUp, leafRight, leafDown, leafLeft, 
-      leafTopRight, leafTopLeft, leafBottomRight, leafBottomLeft
-    ];
-
-    const fireBatch = (count, isFlower, baseSettings) => {
-      for (let i = 0; i < count; i++) {
-        confetti({
-          origin: { 
-            x: origin.x + randomInRange(-0.01, 0.01), 
-            y: origin.y + randomInRange(-0.01, 0.01) 
-          },
-          particleCount: 1, 
-          
-          // Pick a completely random orientation from the 8 available, or the flower
-          shapes: isFlower ? [flower] : [getRandomItem(allLeaves)],
-          colors: [getRandomItem(isFlower ? FLOWER_COLORS : LEAF_COLORS)],
-          disableForReducedMotion: true,
-          zIndex: 99999,
-          flat: true, 
-          
-          spread: baseSettings.spread + randomInRange(-5, 5),
-          startVelocity: baseSettings.startVelocity + randomInRange(-4, 4),
-          gravity: baseSettings.gravity + randomInRange(-0.05, 0.05),
-          decay: baseSettings.decay + randomInRange(-0.005, 0.005),
-          drift: baseSettings.drift + randomInRange(-0.2, 0.2), 
-          ticks: baseSettings.ticks + randomInRange(-20, 50),
-          angle: baseSettings.angle + randomInRange(-5, 5),
-          
-          scalar: isFlower ? randomInRange(1.4, 1.9) : randomInRange(0.9, 1.3),
-        });
-      }
-    };
-
-    // 1. Initial High Burst (The "Pop")
-    // Gravity increased to 0.8
-    const popBase = {
-      spread: 50, startVelocity: 45, gravity: 0.8, decay: 0.9, drift: 0, ticks: 200, angle: 90
-    };
-    fireBatch(80, false, popBase); 
-    fireBatch(8, true, popBase);   
-
-    // 2. Wide Mid-Shot (The "Bloom")
-    // Gravity increased to 0.65
-    setTimeout(() => {
-      const bloomBase = {
-        spread: 90, startVelocity: 35, gravity: 0.65, decay: 0.92, drift: 0, ticks: 300, angle: 90
-      };
-      fireBatch(70, false, bloomBase); 
-      fireBatch(6, true, bloomBase);
-    }, randomInRange(80, 120));
-
-    // 3. The "After-Drift" (Organic Fall)
-    // Gravity increased to 0.5
-    setTimeout(() => {
-      const driftBase = {
-        spread: 130, startVelocity: 25, gravity: 0.5, decay: 0.94, drift: 0, ticks: 500, angle: 90
-      };
-      fireBatch(60, false, driftBase); 
-      fireBatch(10, true, driftBase);
-    }, randomInRange(230, 270));
-  }
-
   function showAchievementBadge(container, badge) {
     return new Promise((r) => {
       const node = document.createElement("div");
@@ -421,19 +310,6 @@ export function createResultModalView() {
         setTimeout(r, 500);
       });
     });
-  }
-
-  function calcFromLevel(total) {
-    const L = Math.floor(1 + total / 11000);
-    const prev = (L - 1) * 11000, next = L * 11000;
-    const pct = Math.round(((total - prev) / (next - prev)) * 100);
-    return { fromLevel: L, nextLevel: L + 1, fromPct: clamp01(pct) };
-  }
-  function calcToLevel(total) {
-    const L = Math.floor(1 + total / 11000);
-    const prev = (L - 1) * 11000, next = L * 11000;
-    const pct = Math.round(((total - prev) / (next - prev)) * 100);
-    return { toLevel: L, toPct: clamp01(pct) };
   }
 
   // Update static UI labels + existing detail line labels (no animation restart)
@@ -518,7 +394,7 @@ export function createResultModalView() {
       qs("#speciesNameDiv").appendChild(msg);
     },
 
-    async showResultUI({ speciesName, speciesVernacularName, speciesScore, baseTotal, detail, badges, currentTotalBefore, finalTotal, isNearbyDuplicate = false, trivia = null }) {
+    async showResultUI({ speciesName, speciesVernacularName, speciesScore, baseTotal, detail, badges, currentTotalBefore, finalTotal, isNearbyDuplicate = false, trivia = null, description = null }) {
       const loading = qs("#loadingTrack");
       const title = qs("#resultTitle");
       const speciesLine = qs("#speciesNameLine");
@@ -608,6 +484,21 @@ export function createResultModalView() {
 
       qs("#finalTotal").textContent = String(finalTotal);
       qs("#finalTotalWrap").style.display = "block";
+
+      if (description) {
+        const el = qs("#descriptionText");
+        if (description.description) {
+          const p = document.createElement("p");
+          p.textContent = description.description;
+          el.appendChild(p);
+        }
+        if (description.habitat) {
+          const p = document.createElement("p");
+          p.innerHTML = `<strong>${escapeHtml(t("missions.card.habitat"))}</strong> ${escapeHtml(description.habitat)}`;
+          el.appendChild(p);
+        }
+        if (el.childElementCount) qs("#descriptionWrap").style.display = "block";
+      }
 
       if (trivia) {
         qs("#triviaText").appendChild(document.createTextNode(trivia));

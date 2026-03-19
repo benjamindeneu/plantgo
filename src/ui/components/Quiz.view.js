@@ -1,5 +1,44 @@
 // src/ui/components/Quiz.view.js
 import { t } from "../../language/i18n.js";
+import { calcFromLevel, calcToLevel, animateProgress, fireLevelUpConfetti } from "../levelProgress.js";
+
+// ── Landing screen ────────────────────────────────────────────────────────────
+
+export function renderLanding(container, { alreadyDone, onStart }) {
+  container.innerHTML = "";
+
+  const wrap = document.createElement("div");
+  wrap.className = "quiz-landing";
+
+  if (alreadyDone) {
+    wrap.innerHTML = `
+      <div class="quiz-landing-icon">🌿</div>
+      <p class="quiz-landing-title">${t("quiz.landing.alreadyDone")}</p>
+      <p class="quiz-landing-sub">${t("quiz.landing.comeBack")}</p>
+    `;
+  } else {
+    wrap.innerHTML = `
+      <div class="quiz-landing-icon">🌱</div>
+      <p class="quiz-landing-title">${t("quiz.landing.title")}</p>
+      <p class="quiz-landing-desc">${t("quiz.landing.desc")}</p>
+      <p class="quiz-landing-sub">${t("quiz.landing.points")}</p>
+    `;
+    const startBtn = document.createElement("button");
+    startBtn.className = "primary";
+    startBtn.textContent = t("quiz.landing.start");
+    startBtn.addEventListener("click", onStart);
+    wrap.appendChild(startBtn);
+
+    const onceNote = document.createElement("p");
+    onceNote.className = "quiz-landing-once";
+    onceNote.textContent = t("quiz.landing.onceADay");
+    wrap.appendChild(onceNote);
+  }
+
+  container.appendChild(wrap);
+}
+
+// ── Question renderer ─────────────────────────────────────────────────────────
 
 /**
  * Renders a single quiz question and returns a Promise that resolves
@@ -9,14 +48,16 @@ export function renderQuestion(container, question, index, total) {
   return new Promise((resolve) => {
     container.innerHTML = "";
 
-    // Progress
+    // Progress header: counter + bar
+    const progressHeader = document.createElement("div");
+    progressHeader.className = "quiz-progress-header";
+    progressHeader.innerHTML = `<span class="quiz-progress-label">${index + 1} / ${total}</span>`;
+    container.appendChild(progressHeader);
+
     const progress = document.createElement("div");
     progress.className = "quiz-progress";
     const pct = Math.round((index / total) * 100);
-    progress.innerHTML = `
-      <div class="quiz-progress-bar" style="width:${pct}%"></div>
-      <span class="quiz-progress-label">${index + 1} / ${total}</span>
-    `;
+    progress.innerHTML = `<div class="quiz-progress-bar" style="width:${pct}%"></div>`;
     container.appendChild(progress);
 
     if (question.quiz_type === "species_name") {
@@ -25,7 +66,6 @@ export function renderQuestion(container, question, index, total) {
       img.className = "quiz-species-img";
       img.alt = question.species_name;
       img.onerror = () => {
-        // Fallback to species name text if image fails to load
         img.replaceWith((() => {
           const p = document.createElement("p");
           p.className = "quiz-species-name";
@@ -59,13 +99,12 @@ export function renderQuestion(container, question, index, total) {
 
     const answered = { done: false };
 
-    const handleAnswer = (key, btn) => {
+    const handleAnswer = (key) => {
       if (answered.done) return;
       answered.done = true;
 
       const correct = key === question.answer;
 
-      // Mark all buttons
       for (const [k, el] of Object.entries(buttons)) {
         if (k === question.answer) {
           el.classList.add("quiz-choice--correct");
@@ -75,13 +114,11 @@ export function renderQuestion(container, question, index, total) {
         el.disabled = true;
       }
 
-      // Feedback text
       const feedback = document.createElement("p");
       feedback.className = correct ? "quiz-feedback quiz-feedback--correct" : "quiz-feedback quiz-feedback--wrong";
       feedback.textContent = correct ? t("quiz.correct") : t("quiz.wrong");
       container.appendChild(feedback);
 
-      // Next button
       const nextBtn = document.createElement("button");
       nextBtn.className = "quiz-next-btn";
       nextBtn.textContent = index + 1 < total ? t("quiz.next") : t("quiz.seeResults");
@@ -104,7 +141,7 @@ export function renderQuestion(container, question, index, total) {
         img.className = "quiz-choice-img";
 
         btn.appendChild(img);
-        btn.addEventListener("click", () => handleAnswer(key, btn));
+        btn.addEventListener("click", () => handleAnswer(key));
         choicesEl.appendChild(btn);
         buttons[key] = btn;
       }
@@ -115,13 +152,15 @@ export function renderQuestion(container, question, index, total) {
         btn.className = "quiz-choice quiz-choice--text";
         btn.setAttribute("data-key", key);
         btn.textContent = `${key}. ${text}`;
-        btn.addEventListener("click", () => handleAnswer(key, btn));
+        btn.addEventListener("click", () => handleAnswer(key));
         choicesEl.appendChild(btn);
         buttons[key] = btn;
       }
     }
   });
 }
+
+// ── Loading / error states ────────────────────────────────────────────────────
 
 export function renderLoading(container, msg) {
   container.innerHTML = `<p class="quiz-status">${msg}</p>`;
@@ -135,13 +174,34 @@ export function renderEmpty(container) {
   container.innerHTML = `<p class="quiz-status">${t("quiz.noObservations")}</p>`;
 }
 
-export function renderScore(container, correct, total) {
+// ── Score screen with level bar ───────────────────────────────────────────────
+
+export async function renderScore(container, correct, total, { currentTotalBefore = 0, pointsEarned = 0 } = {}) {
   container.innerHTML = "";
 
+  // Level bar
+  const { fromLevel, nextLevel, fromPct } = calcFromLevel(currentTotalBefore);
+  const { toLevel, toPct } = calcToLevel(currentTotalBefore + pointsEarned);
+
+  const levelWrap = document.createElement("div");
+  levelWrap.className = "level-wrap";
+  levelWrap.innerHTML = `
+    <div class="level-line">
+      <span>${t("result.level")} <span id="qLevelFrom">${fromLevel}</span></span>
+      <span id="qLevelToLabel" style="opacity:0.9">→ <span id="qLevelTo">${nextLevel}</span></span>
+    </div>
+    <div class="progress-rail">
+      <div class="progress-bar" id="qLevelProgress" style="width:${fromPct}%"></div>
+    </div>
+  `;
+  container.appendChild(levelWrap);
+
+  // Score card
   const icon = correct === total ? "🌿" : correct >= total / 2 ? "🌱" : "🍂";
 
   const wrap = document.createElement("div");
   wrap.className = "quiz-score";
+
   wrap.innerHTML = `
     <div class="quiz-score-icon">${icon}</div>
     <h2 class="quiz-score-title">${t("quiz.scoreTitle")}</h2>
@@ -149,18 +209,55 @@ export function renderScore(container, correct, total) {
     <p class="quiz-score-subtitle">${scoreLabel(correct, total)}</p>
   `;
 
+  // Points earned badge
+  if (pointsEarned > 0) {
+    const ptsBadge = document.createElement("div");
+    ptsBadge.className = "quiz-score-pts";
+    ptsBadge.innerHTML = `
+      <span class="quiz-pts-label">${t("quiz.earned")}</span>
+      <span class="quiz-pts-value" id="qPtsCounter">0</span>
+      <span class="quiz-pts-unit">${t("result.ptsShort")}</span>
+    `;
+    wrap.appendChild(ptsBadge);
+  }
+
   const backBtn = document.createElement("button");
   backBtn.textContent = t("quiz.backHome");
   backBtn.addEventListener("click", () => { location.href = "./index.html"; });
   wrap.appendChild(backBtn);
 
-  const retryBtn = document.createElement("button");
-  retryBtn.className = "secondary";
-  retryBtn.textContent = t("quiz.retry");
-  retryBtn.addEventListener("click", () => { location.reload(); });
-  wrap.appendChild(retryBtn);
-
   container.appendChild(wrap);
+
+  // Animate points counter
+  if (pointsEarned > 0) {
+    const counterEl = container.querySelector("#qPtsCounter");
+    await animateCounter(counterEl, pointsEarned);
+  }
+
+  // Animate level bar
+  const barEl = container.querySelector("#qLevelProgress");
+  const leveledUp = toLevel > fromLevel;
+
+  if (leveledUp) {
+    await animateProgress(barEl, fromPct, 100, { ease: "easeOut" });
+
+    const levelLine = levelWrap.querySelector(".level-line");
+    levelLine.innerHTML = `<span class="level-reached-text">${t("result.levelReached", { level: toLevel })}</span>`;
+
+    fireLevelUpConfetti(container.closest(".card") || container);
+
+    barEl.style.transition = "none";
+    barEl.style.width = "0%";
+    void barEl.offsetWidth;
+    barEl.style.transition = "";
+
+    await new Promise((r) => setTimeout(r, 300));
+    await animateProgress(barEl, 0, toPct, { ease: "easeOut" });
+  } else {
+    await animateProgress(barEl, fromPct, toPct, { ease: "easeOut" });
+    container.querySelector("#qLevelFrom").textContent = toLevel;
+    container.querySelector("#qLevelTo").textContent = toLevel + 1;
+  }
 }
 
 function scoreLabel(correct, total) {
@@ -169,4 +266,16 @@ function scoreLabel(correct, total) {
   if (ratio >= 0.75) return t("quiz.score.great");
   if (ratio >= 0.5) return t("quiz.score.good");
   return t("quiz.score.keepPracticing");
+}
+
+function animateCounter(el, target, duration = 1200) {
+  const start = performance.now();
+  return new Promise((res) => {
+    function frame(ts) {
+      const tt = Math.min(1, (ts - start) / duration);
+      el.textContent = String(Math.round(target * tt));
+      if (tt < 1) requestAnimationFrame(frame); else res();
+    }
+    requestAnimationFrame(frame);
+  });
 }

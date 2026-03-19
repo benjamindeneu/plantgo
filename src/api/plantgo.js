@@ -1,5 +1,5 @@
 // src/api/plantgo.js
-import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL } from "./config.js";
+import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE } from "./config.js";
 
 async function http(url, opts = {}) {
   const res = await fetch(url, opts);
@@ -64,5 +64,17 @@ export async function fetchQuiz({ items, lang = "en" }) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ items, lang })
+  });
+}
+
+/**
+ * Fetch description + habitat for a single species.
+ * Returns { gbif_id, description: { description, habitat } }
+ */
+export async function fetchDescription({ gbif_id, name, lang = "en" }) {
+  return http(`${DESCRIPTION_PROXY_BASE}/${gbif_id}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, lang }),
   });
 }

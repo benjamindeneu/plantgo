@@ -5,6 +5,7 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-
 import { addObservationAndDiscovery } from "../data/observations.js";
 import { checkAndAwardQuestCompletions, QUEST_BONUS } from "../data/dailyQuests.js";
 import { checkAndUnlockBadges, BADGE_DEFINITIONS } from "../data/badges.js";
+import { fetchDescription } from "../api/plantgo.js";
 import { t } from "../language/i18n.js";
 
 export function ResultModal() {
@@ -23,6 +24,12 @@ export function ResultModal() {
       const baseTotal = Number(points?.total ?? 0);
       const plantnet_identify_score = Number(identify?.score ?? 0);
       const detail = (points?.detail && typeof points.detail === "object") ? points.detail : {};
+
+      // Fetch description in parallel — resolved later before showing result
+      const lang = document.documentElement.lang || "en";
+      const descriptionPromise = (identify?.gbif_id)
+        ? fetchDescription({ gbif_id: identify.gbif_id, name: speciesName, lang }).catch(() => null)
+        : Promise.resolve(null);
 
       // Low confidence — show tentative result, do not save observation
       if (plantnet_identify_score < 0.2) {
@@ -94,6 +101,9 @@ export function ResultModal() {
         if (def) badges.push({ kind: "achievement", emoji: def.emoji, label: t(def.nameKey), desc: t(def.descKey) });
       }
 
+      const descResult = await descriptionPromise;
+      const description = descResult?.description ?? null;
+
       if (isNearbyDuplicate) {
         // No discovery badge — nearby duplicates cannot be new discoveries
         const missionBonus = badges.reduce((s, b) => s + (b.bonus || 0), 0);
@@ -109,6 +119,7 @@ export function ResultModal() {
           finalTotal,
           isNearbyDuplicate: true,
           trivia,
+          description,
         });
         return;
       }
@@ -127,6 +138,7 @@ export function ResultModal() {
         currentTotalBefore,
         finalTotal,
         trivia,
+        description,
       });
     },
   };

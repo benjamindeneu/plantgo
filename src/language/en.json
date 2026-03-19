@@ -250,5 +250,13 @@
   "quiz.questionName": "What is the scientific name of this plant?",
   "quiz.questionImage": "Which image shows this plant?",
   "quiz.backHome": "Back to home",
-  "quiz.retry": "Try again"
+  "quiz.retry": "Try again",
+  "quiz.landing.title": "Daily quiz",
+  "quiz.landing.onceADay": "This quiz can only be requested once a day.",
+  "quiz.landing.desc": "You'll be quizzed on the plants you observed today, with a maximum of 10 questions.",
+  "quiz.landing.points": "Earn 1 000 pts per correct answer",
+  "quiz.landing.start": "Start quiz",
+  "quiz.landing.alreadyDone": "Quiz already completed today",
+  "quiz.landing.comeBack": "Come back tomorrow for a new quiz!",
+  "quiz.earned": "Points earned"
 }
