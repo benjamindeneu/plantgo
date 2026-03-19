@@ -39,6 +39,7 @@ export function createHeaderView({
         }
         <button class="menu-item" role="menuitem" id="menuBadges">🏅 Badges</button>
         <button class="menu-item" role="menuitem" id="menuChallenge">🏁 Challenge</button>
+        <button class="menu-item" role="menuitem" id="menuQuiz">🌿 Quiz</button>
         <button class="menu-item danger" role="menuitem" id="menuLogout">🚪 Log out</button>
         <div class="lang-wrapper">
           <select class="lang-select" id="langSelect" aria-label="Language">
@@ -65,6 +66,7 @@ export function createHeaderView({
   const langSelect = root.querySelector("#langSelect");
   const challengeMenuBtn = root.querySelector("#menuChallenge");
   const badgesMenuBtn = root.querySelector("#menuBadges");
+  const quizMenuBtn = root.querySelector("#menuQuiz");
 
   // callbacks set by controller
   let onMenuToggle = null;
@@ -73,6 +75,7 @@ export function createHeaderView({
   let onLanguageChange = null;
   let onChallenge = null;
   let onBadges = null;
+  let onQuiz = null;
 
   function toggleMenu(force) {
     const willOpen = force !== undefined ? force : menu.style.display === "none";
@@ -102,6 +105,7 @@ export function createHeaderView({
 
     if (challengeMenuBtn) { challengeMenuBtn.textContent = `🏁 ${t("header.challenge")}`; }
     if (badgesMenuBtn) { badgesMenuBtn.textContent = `🏅 ${t("header.badges")}`; }
+    if (quizMenuBtn) { quizMenuBtn.textContent = `🌿 ${t("header.quiz")}`; }
   }
 
   document.addEventListener("i18n:changed", () => {
@@ -139,6 +143,11 @@ export function createHeaderView({
     if (onBadges) onBadges();
   });
 
+  quizMenuBtn?.addEventListener("click", () => {
+    toggleMenu(false);
+    if (onQuiz) onQuiz();
+  });
+
   // initial i18n render
   refreshI18n();
 
@@ -168,5 +177,6 @@ export function createHeaderView({
     setOnLanguageChange(cb) { onLanguageChange = cb; },
     setOnChallenge(cb) { onChallenge = cb; },
     setOnBadges(cb) { onBadges = cb; },
+    setOnQuiz(cb) { onQuiz = cb; },
   };
 }

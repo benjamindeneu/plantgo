@@ -38,6 +38,7 @@
   "header.levelShort": "Lv.",
   "header.challenge": "Challenge",
   "header.badges": "Badges",
+  "header.quiz": "Quiz",
 
   "herbarium.pageTitle": "PlantGo • Herbarium",
   "herbarium.title": "Your Discoveries",
@@ -228,5 +229,26 @@
   "badges.level10.name": "Seasoned",
   "badges.level10.desc": "Reached level 10",
   "badges.level20.name": "Master",
-  "badges.level20.desc": "Reached level 20"
+  "badges.level20.desc": "Reached level 20",
+
+  "quiz.pageTitle": "PlantGo • Quiz",
+  "quiz.title": "Plant Quiz",
+  "quiz.loading": "Loading your observations…",
+  "quiz.loadingQuestions": "Generating questions…",
+  "quiz.noObservations": "No plant observations today yet. Go observe some plants first!",
+  "quiz.error.fetchObs": "Could not load today's observations.",
+  "quiz.error.fetchQuiz": "Could not load quiz questions.",
+  "quiz.correct": "Correct! 🌿",
+  "quiz.wrong": "Wrong!",
+  "quiz.next": "Next →",
+  "quiz.seeResults": "See results",
+  "quiz.scoreTitle": "Quiz complete!",
+  "quiz.score.perfect": "Perfect score — you know your plants!",
+  "quiz.score.great": "Great job!",
+  "quiz.score.good": "Not bad!",
+  "quiz.score.keepPracticing": "Keep exploring and practicing!",
+  "quiz.questionName": "What is the scientific name of this plant?",
+  "quiz.questionImage": "Which image shows this plant?",
+  "quiz.backHome": "Back to home",
+  "quiz.retry": "Try again"
 }

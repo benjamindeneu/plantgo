@@ -23,6 +23,7 @@ function App() {
     menuVariant: "herbarium",
     onBackHome: () => { location.href = "./index.html"; },
     onBadges: () => { location.href = "./badges.html"; },
+    onQuiz: () => { location.href = "./quiz.html"; },
     onLogout: async () => {
       try {
         stopLevel();

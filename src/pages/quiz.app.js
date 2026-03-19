@@ -1,7 +1,7 @@
-// src/pages/badges.app.js
+// src/pages/quiz.app.js
 import { initI18n } from "../language/i18n.js";
 import { Header } from "../controllers/Header.controller.js";
-import { BadgesPanel } from "../controllers/Badges.controller.js";
+import { QuizController } from "../controllers/Quiz.controller.js";
 import { listenUserLevel } from "../user/level.js";
 
 import { auth } from "../../firebase-config.js";
@@ -32,14 +32,13 @@ function App() {
   });
   headerMount.replaceWith(header);
 
-  const badgesMount = document.getElementById("badgesRoot");
-  badgesMount.replaceWith(BadgesPanel());
+  const quizMount = document.getElementById("quizRoot");
+  QuizController(quizMount);
 
   onAuthStateChanged(auth, (user) => {
     if (!user) {
       stopLevel();
-      location.replace("./login.html");
-      return;
+      return; // QuizController handles redirect
     }
 
     header.setUser(user);

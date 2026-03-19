@@ -12,6 +12,7 @@ export function Header({
   onBackHome,
   onChallenge,
   onBadges,
+  onQuiz,
 } = {}) {
   const view = createHeaderView({ user, level, menuVariant });
 
@@ -27,6 +28,8 @@ export function Header({
   view.setOnChallenge(() => { (onChallenge || (() => {}))(); });
 
   view.setOnBadges(() => { (onBadges || (() => {}))(); });
+
+  view.setOnQuiz(() => { (onQuiz || (() => {}))(); });
 
   // keep dropdown in sync with current doc lang
   const currentLang = document.documentElement.lang || "en";

@@ -1,5 +1,5 @@
 // src/api/plantgo.js
-import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL } from "./config.js";
+import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL } from "./config.js";
 
 async function http(url, opts = {}) {
   const res = await fetch(url, opts);
@@ -51,5 +51,18 @@ export async function fetchPredictions({ lat, lon, model = "best", limit = 10, l
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ lat, lon, model, limit, lang })
+  });
+}
+
+/**
+ * Fetch a quiz for a set of observed species.
+ * @param {{ items: Array<{gbif_id: number, name: string}>, lang: string }} params
+ * Returns array of quiz questions.
+ */
+export async function fetchQuiz({ items, lang = "en" }) {
+  return http(QUIZ_PROXY_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items, lang })
   });
 }

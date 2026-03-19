@@ -38,6 +38,7 @@
   "header.levelShort": "Niv.",
   "header.challenge": "Défi",
   "header.badges": "Badges",
+  "header.quiz": "Quiz",
 
   "herbarium.pageTitle": "PlantGo • Herbier",
   "herbarium.title": "Vos découvertes",
@@ -228,5 +229,26 @@
   "badges.level10.name": "Expérimenté",
   "badges.level10.desc": "Niveau 10 atteint",
   "badges.level20.name": "Maître",
-  "badges.level20.desc": "Niveau 20 atteint"
+  "badges.level20.desc": "Niveau 20 atteint",
+
+  "quiz.pageTitle": "PlantGo • Quiz",
+  "quiz.title": "Quiz Plantes",
+  "quiz.loading": "Chargement de vos observations…",
+  "quiz.loadingQuestions": "Génération des questions…",
+  "quiz.noObservations": "Aucune observation aujourd'hui. Allez observer des plantes d'abord !",
+  "quiz.error.fetchObs": "Impossible de charger les observations du jour.",
+  "quiz.error.fetchQuiz": "Impossible de charger les questions du quiz.",
+  "quiz.correct": "Correct ! 🌿",
+  "quiz.wrong": "Faux !",
+  "quiz.next": "Suivant →",
+  "quiz.seeResults": "Voir les résultats",
+  "quiz.scoreTitle": "Quiz terminé !",
+  "quiz.score.perfect": "Score parfait — vous connaissez vos plantes !",
+  "quiz.score.great": "Excellent travail !",
+  "quiz.score.good": "Pas mal !",
+  "quiz.score.keepPracticing": "Continuez à explorer et à vous exercer !",
+  "quiz.questionName": "Quel est le nom scientifique de cette plante ?",
+  "quiz.questionImage": "Quelle image montre cette plante ?",
+  "quiz.backHome": "Retour à l'accueil",
+  "quiz.retry": "Réessayer"
 }
