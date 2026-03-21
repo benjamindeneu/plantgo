@@ -1645,7 +1645,7 @@ header, .nav{
 
 .quiz-species-name {
   text-align: center;
-  font-size: 1rem;
+  font-size: 1.25rem;
   color: var(--green-700);
   margin-bottom: var(--sp-2);
 }
@@ -1656,9 +1656,22 @@ header, .nav{
   min-height: 160px;
   max-height: 220px;
   object-fit: cover;
+  object-position: center center;
   border-radius: var(--r-md);
   margin-bottom: var(--sp-3);
   background: var(--surface-2);
+}
+.quiz-species-img-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 160px;
+  border-radius: var(--r-md);
+  margin-bottom: var(--sp-3);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 2.5rem;
 }
 
 .quiz-question {
@@ -1719,6 +1732,17 @@ header, .nav{
 
 .quiz-choice--no-img .quiz-choice-img {
   display: none;
+}
+.quiz-choice-img-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 1.5rem;
 }
 
 .quiz-choice-label {

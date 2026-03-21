@@ -71,22 +71,21 @@ export function renderQuestion(container, question, index, total) {
 
     const progress = document.createElement("div");
     progress.className = "quiz-progress";
-    const pct = Math.round((index / total) * 100);
+    const pct = Math.round(((index + 1) / total) * 100);
     progress.innerHTML = `<div class="quiz-progress-bar" style="width:${pct}%"></div>`;
     container.appendChild(progress);
 
     if (question.quiz_type === "species_name") {
-      // Show the species photo instead of the name
+      // Show the species photo — never reveal the name before or on error
       const img = document.createElement("img");
       img.className = "quiz-species-img";
-      img.alt = question.species_name;
+      img.alt = ""; // empty: never show species name as alt text while loading
       img.onerror = () => {
-        img.replaceWith((() => {
-          const p = document.createElement("p");
-          p.className = "quiz-species-name";
-          p.innerHTML = `<em>${question.species_name}</em>`;
-          return p;
-        })());
+        // Image failed — show a neutral placeholder, NOT the species name
+        const placeholder = document.createElement("div");
+        placeholder.className = "quiz-species-img-placeholder";
+        placeholder.textContent = "?";
+        img.replaceWith(placeholder);
       };
       img.src = question.image_url;
       container.appendChild(img);
@@ -144,16 +143,22 @@ export function renderQuestion(container, question, index, total) {
     const buttons = {};
 
     if (question.quiz_type === "species_image") {
-      // choices are objects: { image_url, name } — show image only
+      // choices are objects: { image_url, name } — show image only, never reveal name
       for (const [key, choice] of Object.entries(question.choices)) {
         const btn = document.createElement("button");
         btn.className = "quiz-choice quiz-choice--image";
         btn.setAttribute("data-key", key);
 
         const img = document.createElement("img");
-        img.src = choice.image_url;
-        img.alt = key;
+        img.alt = ""; // empty: don't show anything while loading
         img.className = "quiz-choice-img";
+        img.onerror = () => {
+          const placeholder = document.createElement("div");
+          placeholder.className = "quiz-choice-img-placeholder";
+          placeholder.textContent = "?";
+          img.replaceWith(placeholder);
+        };
+        img.src = choice.image_url;
 
         btn.appendChild(img);
         btn.addEventListener("click", () => handleAnswer(key));
