@@ -376,6 +376,19 @@ export function createResultModalView() {
       qs("#pointsDetails").innerHTML = "";
     },
 
+    showError(message) {
+      qs("#loadingTrack").style.display = "none";
+      qs("#resultTitle").textContent = t("result.error.title");
+      qs(".result-points").style.display = "none";
+      qs("#finalTotalWrap").style.display = "none";
+      qs("#badges").style.display = "none";
+
+      const msg = document.createElement("div");
+      msg.className = "low-confidence-msg";
+      msg.textContent = message || t("result.error.generic");
+      qs("#speciesNameDiv").appendChild(msg);
+    },
+
     async showLowConfidenceUI({ speciesName, speciesVernacularName, speciesScore }) {
       qs("#loadingTrack").style.display = "none";
       qs("#resultTitle").textContent = t("result.lowConfidence.title");

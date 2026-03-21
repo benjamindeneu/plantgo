@@ -11,6 +11,16 @@ async function http(url, opts = {}) {
   return ct.includes("application/json") ? res.json() : res.text();
 }
 
+async function httpWithTimeout(url, opts = {}, timeoutMs = 150_000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await http(url, { ...opts, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /**
  * Identify a plant with the backend contract you shared:
  * - multipart form with *single* file field named "image"
@@ -60,11 +70,11 @@ export async function fetchPredictions({ lat, lon, model = "best", limit = 10, l
  * Returns array of quiz questions.
  */
 export async function fetchQuiz({ items, lang = "en" }) {
-  return http(QUIZ_PROXY_URL, {
+  return httpWithTimeout(QUIZ_PROXY_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ items, lang })
-  });
+    body: JSON.stringify({ items, lang }),
+  }, 150_000); // 2.5 min — quiz generation can be slow
 }
 
 /**

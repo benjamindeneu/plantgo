@@ -116,7 +116,7 @@ export async function addObservationAndDiscovery({
 
     // Challenge: base obs points only for points race; species hunt still counts
     await applyActiveChallengeScore({ userId, pointsToAdd: nearbyPoints, nowMs: Date.now() });
-    await applySpeciesHuntScore({ userId, speciesName, nowMs: Date.now() });
+    await applySpeciesHuntScore({ userId, speciesName, gbifId: gbif_id, nowMs: Date.now() });
 
     return { observationId: observationDoc.id, discoveryBonus: 0, isNearbyDuplicate: true, nearbyPoints, obsCount: newObsCount, missionObsCount: newMissionObsCount };
   }
@@ -188,6 +188,7 @@ export async function addObservationAndDiscovery({
   await applySpeciesHuntScore({
     userId,
     speciesName,
+    gbifId: gbif_id,
     nowMs: Date.now(),
   });
 

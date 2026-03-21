@@ -4,7 +4,7 @@ import { calcFromLevel, calcToLevel, animateProgress, fireLevelUpConfetti } from
 
 // ── Landing screen ────────────────────────────────────────────────────────────
 
-export function renderLanding(container, { alreadyDone, onStart }) {
+export function renderLanding(container, { alreadyDone, locked = false, currentCount = 0, onStart }) {
   container.innerHTML = "";
 
   const wrap = document.createElement("div");
@@ -15,6 +15,21 @@ export function renderLanding(container, { alreadyDone, onStart }) {
       <div class="quiz-landing-icon">🌿</div>
       <p class="quiz-landing-title">${t("quiz.landing.alreadyDone")}</p>
       <p class="quiz-landing-sub">${t("quiz.landing.comeBack")}</p>
+    `;
+  } else if (locked) {
+    const pct = Math.round((currentCount / 10) * 100);
+    wrap.innerHTML = `
+      <div class="quiz-landing-icon quiz-landing-icon--lock">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48" fill="currentColor" aria-hidden="true">
+          <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+        </svg>
+      </div>
+      <p class="quiz-landing-title">${t("quiz.landing.title")}</p>
+      <p class="quiz-landing-desc">${t("quiz.landing.lockedDesc")}</p>
+      <div class="quiz-lock-progress">
+        <div class="quiz-lock-progress-bar" style="width:${pct}%"></div>
+      </div>
+      <p class="quiz-landing-sub">${currentCount} / 10 ${t("quiz.landing.plantsObserved")}</p>
     `;
   } else {
     wrap.innerHTML = `

@@ -14,6 +14,10 @@ export function ResultModal() {
   return {
     el: view.el,
 
+    showError(message) {
+      view.showError(message);
+    },
+
     async initLoading({ photos, currentTotalPoints }) {
       await view.initLoading({ photos, currentTotalPoints });
     },
@@ -47,7 +51,7 @@ export function ResultModal() {
         } catch { /* noop */ }
       }
 
-      const missionHit = await isInMissionsList(speciesName);
+      const missionHit = await isInMissionsList(speciesName, identify?.gbif_id);
       const badges = [];
       if (missionHit) badges.push({ kind: "mission", emoji: "🎯", label: t("result.badge.missionSpecies"), bonus: 500 });
 
@@ -143,14 +147,20 @@ export function ResultModal() {
     },
   };
 
-  async function isInMissionsList(name) {
+  async function isInMissionsList(name, gbifId) {
     try {
       const user = auth.currentUser;
       if (!user) return false;
       const ref = doc(db, "users", user.uid);
       const snap = await getDoc(ref);
       const list = snap.data()?.missions_list || [];
-      return list.some((m) => (m?.name || m?.speciesName || "").toLowerCase() === name.toLowerCase());
+      // Prefer gbif_id comparison — name strings often differ by author suffix (e.g. "Rosa canina" vs "Rosa canina L.")
+      if (gbifId != null) {
+        return list.some((m) => Number(m?.gbif_id) === Number(gbifId));
+      }
+      // Fallback: compare first two words of scientific name (genus + species, strip author)
+      const binomial = (str) => str.trim().toLowerCase().split(/\s+/).slice(0, 2).join(" ");
+      return list.some((m) => binomial(m?.name || m?.speciesName || "") === binomial(name));
     } catch {
       return false;
     }

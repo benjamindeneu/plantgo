@@ -153,8 +153,9 @@ export async function createChallenge({ durationSec, type = "points", speciesLis
     foundSpecies: [],
   });
 
-  // extract just species names for the activeChallenge pointer (used for fast scoring)
+  // extract species names + gbif_ids for the activeChallenge pointer (used for fast scoring)
   const speciesNames = normalizedSpeciesList.map(s => s.name);
+  const speciesGbifIds = normalizedSpeciesList.map(s => Number(s.gbif_id)).filter(Boolean);
 
   // set user's active challenge pointer (single active challenge per user)
   await setUserActiveChallenge(u.uid, {
@@ -164,6 +165,7 @@ export async function createChallenge({ durationSec, type = "points", speciesLis
     endAt,
     type: challengeType,
     speciesNames,
+    speciesGbifIds,
   });
 
   return { challengeId: ref.id, code, startAt, endAt, type: challengeType };
@@ -183,6 +185,7 @@ export async function joinChallengeByCode(code) {
   const challengeType = challenge.type || "points";
   const speciesList = Array.isArray(challenge.speciesList) ? challenge.speciesList : [];
   const speciesNames = speciesList.map(s => s.name).filter(Boolean);
+  const speciesGbifIds = speciesList.map(s => Number(s.gbif_id)).filter(Boolean);
 
   // First join: create member doc. Re-join: only update username to preserve progress.
   const memberRef = doc(db, "challenges", challenge.id, "members", u.uid);
@@ -207,6 +210,7 @@ export async function joinChallengeByCode(code) {
     endAt: challenge.endAt,
     type: challengeType,
     speciesNames,
+    speciesGbifIds,
   });
 
   return {
@@ -271,6 +275,7 @@ export async function applyActiveChallengeScore({
 export async function applySpeciesHuntScore({
   userId,
   speciesName,
+  gbifId = null,
   nowMs = Date.now(),
 }) {
   if (!speciesName) return;
@@ -286,10 +291,17 @@ export async function applySpeciesHuntScore({
   if (!startMs || !endMs) return;
   if (nowMs < startMs || nowMs > endMs) return;
 
-  // Check if species is in the target list (case-insensitive)
-  const targetList = Array.isArray(ac.speciesNames) ? ac.speciesNames : [];
-  const normalizedName = String(speciesName).trim().toLowerCase();
-  const isTarget = targetList.some(s => String(s).trim().toLowerCase() === normalizedName);
+  // Helper: compare first two words only (genus + species, strips author suffix)
+  const binomial = s => String(s).trim().toLowerCase().split(/\s+/).slice(0, 2).join(" ");
+
+  // Check if species is in the target list — prefer gbif_id, fall back to binomial name
+  const gbifIdNum = Number(gbifId) || null;
+  const gbifIds = Array.isArray(ac.speciesGbifIds) ? ac.speciesGbifIds : [];
+  const targetNames = Array.isArray(ac.speciesNames) ? ac.speciesNames : [];
+
+  const isTarget = gbifIdNum
+    ? gbifIds.some(id => Number(id) === gbifIdNum)
+    : targetNames.some(s => binomial(s) === binomial(speciesName));
   if (!isTarget) return;
 
   // Use a transaction to atomically check + update foundSpecies to prevent double-counting
@@ -299,14 +311,19 @@ export async function applySpeciesHuntScore({
     if (!memberSnap.exists()) return;
 
     const foundSpecies = memberSnap.data()?.foundSpecies || [];
-    const alreadyFound = foundSpecies.some(
-      s => String(s).trim().toLowerCase() === normalizedName
-    );
+    const foundGbifIds = memberSnap.data()?.foundGbifIds || [];
+
+    const alreadyFound = gbifIdNum
+      ? foundGbifIds.some(id => Number(id) === gbifIdNum)
+      : foundSpecies.some(s => binomial(s) === binomial(speciesName));
     if (alreadyFound) return;
 
-    txn.update(memberRef, {
+    const update = {
       foundSpecies: [...foundSpecies, speciesName],
       score: (memberSnap.data().score || 0) + 1,
-    });
+    };
+    if (gbifIdNum) update.foundGbifIds = [...foundGbifIds, gbifIdNum];
+
+    txn.update(memberRef, update);
   });
 }

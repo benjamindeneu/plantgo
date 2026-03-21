@@ -16,12 +16,11 @@ import {
   renderLanding,
   renderLoading,
   renderError,
-  renderEmpty,
   renderQuestion,
   renderScore,
 } from "../ui/components/Quiz.view.js";
 
-const POINTS_PER_CORRECT = 1000;
+const POINTS_PER_CORRECT = 200;
 const MAX_QUESTIONS = 10;
 
 // ── fetch today's unique species ──────────────────────────────────────────────
@@ -77,28 +76,31 @@ export function QuizController(container) {
       return;
     }
 
-    renderLanding(container, {
-      alreadyDone: false,
-      onStart: () => startQuiz(userId),
-    });
-  }
-
-  async function startQuiz(userId) {
-    renderLoading(container, t("quiz.loading"));
-
+    // Fetch today's species to check if quiz is unlocked
     let items;
     try {
       items = await getTodaySpecies(userId);
     } catch (e) {
       console.error("Quiz: failed to fetch observations", e);
       renderError(container, t("quiz.error.fetchObs"));
-      return; // not counted as done
+      return;
     }
 
-    if (items.length === 0) {
-      renderEmpty(container);
-      return; // not counted as done
+    if (items.length < MAX_QUESTIONS) {
+      renderLanding(container, { alreadyDone: false, locked: true, currentCount: items.length, onStart: null });
+      return;
     }
+
+    renderLanding(container, {
+      alreadyDone: false,
+      locked: false,
+      currentCount: items.length,
+      onStart: () => startQuiz(userId, items),
+    });
+  }
+
+  async function startQuiz(userId, items) {
+    renderLoading(container, t("quiz.loading"));
 
     const lang = document.documentElement.lang || "en";
     renderLoading(container, t("quiz.loadingQuestions"));
@@ -113,7 +115,7 @@ export function QuizController(container) {
     }
 
     if (!questions || questions.length === 0) {
-      renderEmpty(container);
+      renderError(container, t("quiz.error.fetchQuiz"));
       return; // not counted as done
     }
 

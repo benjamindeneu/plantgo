@@ -1828,6 +1828,7 @@ header, .nav{
   text-align: center;
 }
 .quiz-landing-icon { font-size: 3rem; }
+.quiz-landing-icon--lock { color: var(--warn-600); }
 .quiz-landing-title {
   font-size: 1.1rem;
   font-weight: 700;
@@ -1851,4 +1852,18 @@ header, .nav{
   color: var(--muted);
   opacity: 0.7;
   margin: 0;
+}
+.quiz-lock-progress {
+  width: 100%;
+  max-width: 220px;
+  height: 8px;
+  background: var(--border);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+.quiz-lock-progress-bar {
+  height: 100%;
+  background: var(--green-500);
+  border-radius: var(--radius-pill);
+  transition: width 0.6s var(--easing);
 }

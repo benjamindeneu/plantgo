@@ -31,17 +31,16 @@ export function IdentifyPanel() {
     // geolocate
     let lat, lon;
     try {
-      view.setFeedback(t("identify.feedback.fetchingLocation"));
       const pos = await getCurrentPosition();
       lat = pos.coords.latitude;
       lon = pos.coords.longitude;
     } catch {
-      return view.setFeedback(t("identify.feedback.locationDenied"));
+      modal.showError(t("identify.feedback.locationDenied"));
+      return;
     }
 
     // identify
     try {
-      view.setFeedback(t("identify.feedback.identifying"));
       const lang = document.documentElement.lang || "en";
       const result = await identifyPlant({ file, lat, lon, model: "best", lang });
 
@@ -55,10 +54,8 @@ export function IdentifyPanel() {
         plantnetImageCode,
         photoCount: chosen.length,
       });
-
-      view.setFeedback(t("identify.feedback.done"));
     } catch (e) {
-      view.setFeedback(e?.message || t("identify.feedback.failed"));
+      modal.showError(e?.message || t("identify.feedback.failed"));
     }
   });
 
