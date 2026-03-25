@@ -1,5 +1,5 @@
 // src/api/plantgo.js
-import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE } from "./config.js";
+import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE, SDM_MODELS_URL } from "./config.js";
 
 async function http(url, opts = {}) {
   const res = await fetch(url, opts);
@@ -75,6 +75,13 @@ export async function fetchQuiz({ items, lang = "en" }) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ items, lang }),
   }, 150_000); // 2.5 min — quiz generation can be slow
+}
+
+/**
+ * Fetch available SDM models for a given location.
+ */
+export async function fetchAvailableModels({ lat, lon }) {
+  return http(`${SDM_MODELS_URL}?lat=${lat}&lon=${lon}`);
 }
 
 /**

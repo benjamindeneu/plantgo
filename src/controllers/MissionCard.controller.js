@@ -66,6 +66,7 @@ export function MissionCard(species) {
     missionLevel: t(missionLevelKey),
     isFlowering: !!species.is_flowering,
     isFruiting: !!species.is_fruiting,
+    debugData: species,
   });
 
   // external links

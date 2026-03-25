@@ -64,6 +64,7 @@
   "identify.feedback.done": "Terminé.",
   "identify.feedback.failed": "Échec de l’identification.",
 
+  "settings.title": "Paramètres",
   "missions.title": "Vos missions",
   "missions.refresh": "Actualiser les missions",
   "missions.empty": "Aucune mission pour le moment.",
@@ -76,6 +77,8 @@
   "missions.modelUsed": "Modèle de distribution d'espèces",
   "missions.chooseModel": "Modèle",
   "missions.model.auto": "Auto",
+  "missions.model.group.default": "Meilleur pour votre position",
+  "missions.model.group.available": "Modèles disponibles",
   "missions.model.geoplantnet": "GeoPlantNet",
 
   "missions.card.missionPrefix": "Mission :",

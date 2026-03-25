@@ -2,6 +2,7 @@
 import { createMissionsPanelView } from "../ui/components/MissionsPanel.view.js";
 import { getCurrentPosition } from "../data/geo.service.js";
 import { maybeLoadCachedMissions, loadAndMaybePersistMissions } from "../data/missions.repo.js";
+import { fetchAvailableModels } from "../api/plantgo.js";
 import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 import { t } from "../language/i18n.js";
@@ -21,6 +22,16 @@ const isFresh = (ts, win = THREE_HOURS_MS) => {
 export function MissionsPanel() {
   const view = createMissionsPanelView();
 
+  let lastPos = null;
+
+  view.onSettingsOpen(async () => {
+    if (!lastPos) {
+      try { lastPos = await getCurrentPosition(); }
+      catch (_) { return null; }
+    }
+    return fetchAvailableModels({ lat: lastPos.coords.latitude, lon: lastPos.coords.longitude });
+  });
+
   async function doLocate() {
     view.renderMissions([], "");
     view.setStatus(t("missions.status.fetchingLocation"));
@@ -28,6 +39,7 @@ export function MissionsPanel() {
 
     try {
       const pos = await getCurrentPosition();
+      lastPos = pos;
       view.setStatus(t("missions.status.loading"));
 
       const user = auth.currentUser;

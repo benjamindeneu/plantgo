@@ -1,9 +1,12 @@
 // src/ui/components/MissionsPanel.view.js
 import { MissionCard } from "../../controllers/MissionCard.controller.js";
 import { t, initI18n, translateDom } from "../../language/i18n.js";
+import { Modal } from "./Modal.js";
+import { debugMode } from "../../data/debugMode.js";
 
 await initI18n();
 translateDom(document);
+debugMode.init();
 
 function renderMissionsList(listEl, missionsList = []) {
   listEl.innerHTML = "";
@@ -33,18 +36,11 @@ export function createMissionsPanelView() {
   sec.innerHTML = `
     <h1 data-i18n="missions.title">Your missions</h1>
 
-    <div style="display:flex;gap:8px;justify-content:center;align-items:center;margin-bottom:8px">
-      <label class="muted" style="display:flex;gap:6px;align-items:center">
-        <span data-i18n="missions.chooseModel">Model</span>
-        <select id="modelSelect" class="input" style="width:auto; padding:8px 10px">
-          <option value="best" data-i18n="missions.model.auto">Auto</option>
-          <option value="geoplantnet" data-i18n="missions.model.geoplantnet">GeoPlantNet</option>
-        </select>
-      </label>
-
+    <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:8px">
       <button id="locate" class="secondary" type="button" data-i18n="missions.refresh">
         Refresh Missions
       </button>
+      <button id="settingsBtn" class="secondary btn-icon" type="button" aria-label="Settings">⚙</button>
     </div>
 
     <div id="status" aria-live="polite" class="validation-feedback"></div>
@@ -60,9 +56,99 @@ export function createMissionsPanelView() {
   const statusEl     = sec.querySelector("#status");
   const loadingTrack = sec.querySelector("#loadingTrack");
   const listEl       = sec.querySelector("#list");
-  const locateBtn = sec.querySelector("#locate");
-  const modelEl = sec.querySelector("#modelLine");
-  const modelSelect = sec.querySelector("#modelSelect");
+  const locateBtn    = sec.querySelector("#locate");
+  const modelEl      = sec.querySelector("#modelLine");
+  const settingsBtn  = sec.querySelector("#settingsBtn");
+
+  // persistent select element — survives modal open/close cycles
+  const modelSelect = document.createElement("select");
+  modelSelect.className = "input";
+  modelSelect.style.cssText = "width:100%;padding:8px 10px;margin-top:6px";
+  modelSelect.innerHTML = `<option value="best">${t("missions.model.auto")}</option>`;
+
+  const modelLabel = document.createElement("label");
+  modelLabel.className = "muted";
+  modelLabel.style.cssText = "display:flex;flex-direction:column";
+  const modelLabelSpan = document.createElement("span");
+  modelLabelSpan.setAttribute("data-i18n", "missions.chooseModel");
+  modelLabelSpan.textContent = t("missions.chooseModel");
+  modelLabel.appendChild(modelLabelSpan);
+  modelLabel.appendChild(modelSelect);
+
+  let settingsOpenHandler = null;
+
+  settingsBtn.addEventListener("click", () => {
+    // open modal immediately
+    const modal = Modal({ title: t("settings.title"), content: "" });
+    const body = modal.querySelector(".body");
+
+    const loadingTrackModal = document.createElement("div");
+    loadingTrackModal.className = "loading-track";
+    loadingTrackModal.innerHTML = `<div class="loading-indeterminate"></div>`;
+    body.appendChild(loadingTrackModal);
+    modelLabel.style.display = "none";
+    body.appendChild(modelLabel);
+
+    const debugLabel = document.createElement("label");
+    debugLabel.style.cssText = "display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer";
+    const debugCheckbox = document.createElement("input");
+    debugCheckbox.type = "checkbox";
+    debugCheckbox.checked = debugMode.get();
+    debugCheckbox.addEventListener("change", () => debugMode.set(debugCheckbox.checked));
+    debugLabel.appendChild(debugCheckbox);
+    debugLabel.appendChild(document.createTextNode("Debug mode"));
+    body.appendChild(debugLabel);
+
+    document.body.appendChild(modal);
+
+    if (!settingsOpenHandler) return;
+
+    settingsOpenHandler().then(data => {
+      if (data) {
+        const currentVal = modelSelect.value;
+        const models = data.models ?? [];
+        const defaultModel = data.default_model ?? null;
+
+        // "Auto (FlorID)" when we know what the backend will pick
+        const defaultName = defaultModel
+          ? (models.find(m => m.id === defaultModel)?.name ?? defaultModel)
+          : null;
+        const autoLabel = defaultName
+          ? `${t("missions.model.auto")} (${defaultName})`
+          : t("missions.model.auto");
+
+        modelSelect.innerHTML = "";
+
+        const defaultGroup = document.createElement("optgroup");
+        defaultGroup.label = t("missions.model.group.default");
+        const autoOpt = document.createElement("option");
+        autoOpt.value = "best";
+        autoOpt.textContent = autoLabel;
+        defaultGroup.appendChild(autoOpt);
+        modelSelect.appendChild(defaultGroup);
+
+        if (models.length) {
+          const availableGroup = document.createElement("optgroup");
+          availableGroup.label = t("missions.model.group.available");
+          for (const m of models) {
+            const opt = document.createElement("option");
+            opt.value = m.id;
+            opt.textContent = m.name;
+            availableGroup.appendChild(opt);
+          }
+          modelSelect.appendChild(availableGroup);
+        }
+
+        // restore manual pick if still available, otherwise default to auto
+        const preserved = currentVal !== "best" &&
+          [...modelSelect.options].some(o => o.value === currentVal);
+        modelSelect.value = preserved ? currentVal : "best";
+      }
+    }).catch(() => {}).finally(() => {
+      loadingTrackModal.remove();
+      modelLabel.style.display = "";
+    });
+  });
 
   // keep last missions so we can re-render on language change
   let lastMissions = [];
@@ -89,7 +175,6 @@ export function createMissionsPanelView() {
       loadingTrack.style.display = on ? "" : "none";
     },
 
-    // UPDATED: accept model too
     renderMissions(missions, model) {
       lastMissions = Array.isArray(missions) ? missions : [];
       lastModel = model ?? "";
@@ -97,8 +182,11 @@ export function createMissionsPanelView() {
       renderModelLine(modelEl, lastModel, lastMissions);
     },
 
+    onSettingsOpen(handler) {
+      settingsOpenHandler = handler;
+    },
+
     getSelectedModel() {
-      // UI values are already backend values: "best" | "geoplantnet"
       return modelSelect?.value || "best";
     },
 

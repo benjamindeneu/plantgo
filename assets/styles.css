@@ -1891,3 +1891,42 @@ header, .nav{
   border-radius: var(--radius-pill);
   transition: width 0.6s var(--easing);
 }
+
+/* ---------- Icon button ---------- */
+button.btn-icon {
+  width: 36px !important;
+  height: 36px;
+  padding: 0;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- Debug mode ---------- */
+body:not(.debug-mode) .mission-debug-section { display: none !important; }
+
+.mission-debug-section {
+  margin: 8px 0;
+  padding: 8px;
+  border: 1px solid #f90;
+  border-radius: 6px;
+  background: #1a1a00;
+  font-size: 0.75rem;
+}
+
+.mission-debug-section .debug-title {
+  color: #f90;
+  font-weight: bold;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.mission-debug-section pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: #ffd700;
+  text-align: left;
+}

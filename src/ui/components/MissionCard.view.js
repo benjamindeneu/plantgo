@@ -10,6 +10,7 @@ export function createMissionCardView({
   missionLevel = "Common",
   isFlowering = false,
   isFruiting = false,
+  debugData = null,
 }) {
   const root = document.createElement("div");
   root.className = "species-item";
@@ -38,6 +39,7 @@ export function createMissionCardView({
       </div>
     </div>
     <div class="wiki-desc muted" id="wikiDesc" style="display:none;"></div>
+    <div class="mission-debug-section"></div>
     <div id="extLinksCard" class="ext-links-bar" style="display:none">
       <span class="ext-links-label"></span>
       <a id="wikiLink" class="wiki-ext-link" target="_blank" rel="noopener noreferrer" style="display:none" aria-label="Wikipedia">
@@ -48,6 +50,23 @@ export function createMissionCardView({
       </a>
     </div>
   `;
+
+  const debugSectionEl = root.querySelector(".mission-debug-section");
+
+  // Populate debug section
+  if (debugSectionEl && debugData) {
+    const EXCLUDE = new Set(["description", "vernacular_name", "points", "name", "is_fruiting", "is_flowering"]);
+    const filtered = Object.fromEntries(Object.entries(debugData).filter(([k]) => !EXCLUDE.has(k)));
+    const title = document.createElement("div");
+    title.className = "debug-title";
+    title.textContent = "debug info";
+    debugSectionEl.appendChild(title);
+    const pre = document.createElement("pre");
+    pre.textContent = formatDebugObj(filtered);
+    debugSectionEl.appendChild(pre);
+  } else if (debugSectionEl) {
+    debugSectionEl.style.display = "none";
+  }
 
   const missionTitleEl = root.querySelector("#missionTitle");
   const imgWrap = root.querySelector("#imgWrap");
@@ -162,6 +181,21 @@ function refreshI18n() {
       renderBadges();
     },
   };
+}
+
+function formatDebugObj(obj) {
+  const lines = [];
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== null && typeof v === "object" && !Array.isArray(v)) {
+      lines.push(`${k}:`);
+      for (const [nk, nv] of Object.entries(v)) {
+        lines.push(`  ${nk}: ${JSON.stringify(nv)}`);
+      }
+    } else {
+      lines.push(`${k}: ${JSON.stringify(v)}`);
+    }
+  }
+  return lines.join("\n");
 }
 
 function escapeHtml(s) {
