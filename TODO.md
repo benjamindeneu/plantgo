@@ -28,5 +28,4 @@
 *Maintain this file by moving completed items to the section below.*
 
 ## ✅ Completed
-- [x] Implemented real-time Leaderboard for Species Hunt challenges.
 - [x] Add observation history page
