@@ -124,6 +124,7 @@ export function ResultModal() {
           isNearbyDuplicate: true,
           trivia,
           description,
+          debugData: { identify, missionHit },
         });
         return;
       }
@@ -143,6 +144,7 @@ export function ResultModal() {
         finalTotal,
         trivia,
         description,
+        debugData: { identify, missionHit },
       });
     },
   };

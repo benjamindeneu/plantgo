@@ -40,6 +40,7 @@ export function createHeaderView({
         <button class="menu-item" role="menuitem" id="menuBadges">🏅 Badges</button>
         <button class="menu-item" role="menuitem" id="menuChallenge">🏁 Challenge</button>
         <button class="menu-item" role="menuitem" id="menuQuiz">🌿 Quiz</button>
+        <button class="menu-item" role="menuitem" id="menuSettings">⚙ Settings</button>
         <button class="menu-item danger" role="menuitem" id="menuLogout">🚪 Log out</button>
         <div class="lang-wrapper">
           <select class="lang-select" id="langSelect" aria-label="Language">
@@ -67,6 +68,7 @@ export function createHeaderView({
   const challengeMenuBtn = root.querySelector("#menuChallenge");
   const badgesMenuBtn = root.querySelector("#menuBadges");
   const quizMenuBtn = root.querySelector("#menuQuiz");
+  const settingsMenuBtn = root.querySelector("#menuSettings");
 
   // callbacks set by controller
   let onMenuToggle = null;
@@ -76,6 +78,7 @@ export function createHeaderView({
   let onChallenge = null;
   let onBadges = null;
   let onQuiz = null;
+  let onSettings = null;
 
   function toggleMenu(force) {
     const willOpen = force !== undefined ? force : menu.style.display === "none";
@@ -148,6 +151,11 @@ export function createHeaderView({
     if (onQuiz) onQuiz();
   });
 
+  settingsMenuBtn?.addEventListener("click", () => {
+    toggleMenu(false);
+    if (onSettings) onSettings();
+  });
+
   // initial i18n render
   refreshI18n();
 
@@ -178,5 +186,6 @@ export function createHeaderView({
     setOnChallenge(cb) { onChallenge = cb; },
     setOnBadges(cb) { onBadges = cb; },
     setOnQuiz(cb) { onQuiz = cb; },
+    setOnSettings(cb) { onSettings = cb; },
   };
 }

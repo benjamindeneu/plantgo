@@ -2,11 +2,8 @@
 import { MissionCard } from "../../controllers/MissionCard.controller.js";
 import { t, initI18n, translateDom } from "../../language/i18n.js";
 import { Modal } from "./Modal.js";
-import { debugMode } from "../../data/debugMode.js";
-
 await initI18n();
 translateDom(document);
-debugMode.init();
 
 function renderMissionsList(listEl, missionsList = []) {
   listEl.innerHTML = "";
@@ -88,16 +85,6 @@ export function createMissionsPanelView() {
     body.appendChild(loadingTrackModal);
     modelLabel.style.display = "none";
     body.appendChild(modelLabel);
-
-    const debugLabel = document.createElement("label");
-    debugLabel.style.cssText = "display:flex;align-items:center;gap:8px;margin-top:12px;cursor:pointer";
-    const debugCheckbox = document.createElement("input");
-    debugCheckbox.type = "checkbox";
-    debugCheckbox.checked = debugMode.get();
-    debugCheckbox.addEventListener("change", () => debugMode.set(debugCheckbox.checked));
-    debugLabel.appendChild(debugCheckbox);
-    debugLabel.appendChild(document.createTextNode("Debug mode"));
-    body.appendChild(debugLabel);
 
     document.body.appendChild(modal);
 

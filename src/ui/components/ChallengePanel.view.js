@@ -1,6 +1,7 @@
 // src/ui/components/ChallengePanel.view.js
 import { t, initI18n, translateDom } from "../../language/i18n.js";
 import { getWikipediaImage } from "../../data/wiki.service.js";
+import { debugMode } from "../../data/debugMode.js";
 await initI18n();
 
 export function createChallengePanelView() {
@@ -56,6 +57,7 @@ export function createChallengePanelView() {
   let closeCb = null;
   let _lastSpeciesList = [];
   let _lastFoundSpecies = [];
+  let _lastFoundGbifIds = [];
   const _imgCache = new Map();
 
   function fmtTimeLeft(ms) {
@@ -73,12 +75,12 @@ export function createChallengePanelView() {
 
   document.addEventListener("i18n:changed", () => {
     translateDom(wrap);
-    renderChecklist(_lastSpeciesList, _lastFoundSpecies);
+    renderChecklist(_lastSpeciesList, _lastFoundSpecies, _lastFoundGbifIds);
   });
 
   let myUid = null;
 
-  function renderChecklist(speciesList, foundSpecies) {
+  function renderChecklist(speciesList, foundSpecies, foundGbifIds = []) {
     if (!speciesList.length) {
       speciesChecklistWrap.style.display = "none";
       speciesChecklist.innerHTML = "";
@@ -89,7 +91,21 @@ export function createChallengePanelView() {
     speciesChecklist.innerHTML = "";
 
     const foundSet = new Set(foundSpecies.map(s => String(s).trim().toLowerCase()));
+    const foundGbifSet = new Set(foundGbifIds.map(id => Number(id)));
     const lang = document.documentElement.lang?.split("-")[0] || "en";
+
+    // Global debug block: raw Firestore arrays
+    const globalDebug = document.createElement("div");
+    globalDebug.className = "mission-debug-section";
+    const globalTitle = document.createElement("div");
+    globalTitle.className = "debug-title";
+    globalTitle.textContent = "species hunt debug";
+    const globalPre = document.createElement("pre");
+    globalPre.textContent =
+      `foundSpecies: ${JSON.stringify(foundSpecies)}\nfoundGbifIds: ${JSON.stringify(foundGbifIds)}`;
+    globalDebug.appendChild(globalTitle);
+    globalDebug.appendChild(globalPre);
+    speciesChecklist.appendChild(globalDebug);
 
     speciesList.forEach((species, i) => {
       if (i > 0) {
@@ -98,7 +114,10 @@ export function createChallengePanelView() {
         speciesChecklist.appendChild(hr);
       }
 
-      const isFound = foundSet.has(String(species.name || "").trim().toLowerCase());
+      const speciesGbifId = species.gbif_id ? Number(species.gbif_id) : null;
+      const matchByName = foundSet.has(String(species.name || "").trim().toLowerCase());
+      const matchByGbif = speciesGbifId != null && foundGbifSet.has(speciesGbifId);
+      const isFound = matchByName || matchByGbif;
       const row = document.createElement("div");
       row.className = "checklist-row" + (isFound ? " checklist-row-found" : "");
 
@@ -190,6 +209,24 @@ export function createChallengePanelView() {
         mark.textContent = "✓";
         row.appendChild(mark);
       }
+
+      // Per-species debug block
+      const debugEl = document.createElement("div");
+      debugEl.className = "mission-debug-section";
+      const debugTitle = document.createElement("div");
+      debugTitle.className = "debug-title";
+      debugTitle.textContent = "debug";
+      const debugPre = document.createElement("pre");
+      const foundBy = matchByGbif && matchByName ? "gbif+name" : matchByGbif ? "gbif" : matchByName ? "name" : "—";
+      debugPre.textContent = [
+        `gbif_id: ${speciesGbifId ?? "none"}`,
+        `match_by_name: ${matchByName ? "✓" : "✗"}`,
+        `match_by_gbif: ${matchByGbif ? "✓" : "✗"}`,
+        `found_by: ${foundBy}`,
+      ].join("\n");
+      debugEl.appendChild(debugTitle);
+      debugEl.appendChild(debugPre);
+      row.appendChild(debugEl);
 
       speciesChecklist.appendChild(row);
     });
@@ -294,10 +331,11 @@ export function createChallengePanelView() {
       });
     },
 
-    renderSpeciesChecklist(speciesList = [], foundSpecies = []) {
+    renderSpeciesChecklist(speciesList = [], foundSpecies = [], foundGbifIds = []) {
       _lastSpeciesList = speciesList;
       _lastFoundSpecies = foundSpecies;
-      renderChecklist(speciesList, foundSpecies);
+      _lastFoundGbifIds = foundGbifIds;
+      renderChecklist(speciesList, foundSpecies, foundGbifIds);
     },
 
     setMyUid(uid) {

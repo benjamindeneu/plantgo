@@ -9,11 +9,31 @@ import { MissionsPanel } from "../controllers/MissionsPanel.controller.js";
 import { ChallengeModal } from "../controllers/ChallengeModal.controller.js";
 import { DailyQuests } from "../controllers/DailyQuests.controller.js";
 import { listenUserLevel } from "../user/level.js";
+import { Modal } from "../ui/components/Modal.js";
+import { debugMode } from "../data/debugMode.js";
 
 import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 await initI18n();
+debugMode.init();
+
+function openSettingsModal() {
+  const modal = Modal({ title: "Settings", content: "" });
+  const body = modal.querySelector(".body");
+
+  const label = document.createElement("label");
+  label.style.cssText = "display:flex;align-items:center;gap:8px;cursor:pointer";
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.checked = debugMode.get();
+  checkbox.addEventListener("change", () => debugMode.set(checkbox.checked));
+  label.appendChild(checkbox);
+  label.appendChild(document.createTextNode("Debug mode"));
+  body.appendChild(label);
+
+  document.body.appendChild(modal);
+}
 
 function LocationGate() {
   const overlay = document.createElement('div');
@@ -83,7 +103,8 @@ function App() {
         alert(e.message);
       }
     },
-    onHerbarium: () => { location.href = "./plantdex.html"; }
+    onHerbarium: () => { location.href = "./plantdex.html"; },
+    onSettings: () => openSettingsModal(),
   });
   headerMount.replaceWith(header);
 

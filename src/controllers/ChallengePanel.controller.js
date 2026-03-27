@@ -97,7 +97,8 @@ export function ChallengePanel() {
         const memberRef = doc(db, "challenges", active.id, "members", uid);
         unsubMemberDoc = onSnapshot(memberRef, (snap) => {
           const foundSpecies = snap.exists() ? (snap.data()?.foundSpecies || []) : [];
-          view.renderSpeciesChecklist(challengeSpeciesList, foundSpecies);
+          const foundGbifIds = snap.exists() ? (snap.data()?.foundGbifIds || []) : [];
+          view.renderSpeciesChecklist(challengeSpeciesList, foundSpecies, foundGbifIds);
         });
       }
     } else {

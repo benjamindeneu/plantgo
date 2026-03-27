@@ -1,5 +1,6 @@
 // src/ui/components/ResultModal.view.js
 import { t, translateDom } from "../../language/i18n.js";
+import { debugMode } from "../../data/debugMode.js";
 import confetti from "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.module.mjs";
 import { calcFromLevel, calcToLevel, animateProgress, fireLevelUpConfetti } from "../levelProgress.js";
 
@@ -407,7 +408,7 @@ export function createResultModalView() {
       qs("#speciesNameDiv").appendChild(msg);
     },
 
-    async showResultUI({ speciesName, speciesVernacularName, speciesScore, baseTotal, detail, badges, currentTotalBefore, finalTotal, isNearbyDuplicate = false, trivia = null, description = null }) {
+    async showResultUI({ speciesName, speciesVernacularName, speciesScore, baseTotal, detail, badges, currentTotalBefore, finalTotal, isNearbyDuplicate = false, trivia = null, description = null, debugData = null }) {
       const loading = qs("#loadingTrack");
       const title = qs("#resultTitle");
       const speciesLine = qs("#speciesNameLine");
@@ -434,6 +435,27 @@ export function createResultModalView() {
 
       speciesScoreLine.textContent =
         `${t("result.confidence")} ${speciesScore ?? ""}`;
+
+      // Debug block — only visible when debug mode is on
+      const existingDebug = qs("#speciesNameDiv .mission-debug-section");
+      if (existingDebug) existingDebug.remove();
+      if (debugData) {
+        const debugEl = document.createElement("div");
+        debugEl.className = "mission-debug-section";
+        const debugTitle = document.createElement("div");
+        debugTitle.className = "debug-title";
+        debugTitle.textContent = "identify debug";
+        const pre = document.createElement("pre");
+        const lines = [
+          `gbif_id: ${debugData.identify?.gbif_id ?? "none"}`,
+          `plantnet_gbif_id: ${debugData.identify?.plantnet_gbif_id ?? "none"}`,
+          `raw: ${JSON.stringify(debugData.identify?.raw ?? null, null, 2)}`,
+        ];
+        pre.textContent = lines.join("\n");
+        debugEl.appendChild(debugTitle);
+        debugEl.appendChild(pre);
+        qs("#speciesNameDiv").appendChild(debugEl);
+      }
 
       await animateObservation(
         { total: baseTotal, detail, counterEl, detailsEl, badgeEl },

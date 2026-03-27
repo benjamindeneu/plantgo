@@ -299,9 +299,9 @@ export async function applySpeciesHuntScore({
   const gbifIds = Array.isArray(ac.speciesGbifIds) ? ac.speciesGbifIds : [];
   const targetNames = Array.isArray(ac.speciesNames) ? ac.speciesNames : [];
 
-  const isTarget = gbifIdNum
-    ? gbifIds.some(id => Number(id) === gbifIdNum)
-    : targetNames.some(s => binomial(s) === binomial(speciesName));
+  const isTarget =
+    (gbifIdNum && gbifIds.some(id => Number(id) === gbifIdNum)) ||
+    targetNames.some(s => binomial(s) === binomial(speciesName));
   if (!isTarget) return;
 
   // Use a transaction to atomically check + update foundSpecies to prevent double-counting
@@ -313,9 +313,9 @@ export async function applySpeciesHuntScore({
     const foundSpecies = memberSnap.data()?.foundSpecies || [];
     const foundGbifIds = memberSnap.data()?.foundGbifIds || [];
 
-    const alreadyFound = gbifIdNum
-      ? foundGbifIds.some(id => Number(id) === gbifIdNum)
-      : foundSpecies.some(s => binomial(s) === binomial(speciesName));
+    const alreadyFound =
+      (gbifIdNum && foundGbifIds.some(id => Number(id) === gbifIdNum)) ||
+      foundSpecies.some(s => binomial(s) === binomial(speciesName));
     if (alreadyFound) return;
 
     const update = {
