@@ -1010,9 +1010,15 @@ header, .nav{
 }
 
 .achievement-badges-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: var(--sp-2);
+}
+
+.achievement-badges-grid .badge-card {
+  width: 90px;
+  flex-shrink: 0;
 }
 
 .badge-card--pop {
@@ -1233,7 +1239,109 @@ header, .nav{
 }
 @keyframes spin{ to{ transform:translate(-50%,-50%) rotate(360deg); } }
 
-/* ---------- 12) RESPONSIVE ---------- */
+/* ---------- 12) OBSERVATIONS HISTORY ---------- */
+.obs-history-list{
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.obs-history-card{
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+}
+
+/* top section: image left + info right */
+.obs-card-top{
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.obs-wiki-img{
+  width: 132px;
+  height: 132px;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--surface-2);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.obs-wiki-img img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+.obs-card-info{
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.obs-history-header{
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.obs-history-date{ font-size: 13px; }
+
+.obs-nearby-badge{
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+
+.obs-history-species{
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.obs-species-name{ font-size: 16px; }
+.obs-confidence{ font-size: 13px; }
+
+/* detail lines below the top section */
+.obs-history-details{
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: var(--sp-1);
+  border-top: 1px solid var(--border);
+  margin-top: var(--sp-1);
+}
+
+.obs-coords{
+  font-size: 12px;
+  margin-top: var(--sp-1);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  text-decoration: none;
+  color: inherit;
+}
+.obs-coords:hover{ text-decoration: underline; }
+
+.obs-load-spinner{
+  width: 28px;
+  height: 28px;
+  margin: var(--sp-4) auto;
+  border: 3px solid var(--border);
+  border-top-color: var(--green-600);
+  border-radius: 50%;
+  animation: obs-spin 0.7s linear infinite;
+}
+@keyframes obs-spin{ to{ transform: rotate(360deg); } }
+
+.obs-load-sentinel{ height: 1px; }
+
+/* ---------- 13) RESPONSIVE ---------- */
 @media (max-width:768px){
   .card-content{ grid-template-columns:110px 1fr; gap:var(--sp-3); }
   .species-image-container{ width:110px; }

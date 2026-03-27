@@ -104,6 +104,7 @@ function App() {
       }
     },
     onHerbarium: () => { location.href = "./plantdex.html"; },
+    onObservations: () => { location.href = "./observations.html"; },
     onSettings: () => openSettingsModal(),
   });
   headerMount.replaceWith(header);

@@ -37,6 +37,7 @@ export function createHeaderView({
             ? `<button class="menu-item" role="menuitem" id="menuHome">🏠 Main</button>`
             : `<button class="menu-item" role="menuitem" id="menuHerbarium">📗 Herbarium</button>`
         }
+        <button class="menu-item" role="menuitem" id="menuObservations">📋 Observations</button>
         <button class="menu-item" role="menuitem" id="menuBadges">🏅 Badges</button>
         <button class="menu-item" role="menuitem" id="menuChallenge">🏁 Challenge</button>
         <button class="menu-item" role="menuitem" id="menuQuiz">🌿 Quiz</button>
@@ -69,6 +70,7 @@ export function createHeaderView({
   const badgesMenuBtn = root.querySelector("#menuBadges");
   const quizMenuBtn = root.querySelector("#menuQuiz");
   const settingsMenuBtn = root.querySelector("#menuSettings");
+  const observationsMenuBtn = root.querySelector("#menuObservations");
 
   // callbacks set by controller
   let onMenuToggle = null;
@@ -79,6 +81,7 @@ export function createHeaderView({
   let onBadges = null;
   let onQuiz = null;
   let onSettings = null;
+  let onObservations = null;
 
   function toggleMenu(force) {
     const willOpen = force !== undefined ? force : menu.style.display === "none";
@@ -109,6 +112,7 @@ export function createHeaderView({
     if (challengeMenuBtn) { challengeMenuBtn.textContent = `🏁 ${t("header.challenge")}`; }
     if (badgesMenuBtn) { badgesMenuBtn.textContent = `🏅 ${t("header.badges")}`; }
     if (quizMenuBtn) { quizMenuBtn.textContent = `🌿 ${t("header.quiz")}`; }
+    if (observationsMenuBtn) { observationsMenuBtn.textContent = `📋 ${t("header.observations")}`; }
   }
 
   document.addEventListener("i18n:changed", () => {
@@ -156,6 +160,11 @@ export function createHeaderView({
     if (onSettings) onSettings();
   });
 
+  observationsMenuBtn?.addEventListener("click", () => {
+    toggleMenu(false);
+    if (onObservations) onObservations();
+  });
+
   // initial i18n render
   refreshI18n();
 
@@ -187,5 +196,6 @@ export function createHeaderView({
     setOnBadges(cb) { onBadges = cb; },
     setOnQuiz(cb) { onQuiz = cb; },
     setOnSettings(cb) { onSettings = cb; },
+    setOnObservations(cb) { onObservations = cb; },
   };
 }

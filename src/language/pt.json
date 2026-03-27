@@ -39,6 +39,13 @@
   "header.challenge": "Desafio",
   "header.badges": "Emblemas",
   "header.quiz": "Quiz",
+  "header.observations": "Observações",
+
+  "observations.pageTitle": "PlantGo • Observações",
+  "observations.title": "As suas observações",
+  "observations.empty": "Ainda não há observações.",
+  "observations.status.loading": "A carregar as suas observações…",
+  "observations.status.loadFailed": "Não foi possível carregar as suas observações.",
 
   "herbarium.pageTitle": "PlantGo • Herbário",
   "herbarium.title": "As suas descobertas",

@@ -14,6 +14,7 @@ export function Header({
   onBadges,
   onQuiz,
   onSettings,
+  onObservations,
 } = {}) {
   const view = createHeaderView({ user, level, menuVariant });
 
@@ -32,6 +33,7 @@ export function Header({
 
   view.setOnQuiz(() => { (onQuiz || (() => {}))(); });
   view.setOnSettings(() => { (onSettings || (() => {}))(); });
+  view.setOnObservations(() => { (onObservations || (() => {}))(); });
 
   // keep dropdown in sync with current doc lang
   const currentLang = document.documentElement.lang || "en";

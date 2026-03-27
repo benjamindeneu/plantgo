@@ -1,21 +1,17 @@
-// src/pages/herbarium.app.js
-
+// src/pages/observations.app.js
 import { initI18n } from "../language/i18n.js";
 import { Header } from "../controllers/Header.controller.js";
-import { HerbariumPanel } from "../controllers/Herbarium.controller.js";
+import { ObservationsHistoryPanel } from "../controllers/ObservationsHistory.controller.js";
 import { listenUserLevel } from "../user/level.js";
 
 import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
-// ensure dict is loaded + html lang set BEFORE any views render
 await initI18n();
 
 function App() {
-  // must exist before Header so logout can call it safely
   let stopLevel = () => {};
 
-  // ----- Header (Herbarium variant) -----
   const headerMount = document.getElementById("appHeader");
   const header = Header({
     user: null,
@@ -24,7 +20,6 @@ function App() {
     onBackHome: () => { location.href = "./index.html"; },
     onBadges: () => { location.href = "./badges.html"; },
     onQuiz: () => { location.href = "./quiz.html"; },
-    onObservations: () => { location.href = "./observations.html"; },
     onLogout: async () => {
       try {
         stopLevel();
@@ -37,22 +32,16 @@ function App() {
   });
   headerMount.replaceWith(header);
 
-  // ----- Herbarium list panel -----
-  const listMount = document.getElementById("discoveriesList");
-  const herbariumPanel = HerbariumPanel();
-  listMount.replaceWith(herbariumPanel);
+  const listMount = document.getElementById("observationsList");
+  listMount.replaceWith(ObservationsHistoryPanel());
 
-  // ----- Auth guard + header level sync -----
   onAuthStateChanged(auth, (user) => {
     if (!user) {
       stopLevel();
       location.replace("./login.html");
       return;
     }
-
     header.setUser(user);
-
-    // refresh level listener
     stopLevel();
     stopLevel = listenUserLevel(user.uid, (lvl) => header.setLevel(lvl));
   });
