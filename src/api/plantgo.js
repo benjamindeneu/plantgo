@@ -65,16 +65,17 @@ export async function fetchPredictions({ lat, lon, model = "best", limit = 10, l
 }
 
 /**
- * Fetch a quiz for a set of observed species.
- * @param {{ items: Array<{gbif_id: number, name: string}>, lang: string }} params
- * Returns array of quiz questions.
+ * Fetch a single quiz question for one observed species.
+ * @param {{ item: {gbif_id: number, name: string}, lang: string }} params
+ * Returns the first question object from the backend response.
  */
-export async function fetchQuiz({ items, lang = "en" }) {
-  return httpWithTimeout(QUIZ_PROXY_URL, {
+export async function fetchQuizQuestion({ item, lang = "en" }) {
+  const result = await httpWithTimeout(QUIZ_PROXY_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ items, lang }),
-  }, 150_000); // 2.5 min — quiz generation can be slow
+    body: JSON.stringify({ items: [item], lang }),
+  }, 60_000); // 1 min per question
+  return Array.isArray(result) ? result[0] : result;
 }
 
 /**

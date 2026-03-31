@@ -266,7 +266,7 @@ button.secondary{
 header, .nav{
   display:flex;
   align-items:center;
-  justify-content:space-between;
+  justify-content:flex-start;
   gap:12px;
   padding:12px 16px;
   position:sticky;
@@ -303,10 +303,18 @@ header, .nav{
 }
 
 .user-area{
+  display: flex;
+  align-items: center;
+  /* push everything from here rightward to the right side of the header */
+  margin-left: auto;
+}
+
+/* wrapper that owns the menu button + dropdown */
+.menu-wrap{
   position: relative;
-  display: flex !important;
-  flex-direction: row !important;
-  gap: 8px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 #userInfo{
   position:absolute;
@@ -317,6 +325,50 @@ header, .nav{
   align-items:center;
   gap:10px;
 }
+
+/* Static user info pill (non-interactive) */
+.user-info{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 14px;
+  border-radius:var(--radius-pill);
+  background:var(--surface);
+  color:var(--text);
+  border:1px solid var(--border);
+  box-shadow:var(--shadow-sm);
+  white-space:nowrap;
+}
+
+/* Hamburger menu button */
+.menu-btn{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 12px;
+  border-radius:var(--radius-pill);
+  background:var(--surface);
+  color:var(--text);
+  border:1px solid var(--border);
+  cursor:pointer;
+  box-shadow:var(--shadow-sm);
+  flex-shrink:0;
+  white-space:nowrap;
+  font-size:0.875rem;
+  transition:background var(--duration) var(--easing), border-color var(--duration) var(--easing), color var(--duration) var(--easing);
+}
+.menu-btn:hover{ background:var(--surface-2); }
+.menu-btn[aria-expanded="true"]{
+  background:var(--green-50);
+  border-color:var(--green-300);
+  color:var(--green-700);
+}
+.menu-btn-label{ display:inline; }
+@media (max-width:480px){
+  .menu-btn{ padding:8px; gap:0; }
+  .menu-btn-label{ display:none; }
+}
+
 .lang-select{
   display:flex;
   align-items:center;
@@ -329,51 +381,72 @@ header, .nav{
   cursor:pointer;
   box-shadow:var(--shadow-sm);
 }
-#userBtn, .user-btn{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:8px 12px;
-  border-radius:var(--radius-pill);
-  background:var(--surface);
-  color:var(--text);
-  border:1px solid var(--border);
-  cursor:pointer;
-  box-shadow:var(--shadow-sm);
-}
-#userBtn:hover, .user-btn:hover{ background:var(--surface-2); }
-#userBtn.menu-open, .user-btn[aria-expanded="true"]{
-  background:var(--green-50);
-  border-color:var(--green-300);
+
+@keyframes menu-appear{
+  from{ opacity:0; transform:translateY(-8px) scale(.96); }
+  to  { opacity:1; transform:translateY(0)    scale(1);   }
 }
 
 #userMenu, .menu{
-  display:none;
   position:absolute;
   right:0;
   top:calc(100% + 8px);
-  min-width:180px;
+  min-width:200px;
   background:var(--surface);
   border:1px solid color-mix(in srgb, var(--border) 70%, transparent);
-  border-radius:14px;
+  border-radius:16px;
   box-shadow:var(--shadow-lg);
   padding:6px;
   z-index:1500;
-  text-align:center;
+  /* hidden by default */
+  visibility:hidden;
+  opacity:0;
+  transform:translateY(-8px) scale(.96);
+  pointer-events:none;
+  transition:opacity var(--duration) var(--easing),
+             transform var(--duration) var(--easing),
+             visibility 0s var(--duration);
 }
-#userMenu.show{ display:block; }
+#userMenu.show, .menu.show{
+  visibility:visible;
+  opacity:1;
+  transform:translateY(0) scale(1);
+  pointer-events:auto;
+  transition:opacity var(--duration) var(--easing),
+             transform var(--duration) var(--easing),
+             visibility 0s;
+}
 
 .menu-item{
   width:100%;
   text-align:left;
-  padding:10px 12px;
+  padding:10px 14px;
   background:transparent;
   border:0;
-  border-radius:8px;
+  border-radius:10px;
   cursor:pointer;
+  color:var(--text);
+  font-size:0.9rem;
+  transition:background var(--duration) var(--easing);
 }
-.menu-item:hover{ background:rgba(0,0,0,.05); }
+.menu-item:hover{ background:var(--green-50); color:var(--green-700); }
 .menu-item.danger{ color:#b00020; }
+.menu-item.danger:hover{ background:var(--danger-100); color:var(--danger-500); }
+
+.menu-divider{
+  height:1px;
+  background:var(--border);
+  margin:4px 8px;
+}
+
+.menu-item--back{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:var(--green-700);
+  font-weight:600;
+}
+.menu-item--back:hover{ background:var(--green-50); }
 
 /* ---------- 6) MODAL ---------- */
 .modal{

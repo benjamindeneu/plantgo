@@ -9,7 +9,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
-import { fetchQuiz } from "../api/plantgo.js";
+import { fetchQuizQuestion } from "../api/plantgo.js";
 import { t } from "../language/i18n.js";
 import { getUserTotalPoints, awardQuizPoints, isQuizDoneToday, markQuizDone } from "../data/user.repo.js";
 import {
@@ -100,26 +100,26 @@ export function QuizController(container) {
   }
 
   async function startQuiz(userId, items) {
-    renderLoading(container, t("quiz.loading"));
-
     const lang = document.documentElement.lang || "en";
+    const total = items.length;
+
+    // Fetch first question before showing anything
     renderLoading(container, t("quiz.loadingQuestions"));
-
-    let questions;
+    let firstQuestion;
     try {
-      questions = await fetchQuiz({ items, lang });
+      firstQuestion = await fetchQuizQuestion({ item: items[0], lang });
     } catch (e) {
-      console.error("Quiz: failed to fetch quiz", e);
+      console.error("Quiz: failed to fetch first question", e);
       renderError(container, t("quiz.error.fetchQuiz"));
-      return; // not counted as done
+      return;
     }
 
-    if (!questions || questions.length === 0) {
+    if (!firstQuestion) {
       renderError(container, t("quiz.error.fetchQuiz"));
-      return; // not counted as done
+      return;
     }
 
-    // Quiz successfully generated — lock for today
+    // First question ready — lock quiz for today
     try {
       await markQuizDone(userId);
     } catch (e) {
@@ -134,10 +134,23 @@ export function QuizController(container) {
       console.error("Quiz: could not fetch total points", e);
     }
 
-    // Run questions
+    // First question received — kick off ALL remaining fetches in parallel
+    const questionPromises = [Promise.resolve(firstQuestion)];
+    for (let j = 1; j < total; j++) {
+      const idx = j;
+      questionPromises[j] = fetchQuizQuestion({ item: items[idx], lang })
+        .catch((e) => {
+          console.error(`Quiz: failed to fetch question ${idx + 1}`, e);
+          return null;
+        });
+    }
+
+    // Run questions — each one is likely already fetched by the time user reaches it
     let correctCount = 0;
-    for (let i = 0; i < questions.length; i++) {
-      const correct = await renderQuestion(container, questions[i], i, questions.length);
+    for (let i = 0; i < total; i++) {
+      const question = await questionPromises[i];
+      if (!question) break;
+      const correct = await renderQuestion(container, question, i, total);
       if (correct) correctCount++;
     }
 
@@ -151,7 +164,7 @@ export function QuizController(container) {
       }
     }
 
-    renderScore(container, correctCount, questions.length, {
+    renderScore(container, correctCount, total, {
       currentTotalBefore,
       pointsEarned,
     });

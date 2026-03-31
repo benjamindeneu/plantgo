@@ -3,7 +3,7 @@
 ## 🚀 High Priority
 - [ ] **Pictures credentials**: add credentials on wikipedia and quiz pictures.
 - [ ] **Vernacular names**: manage vernacular names in the frontend for multiple language, fix language in the species hunt challenge.
-- [ ] **Menu dropdown**: Fix and improve menu dropdown.
+- [/] **Menu dropdown**: Fix and improve menu dropdown.
 
 ## 🛠 Refactoring
 - [ ] **Centralize Concurrency Limiter**: The `MAX_CONCURRENT` and `runLimited` logic is currently duplicated in:
@@ -19,7 +19,7 @@
 - [ ] **Improve visuals**: clean css file and improve visuals overhaul.
 
 ## 🐛 Known Issues
-- [ ] **Quiz Generation Speed**: Load per questions to fix delay on quiz generation.
+- [/] **Quiz Generation Speed**: Load per questions to fix delay on quiz generation.
 
 ## Improvments
 - [ ] **Firebase Optimization**: Review `user.repo.js` to ensure we aren't over-fetching user data across multiple panel initializations.
