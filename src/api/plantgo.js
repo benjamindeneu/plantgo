@@ -22,21 +22,63 @@ async function httpWithTimeout(url, opts = {}, timeoutMs = 150_000) {
 }
 
 /**
+ * Resize an image File to fit within maxDim x maxDim while preserving aspect ratio.
+ * Returns a new File (JPEG, quality 0.85) small enough for fast uploads.
+ */
+export async function resizeImage(file, maxDim = 1280) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const { naturalWidth: w, naturalHeight: h } = img;
+      const scale = Math.min(1, maxDim / Math.max(w, h));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(w * scale);
+      canvas.height = Math.round(h * scale);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(
+        (blob) => {
+          const resized = new File([blob], file.name || "photo.jpg", { type: "image/jpeg" });
+          resolve({
+            file: resized,
+            debugInfo: {
+              originalSize: file.size,
+              newSize: blob.size,
+              originalDims: `${w}×${h}`,
+              newDims: `${canvas.width}×${canvas.height}`,
+              reduction: Math.round((1 - blob.size / file.size) * 100),
+            },
+          });
+        },
+        "image/jpeg",
+        0.95
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve({ file, debugInfo: null }); }; // fallback: send original
+    img.src = url;
+  });
+}
+
+/**
  * Identify a plant with the backend contract you shared:
  * - multipart form with *single* file field named "image"
  * - form fields: lat, lon, model
  */
-export async function identifyPlant({ file, lat, lon, model = "best", lang = "en" }) {
+export async function identifyPlant({ file, lat, lon, model = "best", lang = "en", skipResize = false, debug = false }) {
   if (!file) throw new Error("No image file provided.");
   if (lat == null || lon == null) throw new Error("Missing lat/lon for identify.");
 
+  const resized = skipResize ? file : (await resizeImage(file)).file;
+
   const formData = new FormData();
   // IMPORTANT: single file under the exact field name "image"
-  formData.append("image", file, file.name || "photo.jpg");
+  formData.append("image", resized, resized.name || "photo.jpg");
   formData.append("lat", String(lat));
   formData.append("lon", String(lon));
   formData.append("model", model);
   formData.append("lang", lang);
+  if (debug) formData.append("debug", "true");
 
   return http(IDENTIFY_PROXY_URL, { method: "POST", body: formData });
 }

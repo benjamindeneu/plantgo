@@ -439,20 +439,46 @@ export function createResultModalView() {
       // Debug block — only visible when debug mode is on
       const existingDebug = qs("#speciesNameDiv .mission-debug-section");
       if (existingDebug) existingDebug.remove();
-      if (debugData) {
+      if (debugData && debugMode.get()) {
         const debugEl = document.createElement("div");
         debugEl.className = "mission-debug-section";
-        const debugTitle = document.createElement("div");
-        debugTitle.className = "debug-title";
-        debugTitle.textContent = "identify debug";
+
+        // Timings table
+        const t = debugData.timings || {};
+        const timingRows = [
+          ["geolocation",    t.geolocation],
+          ["resize",         t.resize == null ? null : (() => {
+            const d = t.resizeDebugInfo;
+            if (!d) return `${t.resize} ms`;
+            const fmt = (b) => b >= 1_000_000 ? `${(b/1_000_000).toFixed(1)} MB` : `${Math.round(b/1024)} KB`;
+            return `${t.resize} ms  ${fmt(d.originalSize)} → ${fmt(d.newSize)} (${d.reduction}% smaller)  ${d.originalDims} → ${d.newDims}`;
+          })()],
+          ["identify (API)", t.identify],
+          ["mission check",  t.missionCheck],
+          ["save obs",       t.saveObservation],
+          ["quests/badges",  t.quests],
+          ["description",    t.description],
+        ]
+          .filter(([, v]) => v != null)
+          .map(([label, v]) => `  ${label.padEnd(16)} ${typeof v === "string" ? v : `${v} ms`}`)
+          .join("\n");
+
+        const srv = debugData.serverTimings || {};
+        const serverTimingRows = Object.entries(srv)
+          .map(([label, s]) => `  ${label.padEnd(20)} ${(s * 1000).toFixed(0)} ms`)
+          .join("\n");
+
         const pre = document.createElement("pre");
-        const lines = [
-          `gbif_id: ${debugData.identify?.gbif_id ?? "none"}`,
-          `plantnet_gbif_id: ${debugData.identify?.plantnet_gbif_id ?? "none"}`,
+        pre.textContent = [
+          "── client timings ───────────",
+          timingRows,
+          ...(serverTimingRows ? ["── server timings ───────────", serverTimingRows] : []),
+          "── identify ─────────────────",
+          `gbif_id:           ${debugData.identify?.gbif_id ?? "none"}`,
+          `plantnet_gbif_id:  ${debugData.identify?.plantnet_gbif_id ?? "none"}`,
           `raw: ${JSON.stringify(debugData.identify?.raw ?? null, null, 2)}`,
-        ];
-        pre.textContent = lines.join("\n");
-        debugEl.appendChild(debugTitle);
+        ].join("\n");
+
         debugEl.appendChild(pre);
         qs("#speciesNameDiv").appendChild(debugEl);
       }

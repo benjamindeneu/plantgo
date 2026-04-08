@@ -22,7 +22,8 @@ export function ResultModal() {
       await view.initLoading({ photos, currentTotalPoints });
     },
 
-    async showResult({ identify, points, trivia = null, lat, lon, plantnetImageCode }) {
+    async showResult({ identify, points, trivia = null, lat, lon, plantnetImageCode, clientTimings = {}, timings: serverTimings = null }) {
+      const timings = clientTimings;
       const speciesName = identify?.name || t("result.unknownSpecies");
       const speciesVernacularName = identify?.vernacularName || t("result.noCommonName");
       const baseTotal = Number(points?.total ?? 0);
@@ -51,7 +52,10 @@ export function ResultModal() {
         } catch { /* noop */ }
       }
 
+      const tMission = performance.now();
       const missionHit = await isInMissionsList(speciesName, identify?.gbif_id);
+      timings.missionCheck = Math.round(performance.now() - tMission);
+
       const badges = [];
       if (missionHit) badges.push({ kind: "mission", emoji: "🎯", label: t("result.badge.missionSpecies"), bonus: 500 });
 
@@ -60,6 +64,7 @@ export function ResultModal() {
       let nearbyPoints = 0;
       let obsResult = {};
       if (user) {
+        const tObs = performance.now();
         obsResult = await addObservationAndDiscovery({
           userId: user.uid,
           speciesName,
@@ -71,13 +76,16 @@ export function ResultModal() {
           total_points: baseTotal,
           extraBonus: missionHit ? 500 : 0,
         });
+        timings.saveObservation = Math.round(performance.now() - tObs);
         discoveryBonus = obsResult.discoveryBonus;
         isNearbyDuplicate = obsResult.isNearbyDuplicate;
         nearbyPoints = obsResult.nearbyPoints ?? 0;
       }
 
       // Check if this observation completed any daily quests (+ relevé / perfect day badges)
+      const tQuests = performance.now();
       const { completedQuestIds, newlyUnlockedBadges: questBadges } = await checkAndAwardQuestCompletions(user.uid);
+      timings.quests = Math.round(performance.now() - tQuests);
       for (const _ of completedQuestIds) {
         badges.push({ kind: "quest", emoji: "🏆", label: t("result.badge.questComplete"), bonus: QUEST_BONUS });
       }
@@ -105,7 +113,9 @@ export function ResultModal() {
         if (def) badges.push({ kind: "achievement", emoji: def.emoji, label: t(def.nameKey), desc: t(def.descKey) });
       }
 
+      const tDesc = performance.now();
       const descResult = await descriptionPromise;
+      timings.description = Math.round(performance.now() - tDesc);
       const description = descResult?.description ?? null;
 
       if (isNearbyDuplicate) {
@@ -124,7 +134,7 @@ export function ResultModal() {
           isNearbyDuplicate: true,
           trivia,
           description,
-          debugData: { identify, missionHit },
+          debugData: { identify, missionHit, timings, serverTimings },
         });
         return;
       }
