@@ -27,10 +27,8 @@ export function MissionsPanel() {
   let aroundLoaded = false;
 
   view.onSettingsOpen(async () => {
-    if (!lastPos) {
-      try { lastPos = await getCurrentPosition(); }
-      catch (_) { return null; }
-    }
+    try { lastPos = await getCurrentPosition(); }
+    catch (_) { return null; }
     return fetchAvailableModels({ lat: lastPos.coords.latitude, lon: lastPos.coords.longitude });
   });
 
@@ -76,7 +74,7 @@ export function MissionsPanel() {
     view.setLoading(true);
 
     try {
-      if (!lastPos) lastPos = await getCurrentPosition();
+      lastPos = await getCurrentPosition();
       view.setLocation(lastPos.coords.latitude, lastPos.coords.longitude);
       view.setStatus(t("missions.status.loadingAround"));
 
