@@ -32,13 +32,11 @@ export function createResultModalView() {
             <div id="speciesNameLine" class="muted big-text"></div>
             <div id="speciesVernacularNameLine" class="muted big-text"></div>
             <div id="speciesScoreLine" class="muted small-text"></div>
-            <div class="loading-track" id="loadingTrack" aria-hidden="true">
-              <div class="loading-indeterminate"></div>
-            </div>
+            <div class="loading-spinner" id="loadingTrack" aria-hidden="true"></div>
           </div>
         </div>
 
-        <div class="result-points">
+        <div class="result-points" style="display:none">
           <div class="muted" style="margin-bottom:6px; text-align:center;" data-i18n="result.observationPoints">
             Observation points:
           </div>
@@ -372,6 +370,7 @@ export function createResultModalView() {
       const obsBadge = qs("#obsBadge");
       setBadgeRarityClass(obsBadge, "common-points");
 
+      qs(".result-points").style.display = "none";
       qs("#badges").style.display = "none";
       qs("#finalTotalWrap").style.display = "none";
       qs("#pointsDetails").innerHTML = "";
@@ -421,6 +420,7 @@ export function createResultModalView() {
       const badgesEl = qs("#badges");
 
       loading.style.display = "none";
+      qs(".result-points").style.display = "";
       title.textContent = t("result.newObservationOf");
 
       //speciesLine.textContent = speciesName || t("result.unknownSpecies");

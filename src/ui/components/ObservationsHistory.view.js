@@ -13,7 +13,7 @@ export function createObservationsHistoryView() {
   sec.innerHTML = `
     <div id="obsHistoryStatus" class="validation-feedback" aria-live="polite"></div>
     <div id="obsHistoryList" class="obs-history-list"></div>
-    <div id="obsHistorySpinner" class="obs-load-spinner" style="display:none" aria-hidden="true"></div>
+    <div id="obsHistorySpinner" class="loading-spinner" style="display:none" aria-hidden="true"></div>
     <div id="obsHistorySentinel" class="obs-load-sentinel"></div>
   `;
 

@@ -979,27 +979,40 @@ header, .nav{
   font-style: italic;
 }
 
-.loading-track{
-  position:relative;
-  width:100%;
-  height:6px;
-  border-radius:999px;
-  background:#eef2f7;
-  overflow:hidden;
+/* ── Loaders (all spinner styles, centralised) ─────────────────── */
+@keyframes loading-spin {
+  to { transform: rotate(360deg); }
 }
-.loading-indeterminate{
-  position:absolute;
-  left:-40%;
-  width:40%;
-  height:100%;
-  background: linear-gradient(90deg, rgba(16,185,129,.2), rgba(16,185,129,.65), rgba(16,185,129,.2));
-  animation: indeterminate 1.2s ease-in-out infinite;
-  border-radius:999px;
+@keyframes loading-spin-fixed {
+  to { transform: translate(-50%,-50%) rotate(360deg); }
 }
-@keyframes indeterminate{
-  0%{ left:-40%; width:40%; }
-  50%{ left:20%; width:60%; }
-  100%{ left:100%; width:40%; }
+
+/* Reusable round infinite spinner */
+.loading-spinner {
+  display: block;
+  width: 28px;
+  height: 28px;
+  margin: var(--sp-4) auto;
+  border-radius: 50%;
+  border: 3px solid rgba(16,185,129,.18);
+  border-top-color: var(--green-600);
+  animation: loading-spin 0.85s cubic-bezier(0.4,0,0.6,1) infinite;
+  flex-shrink: 0;
+}
+
+/* Fixed full-screen centered variant */
+.spinner {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 1000;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid rgba(16,185,129,.18);
+  border-top-color: var(--green-600);
+  animation: loading-spin-fixed 0.85s cubic-bezier(0.4,0,0.6,1) infinite;
+  box-shadow: var(--shadow);
 }
 
 .progress-rail{
@@ -1235,7 +1248,7 @@ header, .nav{
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  margin: var(--sp-4) 0 2px;
+  margin: var(--sp-8) 0 2px;
 }
 .user-photos .shot {
   width: 84px;
@@ -1258,6 +1271,26 @@ header, .nav{
   gap: 0;            /* removes label-file gap */
 }
 
+/* Large prominent style — only when it's the sole CTA (empty state, inside cta-wrap) */
+.identify-cta-wrap .shot.label-file.add-shot {
+  width: 110px;
+  height: 110px;
+  border-radius: 18px;
+  border: 3px solid #86efac !important;
+  background: linear-gradient(160deg, #f0fdf4 0%, #dcfce7 100%);
+  box-shadow:
+    0 0 0 4px rgba(34, 197, 94, 0.18),
+    0 6px 20px rgba(34, 197, 94, 0.40),
+    0 3px 0 #16a34a;
+}
+.identify-cta-wrap .add-shot-icon svg {
+  width: 38px;
+  height: 38px;
+}
+.identify-cta-wrap .add-shot-plus {
+  font-size: 24px;
+}
+
 /* stack icon and plus */
 .user-photos .add-shot-inner {
   display: grid;
@@ -1278,6 +1311,27 @@ header, .nav{
   margin-top: -2px;
 }
 
+/* ---------- Identify CTA button + curvy arrows ---------- */
+.identify-cta-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+
+.cta-arrow {
+  flex-shrink: 0;
+  overflow: visible;
+}
+/* Apply stroke via CSS so var() resolves correctly (SVG attributes can't use CSS vars) */
+.cta-arrow path {
+  stroke: var(--green-600);
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 2.6;
+  opacity: .75;
+}
+
 .preview-strip{
   display:flex;
   gap:8px;
@@ -1295,22 +1349,6 @@ header, .nav{
   border:0;
 }
 
-/* Spinner */
-.spinner{
-  position:fixed;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  z-index:1000;
-  width:26px;
-  height:26px;
-  border:3px solid #e5e7eb;
-  border-top-color:var(--green-600);
-  border-radius:50%;
-  animation: spin .9s linear infinite;
-  box-shadow:var(--shadow);
-}
-@keyframes spin{ to{ transform:translate(-50%,-50%) rotate(360deg); } }
 
 /* ---------- 12) OBSERVATIONS HISTORY ---------- */
 .obs-history-list{
@@ -1401,16 +1439,6 @@ header, .nav{
 }
 .obs-coords:hover{ text-decoration: underline; }
 
-.obs-load-spinner{
-  width: 28px;
-  height: 28px;
-  margin: var(--sp-4) auto;
-  border: 3px solid var(--border);
-  border-top-color: var(--green-600);
-  border-radius: 50%;
-  animation: obs-spin 0.7s linear infinite;
-}
-@keyframes obs-spin{ to{ transform: rotate(360deg); } }
 
 .obs-load-sentinel{ height: 1px; }
 

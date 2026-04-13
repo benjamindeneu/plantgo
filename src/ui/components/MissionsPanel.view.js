@@ -41,9 +41,7 @@ export function createMissionsPanelView() {
     </div>
 
     <div id="status" aria-live="polite" class="validation-feedback"></div>
-    <div id="loadingTrack" class="loading-track" style="display:none" aria-hidden="true">
-      <div class="loading-indeterminate"></div>
-    </div>
+    <div id="loadingTrack" class="loading-spinner" style="display:none" aria-hidden="true"></div>
     <div id="list" class="form-grid" style="text-align:center"></div>
 
     <!-- model used -->
@@ -80,8 +78,7 @@ export function createMissionsPanelView() {
     const body = modal.querySelector(".body");
 
     const loadingTrackModal = document.createElement("div");
-    loadingTrackModal.className = "loading-track";
-    loadingTrackModal.innerHTML = `<div class="loading-indeterminate"></div>`;
+    loadingTrackModal.className = "loading-spinner";
     body.appendChild(loadingTrackModal);
     modelLabel.style.display = "none";
     body.appendChild(modelLabel);

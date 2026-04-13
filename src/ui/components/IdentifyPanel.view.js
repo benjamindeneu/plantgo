@@ -84,8 +84,35 @@ export function createIdentifyPanelView() {
       preview.appendChild(tile);
     }
 
-    // Render the add-tile as the "next slot"
-    preview.appendChild(createAddTile());
+    if (files.length === 0) {
+      // Empty state: wrap the add-tile with curvy arrows so there's an immediate visual CTA
+      const wrap = document.createElement("div");
+      wrap.className = "identify-cta-wrap";
+
+      const arrowLeft = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      arrowLeft.setAttribute("class", "cta-arrow cta-arrow--left");
+      arrowLeft.setAttribute("viewBox", "0 0 56 54");
+      arrowLeft.setAttribute("width", "44");
+      arrowLeft.setAttribute("height", "44");
+      arrowLeft.setAttribute("aria-hidden", "true");
+      arrowLeft.innerHTML = `<path d="M 10 6 C 2 24, 16 46, 46 42"/><path d="M 46 42 L 34 33 M 46 42 L 37 52"/>`;
+
+      const arrowRight = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      arrowRight.setAttribute("class", "cta-arrow cta-arrow--right");
+      arrowRight.setAttribute("viewBox", "0 0 56 54");
+      arrowRight.setAttribute("width", "44");
+      arrowRight.setAttribute("height", "44");
+      arrowRight.setAttribute("aria-hidden", "true");
+      arrowRight.innerHTML = `<path d="M 46 6 C 54 24, 40 46, 10 42"/><path d="M 10 42 L 22 33 M 10 42 L 19 52"/>`;
+
+      wrap.appendChild(arrowLeft);
+      wrap.appendChild(createAddTile());
+      wrap.appendChild(arrowRight);
+      preview.appendChild(wrap);
+    } else {
+      // Render the add-tile as the "next slot"
+      preview.appendChild(createAddTile());
+    }
 
     // Actions visible only when >= 1 photo
     setActionsVisible(files.length > 0);
