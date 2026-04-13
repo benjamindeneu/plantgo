@@ -241,12 +241,12 @@ export function createMissionsPanelView() {
       locationMapEl.style.display = "";
       if (!leafletMap) {
         leafletMap = L.map(locationMapEl, {
-          zoomControl: false,
+          zoomControl: true,
           attributionControl: false,
-          dragging: false,
-          scrollWheelZoom: false,
-          doubleClickZoom: false,
-          touchZoom: false,
+          scrollWheelZoom: true,
+          touchZoom: true,
+          dragging: true,
+          doubleClickZoom: true,
           keyboard: false,
         }).setView([lat, lon], 16);
         L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
