@@ -148,6 +148,45 @@ main{ padding:var(--sp-3); }
 }
 
 /* ---------- 4) GENERIC COMPONENTS ---------- */
+/* Panel tab bar — replaces the card title, bleeds to card edges */
+.panel-tab-bar {
+  display: flex;
+  margin: calc(-1 * var(--sp-2)) calc(-1 * var(--sp-2)) 14px;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  overflow: hidden;
+  background: var(--green-50);
+  border-bottom: 2px solid var(--border);
+}
+.panel-tab {
+  flex: 1;
+  display: block;
+  padding: 14px 8px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 6px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+.panel-tab:hover {
+  background: var(--green-100);
+  color: var(--text);
+}
+.panel-tab--active {
+  color: var(--green-700);
+  border-bottom-color: var(--green-600);
+  background: color-mix(in srgb, var(--surface) 70%, var(--green-50));
+  font-weight: 700;
+}
+.tab-desc {
+  font-size: 1.05rem;
+  margin: 0 0 10px;
+  text-align: center;
+}
+
 .card{
   border:1px solid var(--border);
   border-radius:var(--r-lg);

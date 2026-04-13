@@ -5,13 +5,13 @@ import { Modal } from "./Modal.js";
 await initI18n();
 translateDom(document);
 
-function renderMissionsList(listEl, missionsList = []) {
+function renderMissionsList(listEl, missionsList = [], { showPoints = true, showMissionPrefix = true } = {}) {
   listEl.innerHTML = "";
   if (!missionsList.length) {
     listEl.textContent = t("missions.empty");
     return;
   }
-  for (const m of missionsList) listEl.appendChild(MissionCard(m));
+  for (const m of missionsList) listEl.appendChild(MissionCard(m, { showPoints, showMissionPrefix }));
 }
 
 function renderModelLine(modelEl, model, missionsList = []) {
@@ -31,29 +31,40 @@ export function createMissionsPanelView() {
   const sec = document.createElement("section");
   sec.className = "card";
   sec.innerHTML = `
-    <h1 data-i18n="missions.title">Your missions</h1>
+    <div class="panel-tab-bar" role="tablist">
+      <span class="panel-tab panel-tab--active" id="tabAround" role="tab" tabindex="0" aria-selected="true" data-i18n="missions.tab.aroundYou">Around me</span>
+      <span class="panel-tab" id="tabMissions" role="tab" tabindex="0" aria-selected="false" data-i18n="missions.tab.missions">Missions</span>
+    </div>
+
+    <p id="tabDesc" class="tab-desc muted"></p>
 
     <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <button id="locate" class="secondary" type="button" data-i18n="missions.refresh">
-        Refresh Missions
+      <button id="locate" class="secondary" type="button" data-i18n="missions.refresh.around">
+        Refresh predictions
       </button>
       <button id="settingsBtn" class="secondary btn-icon" type="button" aria-label="Settings">⚙</button>
     </div>
 
     <div id="status" aria-live="polite" class="validation-feedback"></div>
     <div id="loadingTrack" class="loading-spinner" style="display:none" aria-hidden="true"></div>
-    <div id="list" class="form-grid" style="text-align:center"></div>
+
+    <div id="paneAround" class="form-grid" style="text-align:center"></div>
+    <div id="paneMissions" class="form-grid" style="text-align:center;display:none"></div>
 
     <!-- model used -->
     <div id="modelLine" class="muted" style="margin-top:8px;text-align:center;display:none;"></div>
   `;
 
-  const statusEl     = sec.querySelector("#status");
-  const loadingTrack = sec.querySelector("#loadingTrack");
-  const listEl       = sec.querySelector("#list");
-  const locateBtn    = sec.querySelector("#locate");
-  const modelEl      = sec.querySelector("#modelLine");
-  const settingsBtn  = sec.querySelector("#settingsBtn");
+  const statusEl      = sec.querySelector("#status");
+  const loadingTrack  = sec.querySelector("#loadingTrack");
+  const listMissions  = sec.querySelector("#paneMissions");
+  const listAround    = sec.querySelector("#paneAround");
+  const locateBtn     = sec.querySelector("#locate");
+  const modelEl       = sec.querySelector("#modelLine");
+  const settingsBtn   = sec.querySelector("#settingsBtn");
+  const tabMissions   = sec.querySelector("#tabMissions");
+  const tabAround     = sec.querySelector("#tabAround");
+  const tabDescEl     = sec.querySelector("#tabDesc");
 
   // persistent select element — survives modal open/close cycles
   const modelSelect = document.createElement("select");
@@ -70,10 +81,38 @@ export function createMissionsPanelView() {
   modelLabel.appendChild(modelLabelSpan);
   modelLabel.appendChild(modelSelect);
 
+  // --- tab state ---
+  let activeTab = "around"; // "missions" | "around"
+  let tabSwitchHandler = null;
+
+  function setActiveTab(tab) {
+    activeTab = tab;
+    tabMissions.classList.toggle("panel-tab--active", tab === "missions");
+    tabMissions.setAttribute("aria-selected", tab === "missions" ? "true" : "false");
+    tabAround.classList.toggle("panel-tab--active", tab === "around");
+    tabAround.setAttribute("aria-selected", tab === "around" ? "true" : "false");
+    listMissions.style.display = tab === "missions" ? "" : "none";
+    listAround.style.display   = tab === "around"   ? "" : "none";
+    locateBtn.setAttribute("data-i18n", tab === "around" ? "missions.refresh.around" : "missions.refresh");
+    locateBtn.textContent = t(tab === "around" ? "missions.refresh.around" : "missions.refresh");
+    tabDescEl.setAttribute("data-i18n", tab === "around" ? "missions.desc.around" : "missions.desc.missions");
+    tabDescEl.textContent = t(tab === "around" ? "missions.desc.around" : "missions.desc.missions");
+    if (tabSwitchHandler) tabSwitchHandler(tab);
+  }
+
+  function addTabListeners(el, tab) {
+    el.addEventListener("click", () => setActiveTab(tab));
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveTab(tab); }
+    });
+  }
+  addTabListeners(tabMissions, "missions");
+  addTabListeners(tabAround,   "around");
+
+  // --- settings modal ---
   let settingsOpenHandler = null;
 
   settingsBtn.addEventListener("click", () => {
-    // open modal immediately
     const modal = Modal({ title: t("settings.title"), content: "" });
     const body = modal.querySelector(".body");
 
@@ -93,7 +132,6 @@ export function createMissionsPanelView() {
         const models = data.models ?? [];
         const defaultModel = data.default_model ?? null;
 
-        // "Auto (FlorID)" when we know what the backend will pick
         const defaultName = defaultModel
           ? (models.find(m => m.id === defaultModel)?.name ?? defaultModel)
           : null;
@@ -123,7 +161,6 @@ export function createMissionsPanelView() {
           modelSelect.appendChild(availableGroup);
         }
 
-        // restore manual pick if still available, otherwise default to auto
         const preserved = currentVal !== "best" &&
           [...modelSelect.options].some(o => o.value === currentVal);
         modelSelect.value = preserved ? currentVal : "best";
@@ -134,23 +171,27 @@ export function createMissionsPanelView() {
     });
   });
 
-  // keep last missions so we can re-render on language change
+  // keep last data so we can re-render on language change
   let lastMissions = [];
-  let lastModel = "";
+  let lastAround   = [];
+  let lastModel    = "";
 
   function refreshI18n() {
-    renderMissionsList(listEl, lastMissions);
-    renderModelLine(modelEl, lastModel, lastMissions);
+    renderMissionsList(listMissions, lastMissions, { showPoints: true,  showMissionPrefix: true  });
+    renderMissionsList(listAround,   lastAround,   { showPoints: false, showMissionPrefix: false });
+    renderModelLine(modelEl, lastModel, activeTab === "missions" ? lastMissions : lastAround);
   }
 
   translateDom(document);
   document.addEventListener("i18n:changed", refreshI18n);
 
-  // optional: initial message
+  tabDescEl.setAttribute("data-i18n", "missions.desc.around");
+  tabDescEl.textContent = t("missions.desc.around");
   statusEl.textContent = " ";
 
   return {
     element: sec,
+
     setStatus(text) {
       statusEl.textContent = text ?? "";
     },
@@ -162,8 +203,22 @@ export function createMissionsPanelView() {
     renderMissions(missions, model) {
       lastMissions = Array.isArray(missions) ? missions : [];
       lastModel = model ?? "";
-      renderMissionsList(listEl, lastMissions);
-      renderModelLine(modelEl, lastModel, lastMissions);
+      renderMissionsList(listMissions, lastMissions, { showPoints: true, showMissionPrefix: true });
+      if (activeTab === "missions") renderModelLine(modelEl, lastModel, lastMissions);
+    },
+
+    renderAround(species) {
+      lastAround = Array.isArray(species) ? species : [];
+      renderMissionsList(listAround, lastAround, { showPoints: false, showMissionPrefix: false });
+      if (activeTab === "around") renderModelLine(modelEl, "", lastAround);
+    },
+
+    onTabSwitch(handler) {
+      tabSwitchHandler = handler;
+    },
+
+    getActiveTab() {
+      return activeTab;
     },
 
     onSettingsOpen(handler) {

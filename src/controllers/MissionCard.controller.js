@@ -44,7 +44,7 @@ function getUiLang() {
   return "en";
 }
 
-export function MissionCard(species) {
+export function MissionCard(species, { showPoints = true, showMissionPrefix = true } = {}) {
   const sciName = species.name || species.scientific_name || "";
   const commonName = species.vernacular_name || t("missions.card.noCommonName");
 
@@ -67,6 +67,8 @@ export function MissionCard(species) {
     isFlowering: !!species.is_flowering,
     isFruiting: !!species.is_fruiting,
     debugData: species,
+    showPoints,
+    showMissionPrefix,
   });
 
   // external links

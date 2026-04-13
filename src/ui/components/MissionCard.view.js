@@ -11,6 +11,8 @@ export function createMissionCardView({
   isFlowering = false,
   isFruiting = false,
   debugData = null,
+  showPoints = true,
+  showMissionPrefix = true,
 }) {
   const root = document.createElement("div");
   root.className = "species-item";
@@ -33,7 +35,7 @@ export function createMissionCardView({
         <p><strong id="commonName">${escapeHtml(commonName)}</strong></p>
 
         <div class="species-actions">
-          <button class="points-btn ${levelClass}" id="pointsBtn" type="button"></button>
+          ${showPoints ? `<button class="points-btn ${levelClass}" id="pointsBtn" type="button"></button>` : ""}
           <div class="badges" id="badges"></div>
         </div>
       </div>
@@ -79,7 +81,7 @@ export function createMissionCardView({
   const wikiDescEl = root.querySelector("#wikiDesc");
 
   let onPoints = null;
-  pointsBtn.addEventListener("click", () => { if (onPoints) onPoints(); });
+  pointsBtn?.addEventListener("click", () => { if (onPoints) onPoints(); });
 
   function renderBadges() {
     if (!badgesEl) return;
@@ -98,16 +100,13 @@ export function createMissionCardView({
 
 function refreshI18n() {
     if (missionTitleEl) {
-      missionTitleEl.textContent = ""; // clear existing content
+      missionTitleEl.textContent = "";
 
-      // Add prefix text
-      missionTitleEl.append(
-        document.createTextNode(t("missions.card.missionPrefix") + " ")
-      );
+      if (showMissionPrefix) {
+        missionTitleEl.append(document.createTextNode(t("missions.card.missionPrefix") + " "));
+      }
 
-      // Add italic scientific name
-      const sciEl = document.createElement("em"); // or "i"
-      //sciEl.textContent = formatSciName(sciName);
+      const sciEl = document.createElement("em");
       sciEl.textContent = sciName;
       missionTitleEl.append(sciEl);
     }
