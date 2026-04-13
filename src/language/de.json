@@ -111,6 +111,7 @@
   "missions.card.wikiThumbAlt": "Wikipedia-Vorschaubild für {name}",
   "missions.card.noImage": "Kein Bild",
   "missions.card.moreInfo": "Mehr Info:",
+  "missions.card.moreOnWikipedia": "Mehr auf Wikipedia →",
 
   "points.distance": "GBIF-Beobachtungen in der Nähe (20 km)",
   "points.numberObs": "Anzahl der Beobachtungen auf GBIF",

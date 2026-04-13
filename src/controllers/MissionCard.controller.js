@@ -103,32 +103,50 @@ export function MissionCard(species, { showPoints = true, showMissionPrefix = tr
     );
   });
 
-  // ---------- description (use backend if present, otherwise Wikipedia) ----------
-  const existingDescHtml =
-    species.wiki_extract_html ||
-    species.description_html ||
-    ""; // keep this as HTML only
-
-  const existingDescText = (!existingDescHtml && species.wiki_extract) || "";
+  // ---------- description: Wikipedia first, then backend description/habitat ----------
+  const lang = getUiLang();
+  const binomial = sciName ? sciName.trim().split(/\s+/).slice(0, 2).join(" ") : "";
+  const wikiUrl = binomial
+    ? `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(binomial)}`
+    : "";
 
   const backendDesc = typeof species.description === "object" && species.description !== null
     ? species.description
     : null;
 
-  if (existingDescHtml) {
-    view.setWikiDescriptionHtml(existingDescHtml);
-  } else if (existingDescText) {
-    view.setWikiDescriptionText(existingDescText);
-  } else if (backendDesc?.description) {
-    let html = `<p>${escapeHtml(backendDesc.description)}</p>`;
+  function backendDescHtml() {
+    if (!backendDesc?.description) return "";
+    let h = `<p>${escapeHtml(backendDesc.description)}</p>`;
     if (backendDesc.habitat) {
-      html += `<p><strong>${escapeHtml(t("missions.card.habitat"))}</strong> ${escapeHtml(backendDesc.habitat)}</p>`;
+      h += `<p><strong>${escapeHtml(t("missions.card.habitat"))}</strong> ${escapeHtml(backendDesc.habitat)}</p>`;
     }
-    view.setWikiDescriptionHtml(html);
-  } else if (sciName) {
-    const lang = getUiLang();
-    const cacheKey = `${sciName.trim().toLowerCase()}|${lang}`;
+    return h;
+  }
 
+  function buildAndRender(wikiHtml) {
+    if (!view.element.isConnected) return;
+    let html = "";
+    if (wikiHtml) {
+      html += wikiHtml;
+      if (wikiUrl) {
+        html += `<p class="wiki-more-link"><a href="${wikiUrl}" target="_blank" rel="noopener noreferrer">${escapeHtml(t("missions.card.moreOnWikipedia"))}</a></p>`;
+      }
+    }
+    html += backendDescHtml();
+    if (html) view.setWikiDescriptionHtml(html);
+  }
+
+  // Use backend-provided Wikipedia extract if available, otherwise fetch live
+  const existingWikiHtml = species.wiki_extract_html || species.description_html || "";
+  const existingWikiText = !existingWikiHtml && species.wiki_extract
+    ? `<p>${escapeHtml(species.wiki_extract)}</p>`
+    : "";
+  const existingWiki = existingWikiHtml || existingWikiText;
+
+  if (existingWiki) {
+    buildAndRender(existingWiki);
+  } else if (sciName) {
+    const cacheKey = `${sciName.trim().toLowerCase()}|${lang}`;
     if (!wikiSummaryCache.has(cacheKey)) {
       wikiSummaryCache.set(
         cacheKey,
@@ -136,11 +154,9 @@ export function MissionCard(species, { showPoints = true, showMissionPrefix = tr
           .catch(() => "")
       );
     }
-
-    Promise.resolve(wikiSummaryCache.get(cacheKey)).then((html) => {
-      if (!view.element.isConnected) return;
-      if (html) view.setWikiDescriptionHtml(html);
-    });
+    Promise.resolve(wikiSummaryCache.get(cacheKey)).then(wikiHtml => buildAndRender(wikiHtml));
+  } else {
+    buildAndRender("");
   }
 
   // ---------- wikipedia image: only if no heroUrl ----------

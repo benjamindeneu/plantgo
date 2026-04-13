@@ -111,6 +111,7 @@
   "missions.card.wikiThumbAlt": "Miniatura de Wikipedia para {name}",
   "missions.card.noImage": "Sin imagen",
   "missions.card.moreInfo": "Más info:",
+  "missions.card.moreOnWikipedia": "Más en Wikipedia →",
 
   "points.distance": "Observaciones cercanas en GBIF (20 km)",
   "points.numberObs": "Número de observaciones en GBIF",

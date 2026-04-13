@@ -2,6 +2,7 @@
 import { MissionCard } from "../../controllers/MissionCard.controller.js";
 import { t, initI18n, translateDom } from "../../language/i18n.js";
 import { Modal } from "./Modal.js";
+import L from "https://esm.sh/leaflet@1.9.4";
 await initI18n();
 translateDom(document);
 
@@ -48,6 +49,8 @@ export function createMissionsPanelView() {
     <div id="status" aria-live="polite" class="validation-feedback"></div>
     <div id="loadingTrack" class="loading-spinner" style="display:none" aria-hidden="true"></div>
 
+    <div id="locationMap" class="location-map" style="display:none"></div>
+
     <div id="paneAround" class="form-grid" style="text-align:center"></div>
     <div id="paneMissions" class="form-grid" style="text-align:center;display:none"></div>
 
@@ -57,6 +60,7 @@ export function createMissionsPanelView() {
 
   const statusEl      = sec.querySelector("#status");
   const loadingTrack  = sec.querySelector("#loadingTrack");
+  const locationMapEl = sec.querySelector("#locationMap");
   const listMissions  = sec.querySelector("#paneMissions");
   const listAround    = sec.querySelector("#paneAround");
   const locateBtn     = sec.querySelector("#locate");
@@ -189,6 +193,10 @@ export function createMissionsPanelView() {
   tabDescEl.textContent = t("missions.desc.around");
   statusEl.textContent = " ";
 
+  // Leaflet map — initialised lazily on first setLocation call
+  let leafletMap = null;
+  let leafletMarker = null;
+
   return {
     element: sec,
 
@@ -227,6 +235,34 @@ export function createMissionsPanelView() {
 
     getSelectedModel() {
       return modelSelect?.value || "best";
+    },
+
+    setLocation(lat, lon) {
+      locationMapEl.style.display = "";
+      if (!leafletMap) {
+        leafletMap = L.map(locationMapEl, {
+          zoomControl: false,
+          attributionControl: false,
+          dragging: false,
+          scrollWheelZoom: false,
+          doubleClickZoom: false,
+          touchZoom: false,
+          keyboard: false,
+        }).setView([lat, lon], 16);
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+          maxZoom: 19,
+        }).addTo(leafletMap);
+        const icon = L.icon({
+          iconUrl: "./assets/plantgo_logo2.png",
+          iconSize: [40, 40],
+          iconAnchor: [20, 40],
+          popupAnchor: [0, -40],
+        });
+        leafletMarker = L.marker([lat, lon], { icon }).addTo(leafletMap);
+      } else {
+        leafletMap.setView([lat, lon], 16);
+        leafletMarker.setLatLng([lat, lon]);
+      }
     },
 
     onLocate(handler) {

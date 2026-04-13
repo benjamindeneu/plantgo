@@ -111,6 +111,7 @@
   "missions.card.wikiThumbAlt": "Vignette Wikipédia pour {name}",
   "missions.card.noImage": "Aucune image",
   "missions.card.moreInfo": "Plus d'infos :",
+  "missions.card.moreOnWikipedia": "En savoir plus sur Wikipédia →",
 
   "points.distance": "Observations GBIF à proximité (20 km)",
   "points.numberObs": "Nombre d’observations sur GBIF",

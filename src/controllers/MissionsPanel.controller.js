@@ -44,6 +44,7 @@ export function MissionsPanel() {
       lastPos = pos;
       aroundLoaded = false;
       missionsLoaded = false;
+      view.setLocation(pos.coords.latitude, pos.coords.longitude);
       view.setStatus(t("missions.status.loading"));
 
       const user = auth.currentUser;
@@ -76,6 +77,7 @@ export function MissionsPanel() {
 
     try {
       if (!lastPos) lastPos = await getCurrentPosition();
+      view.setLocation(lastPos.coords.latitude, lastPos.coords.longitude);
       view.setStatus(t("missions.status.loadingAround"));
 
       const selectedModel = view.getSelectedModel();
