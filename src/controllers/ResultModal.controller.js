@@ -154,7 +154,7 @@ export function ResultModal() {
         finalTotal,
         trivia,
         description,
-        debugData: { identify, missionHit },
+        debugData: { identify, missionHit, timings, serverTimings },
       });
     },
   };

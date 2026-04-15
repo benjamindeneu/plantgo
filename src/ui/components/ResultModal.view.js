@@ -464,8 +464,14 @@ export function createResultModalView() {
           .join("\n");
 
         const srv = debugData.serverTimings || {};
-        const serverTimingRows = Object.entries(srv)
-          .map(([label, s]) => `  ${label.padEnd(20)} ${(s * 1000).toFixed(0)} ms`)
+        const flatSrv = Object.entries(srv).flatMap(([label, v]) =>
+          label === "parallel" && typeof v === "object"
+            ? [["parallel (wall)", v.wall], ...Object.entries(v).filter(([k]) => k !== "wall").map(([k, s]) => [`  └ ${k}`, s])]
+            : [[label, v]]
+        );
+        const serverTimingRows = flatSrv
+          .filter(([, v]) => v != null)
+          .map(([label, s]) => `  ${label.padEnd(22)} ${(s * 1000).toFixed(0)} ms`)
           .join("\n");
 
         const pre = document.createElement("pre");
