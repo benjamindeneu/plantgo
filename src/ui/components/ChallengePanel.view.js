@@ -2,6 +2,8 @@
 import { t, initI18n, translateDom } from "../../language/i18n.js";
 import { getWikipediaImage } from "../../data/wiki.service.js";
 import { debugMode } from "../../data/debugMode.js";
+import { MissionCard } from "../../controllers/MissionCard.controller.js";
+import { Modal } from "./Modal.js";
 await initI18n();
 
 export function createChallengePanelView() {
@@ -14,14 +16,7 @@ export function createChallengePanelView() {
       <div style="text-align:center">
         <h1 data-i18n="challenge.active.subtitle">Active challenge</h1>
 
-        <div style="display:flex; align-items: center; justify-content:center; gap: 8px;">
-          <span id="activeLine" style="font-weight:700"></span>
-          <span>-</span>
-          <span id="timerLine" class="muted" style="display:none"></span>
-          <span id="endedLine" class="muted" style="display:none" data-i18n="challenge.active.ended">
-            Challenge ended
-          </span>
-        </div>
+        <p id="activeLine" style="margin:0"></p>
       </div>
 
       <div id="leaderWrap" style="margin-top:12px">
@@ -45,9 +40,7 @@ export function createChallengePanelView() {
 
   const activeCard = wrap.querySelector("#activeCard");
   const activeCardSubtitle = wrap.querySelector("#activeCard h1");
-  const activeLine = wrap.querySelector("#activeLine");
-  const timerLine = wrap.querySelector("#timerLine");
-  const endedLine = wrap.querySelector("#endedLine");
+  const activeLineEl = wrap.querySelector("#activeLine");
   const leaderList = wrap.querySelector("#leaderList");
   const speciesChecklistWrap = wrap.querySelector("#speciesChecklistWrap");
   const speciesChecklist = wrap.querySelector("#speciesChecklist");
@@ -92,7 +85,6 @@ export function createChallengePanelView() {
 
     const foundSet = new Set(foundSpecies.map(s => String(s).trim().toLowerCase()));
     const foundGbifSet = new Set(foundGbifIds.map(id => Number(id)));
-    const lang = document.documentElement.lang?.split("-")[0] || "en";
 
     // Global debug block: raw Firestore arrays
     const globalDebug = document.createElement("div");
@@ -122,9 +114,6 @@ export function createChallengePanelView() {
       row.className = "checklist-row" + (isFound ? " checklist-row-found" : "");
 
       const imgUrl = species.image_url || species.image || "";
-      const binomial = (species.name || "").trim().split(/\s+/).slice(0, 2).join(" ");
-      const wikiUrl = binomial ? `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(binomial)}` : "";
-      const gbifUrl = species.gbif_id ? `https://www.gbif.org/species/${encodeURIComponent(species.gbif_id)}` : "";
 
       // Build row using DOM to avoid escaping issues
       const imgWrap = document.createElement("div");
@@ -176,27 +165,7 @@ export function createChallengePanelView() {
         badges.appendChild(b);
       }
 
-      const links = document.createElement("div");
-      links.className = "checklist-links";
-      if (wikiUrl) {
-        const a = document.createElement("a");
-        a.href = wikiUrl; a.target = "_blank"; a.rel = "noopener noreferrer";
-        a.className = "wiki-ext-link"; a.setAttribute("aria-label", "Wikipedia");
-        const img = document.createElement("img");
-        img.src = "./assets/wikipedia-logo.svg"; img.alt = "Wikipedia"; img.width = 18; img.height = 18;
-        a.appendChild(img); links.appendChild(a);
-      }
-      if (gbifUrl) {
-        const a = document.createElement("a");
-        a.href = gbifUrl; a.target = "_blank"; a.rel = "noopener noreferrer";
-        a.className = "wiki-ext-link"; a.setAttribute("aria-label", "GBIF");
-        const img = document.createElement("img");
-        img.src = "./assets/gbif-logo.png"; img.alt = "GBIF"; img.width = 18; img.height = 18;
-        a.appendChild(img); links.appendChild(a);
-      }
-
       footer.appendChild(badges);
-      footer.appendChild(links);
       info.appendChild(sciEl);
       info.appendChild(commonEl);
       info.appendChild(footer);
@@ -228,6 +197,13 @@ export function createChallengePanelView() {
       debugEl.appendChild(debugPre);
       row.appendChild(debugEl);
 
+      row.style.cursor = "pointer";
+      row.addEventListener("click", (e) => {
+        if (e.target.closest("a")) return; // let external links through
+        const card = MissionCard(species, { showPoints: false, showMissionPrefix: false });
+        document.body.appendChild(Modal({ content: card }));
+      });
+
       speciesChecklist.appendChild(row);
     });
   }
@@ -253,30 +229,62 @@ export function createChallengePanelView() {
           : t("challenge.active.subtitle");
       }
 
-      activeLine.textContent = `${t("challenge.active.code")} ${code}`;
+      const codeSpan = document.createElement("span");
+      codeSpan.className = "inline-copy";
+      codeSpan.title = "Click to copy";
+      codeSpan.innerHTML = `${code}<svg class="inline-copy-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+      codeSpan.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(code);
+          const originalHtml = codeSpan.innerHTML;
+          codeSpan.textContent = "Copied!";
+          codeSpan.classList.add("copied");
+          setTimeout(() => {
+            codeSpan.innerHTML = originalHtml;
+            codeSpan.classList.remove("copied");
+          }, 1500);
+        } catch (e) {}
+      });
+
+      activeLineEl.textContent = "";
+      activeLineEl.append(
+        document.createTextNode(`${t("challenge.active.code")} `),
+        codeSpan,
+      );
 
       if (endsAtMs && Date.now() < endsAtMs) {
-        timerLine.style.display = "block";
-        timerLine.textContent =
-          `${t("challenge.active.timeLeft")} ${fmtTimeLeft(endsAtMs - Date.now())}`;
-      } else {
-        timerLine.style.display = "none";
+        activeLineEl.append(
+          document.createTextNode(` - ${t("challenge.active.timeLeft")} ${fmtTimeLeft(endsAtMs - Date.now())}`)
+        );
       }
     },
 
     setTimeLeft(endsAtMs) {
-      timerLine.style.display = "block";
-      timerLine.textContent =
-        `${t("challenge.active.timeLeft")} ${fmtTimeLeft(endsAtMs - Date.now())}`;
+      // Update only the trailing text node, preserving the code span
+      const codeSpan = activeLineEl.querySelector(".inline-copy");
+      activeLineEl.textContent = "";
+      if (codeSpan) {
+        activeLineEl.append(
+          document.createTextNode(`${t("challenge.active.code")} `),
+          codeSpan,
+          document.createTextNode(` - ${t("challenge.active.timeLeft")} ${fmtTimeLeft(endsAtMs - Date.now())}`)
+        );
+      }
     },
 
     setEnded(isEnded) {
       if (isEnded) {
-        timerLine.style.display = "none";
-        endedLine.style.display = "block";
+        const codeSpan = activeLineEl.querySelector(".inline-copy");
+        activeLineEl.textContent = "";
+        if (codeSpan) {
+          activeLineEl.append(
+            document.createTextNode(`${t("challenge.active.code")} `),
+            codeSpan,
+            document.createTextNode(` - ${t("challenge.active.ended")}`)
+          );
+        }
         closeWrap.style.display = "block";
       } else {
-        endedLine.style.display = "none";
         closeWrap.style.display = "none";
       }
     },

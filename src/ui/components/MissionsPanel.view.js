@@ -249,8 +249,8 @@ export function createMissionsPanelView() {
           doubleClickZoom: true,
           keyboard: false,
         }).setView([lat, lon], 16);
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-          maxZoom: 19,
+        L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+          maxZoom: 17,
         }).addTo(leafletMap);
         const icon = L.icon({
           iconUrl: "./assets/plantgo_logo2.png",
@@ -259,6 +259,19 @@ export function createMissionsPanelView() {
           popupAnchor: [0, -40],
         });
         leafletMarker = L.marker([lat, lon], { icon }).addTo(leafletMap);
+
+        // On touch: require 2 fingers to pan, single finger scrolls the page
+        leafletMap.dragging.disable();
+        locationMapEl.addEventListener("touchstart", (e) => {
+          if (e.touches.length >= 2) leafletMap.dragging.enable();
+          else leafletMap.dragging.disable();
+        }, { passive: true });
+        locationMapEl.addEventListener("touchend", () => {
+          leafletMap.dragging.disable();
+        }, { passive: true });
+        // Mouse users keep normal single-click drag
+        locationMapEl.addEventListener("mousedown", () => leafletMap.dragging.enable(), { passive: true });
+        locationMapEl.addEventListener("mouseup",   () => leafletMap.dragging.disable(), { passive: true });
       } else {
         leafletMap.setView([lat, lon], 16);
         leafletMarker.setLatLng([lat, lon]);

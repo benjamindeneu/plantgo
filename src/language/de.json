@@ -152,6 +152,8 @@
   "challenge.title": "Wettbewerb",
   "challenge.modal.title": "Wettbewerb",
 
+  "challenge.create.tab": "Erstellen",
+  "challenge.join.tab": "Beitreten",
   "challenge.create.subtitle": "Einen Wettbewerb erstellen",
   "challenge.create.title": "Zeitlich begrenzten Wettbewerb starten",
   "challenge.duration": "Dauer",

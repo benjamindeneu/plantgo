@@ -4,12 +4,19 @@ export function Modal({ title = "", content = "" }) {
   overlay.setAttribute("role", "dialog");
   overlay.innerHTML = `
     <div class="modal-content">
-      <h2>${title}</h2>
-      <div class="body">${content}</div>
+      ${title ? `<h2>${title}</h2>` : ""}
+      <div class="body"></div>
       <div class="result-actions">
         <button class="primary" id="doneBtn" type="button">OK</button>
       </div>
     </div>`;
+
+  const bodyEl = overlay.querySelector(".body");
+  if (content instanceof Element || content instanceof DocumentFragment) {
+    bodyEl.appendChild(content);
+  } else {
+    bodyEl.innerHTML = content;
+  }
 
   document.body.style.overflow = "hidden";
 

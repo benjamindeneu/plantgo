@@ -7,54 +7,54 @@ import { fetchPredictions } from "../api/plantgo.js";
 
 export function ChallengeModal() {
   const content = `
-    <div class="form-grid" style="gap:12px">
-
-      <div class="card" style="padding:12px">
-        <div class="muted" data-i18n="challenge.create.subtitle">Create a challenge</div>
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px">
-          <label class="muted" for="challengeType" data-i18n="challenge.type.label">Type</label>
-          <select id="challengeType" class="input" style="width:160px">
-            <option value="points" data-i18n="challenge.type.points">Points Race</option>
-            <option value="species_hunt" data-i18n="challenge.type.speciesHunt">Species Hunt</option>
-          </select>
-        </div>
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px">
-          <label class="muted" for="challengeDuration" data-i18n="challenge.duration">Duration</label>
-          <select id="challengeDuration" class="input" style="width:160px">
-            <option value="600">10 min</option>
-            <option value="900">15 min</option>
-            <option value="1200">20 min</option>
-            <option value="1800" selected>30 min</option>
-            <option value="2700">45 min</option>
-            <option value="3600">60 min</option>
-          </select>
-        </div>
-        <div id="modelRow" style="display:none; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px">
-          <label class="muted" for="challengeModel" data-i18n="missions.chooseModel">Model</label>
-          <select id="challengeModel" class="input" style="width:160px">
-            <option value="best" data-i18n="missions.model.auto">Auto</option>
-            <option value="geoplantnet" data-i18n="missions.model.geoplantnet">GeoPlantNet</option>
-          </select>
-        </div>
-        <div id="speciesHuntInfo" class="muted" style="margin-top:8px; display:none; font-size:0.9em"></div>
-        <div style="margin-top:8px">
-          <button id="btnCreate" class="primary" type="button" data-i18n="challenge.create.button">Create</button>
-        </div>
-        <div id="createOut" class="muted" style="margin-top:10px; display:none"></div>
-      </div>
-
-      <div class="card" style="padding:12px">
-        <div class="muted" data-i18n="challenge.join.subtitle">Join a challenge</div>
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px">
-          <input id="joinCode" class="input" style="width:160px; text-transform:uppercase"
-            maxlength="5" data-i18n-placeholder="challenge.join.placeholder" placeholder="ABCDE" />
-          <button id="btnJoin" class="secondary" type="button" data-i18n="challenge.join.button">Join</button>
-        </div>
-        <div id="joinOut" class="muted" style="margin-top:10px; display:none"></div>
-      </div>
-
-      <div id="feedback" class="validation-feedback" aria-live="polite"></div>
+    <div class="panel-tab-bar" role="tablist">
+      <span class="panel-tab panel-tab--active" id="tabCreate" role="tab" tabindex="0" aria-selected="true"
+            data-i18n="challenge.create.tab">Create</span>
+      <span class="panel-tab" id="tabJoin" role="tab" tabindex="0" aria-selected="false"
+            data-i18n="challenge.join.tab">Join</span>
     </div>
+
+    <div id="paneCreate" style="display:flex; flex-direction:column; gap:12px">
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+        <label class="muted" for="challengeType" data-i18n="challenge.type.label">Type</label>
+        <select id="challengeType" class="input" style="width:160px">
+          <option value="points" data-i18n="challenge.type.points">Points Race</option>
+          <option value="species_hunt" data-i18n="challenge.type.speciesHunt">Species Hunt</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+        <label class="muted" for="challengeDuration" data-i18n="challenge.duration">Duration</label>
+        <select id="challengeDuration" class="input" style="width:160px">
+          <option value="600">10 min</option>
+          <option value="900">15 min</option>
+          <option value="1200">20 min</option>
+          <option value="1800" selected>30 min</option>
+          <option value="2700">45 min</option>
+          <option value="3600">60 min</option>
+        </select>
+      </div>
+      <div id="modelRow" style="display:none; gap:8px; align-items:center; flex-wrap:wrap">
+        <label class="muted" for="challengeModel" data-i18n="missions.chooseModel">Model</label>
+        <select id="challengeModel" class="input" style="width:160px">
+          <option value="best" data-i18n="missions.model.auto">Auto</option>
+          <option value="geoplantnet" data-i18n="missions.model.geoplantnet">GeoPlantNet</option>
+        </select>
+      </div>
+      <div id="speciesHuntInfo" class="muted" style="display:none; font-size:0.9em"></div>
+      <button id="btnCreate" class="primary" type="button" data-i18n="challenge.create.button">Create</button>
+      <div id="createOut" class="muted" style="display:none"></div>
+    </div>
+
+    <div id="paneJoin" style="display:none; flex-direction:column; gap:12px">
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+        <input id="joinCode" class="input" style="flex:1; text-transform:uppercase"
+          maxlength="5" data-i18n-placeholder="challenge.join.placeholder" placeholder="ABCDE" />
+        <button id="btnJoin" class="secondary" type="button" data-i18n="challenge.join.button">Join</button>
+      </div>
+      <div id="joinOut" class="muted" style="display:none"></div>
+    </div>
+
+    <div id="feedback" class="validation-feedback" aria-live="polite"></div>
   `;
 
   const modal = Modal({
@@ -68,6 +68,26 @@ export function ChallengeModal() {
 
   // translate content
   translateDom(modal);
+
+  const tabCreate = modal.querySelector("#tabCreate");
+  const tabJoin = modal.querySelector("#tabJoin");
+  const paneCreate = modal.querySelector("#paneCreate");
+  const paneJoin = modal.querySelector("#paneJoin");
+
+  function setTab(tab) {
+    const isCreate = tab === "create";
+    tabCreate.classList.toggle("panel-tab--active", isCreate);
+    tabCreate.setAttribute("aria-selected", String(isCreate));
+    tabJoin.classList.toggle("panel-tab--active", !isCreate);
+    tabJoin.setAttribute("aria-selected", String(!isCreate));
+    paneCreate.style.display = isCreate ? "flex" : "none";
+    paneJoin.style.display = isCreate ? "none" : "flex";
+  }
+
+  tabCreate.addEventListener("click", () => setTab("create"));
+  tabJoin.addEventListener("click", () => setTab("join"));
+  tabCreate.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setTab("create"); } });
+  tabJoin.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setTab("join"); } });
 
   const elType = modal.querySelector("#challengeType");
   const elDuration = modal.querySelector("#challengeDuration");
@@ -157,8 +177,9 @@ export function ChallengeModal() {
         speciesList: type === "species_hunt" ? fetchedPredictions : [],
       });
 
-      show(createOut, `${t("challenge.created")} ${res.code}`);
       // ChallengePanel will restore/show active automatically via users/{uid}.activeChallenge
+      modal.querySelector(".body").innerHTML =
+        `<p style="text-align:center;padding:12px 0">${t("challenge.created")} ${res.code}</p>`;
     } catch (e) {
       show(createOut, "");
       setFeedback(e?.message || t("challenge.error.generic"));
@@ -179,7 +200,8 @@ export function ChallengeModal() {
       show(joinOut, t("challenge.joining"));
       await joinChallengeByCode(code);
 
-      show(joinOut, t("challenge.joined"));
+      modal.querySelector(".body").innerHTML =
+        `<p style="text-align:center;padding:12px 0">${t("challenge.joined")}</p>`;
     } catch (e) {
       show(joinOut, "");
       setFeedback(e?.message || t("challenge.error.generic"));

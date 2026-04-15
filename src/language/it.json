@@ -152,6 +152,8 @@
   "challenge.title": "Sfida",
   "challenge.modal.title": "Sfida",
 
+  "challenge.create.tab": "Crea",
+  "challenge.join.tab": "Unisciti",
   "challenge.create.subtitle": "Crea una sfida",
   "challenge.create.title": "Avvia una sfida a tempo",
   "challenge.duration": "Durata",

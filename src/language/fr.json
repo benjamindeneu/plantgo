@@ -152,6 +152,8 @@
   "challenge.title": "Défi",
   "challenge.modal.title": "Défi",
 
+  "challenge.create.tab": "Créer",
+  "challenge.join.tab": "Rejoindre",
   "challenge.create.subtitle": "Créer un défi",
   "challenge.create.title": "Démarrer un défi chronométré",
   "challenge.duration": "Durée",

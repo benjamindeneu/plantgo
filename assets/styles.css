@@ -157,6 +157,10 @@ main{ padding:var(--sp-3); }
   background: var(--green-50);
   border-bottom: 2px solid var(--border);
 }
+.modal-content .panel-tab-bar {
+  margin: calc(-1 * var(--sp-3)) calc(-1 * var(--sp-3)) 16px;
+  border-radius: 0;
+}
 .panel-tab {
   flex: 1;
   display: block;
@@ -881,6 +885,42 @@ header, .nav{
   font-weight: 700;
 }
 .checklist-divider { border: none; border-top: 1px solid var(--border, #e0e0e0); margin: 0; }
+
+/* ---------- Inline copy chip ---------- */
+.inline-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--green-50);
+  border: 1px solid var(--green-300);
+  border-radius: 5px;
+  padding: 1px 7px 1px 8px;
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 0.95em;
+  color: var(--green-800);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  vertical-align: middle;
+}
+.inline-copy:hover {
+  background: var(--green-100);
+  border-color: var(--green-400);
+}
+.inline-copy:active {
+  transform: scale(0.96);
+}
+.inline-copy.copied {
+  background: var(--green-200);
+  border-color: var(--green-600);
+  color: var(--green-900);
+}
+.inline-copy-icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  opacity: 0.65;
+}
 
 /* ---------- Mission card: external links bar ---------- */
 .ext-links-bar {
