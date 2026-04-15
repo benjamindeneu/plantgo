@@ -5,7 +5,7 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-
 import { addObservationAndDiscovery } from "../data/observations.js";
 import { checkAndAwardQuestCompletions, QUEST_BONUS } from "../data/dailyQuests.js";
 import { checkAndUnlockBadges, BADGE_DEFINITIONS } from "../data/badges.js";
-import { fetchDescription } from "../api/plantgo.js";
+import { fetchDescription, fetchTrivia } from "../api/plantgo.js";
 import { t } from "../language/i18n.js";
 
 export function ResultModal() {
@@ -30,11 +30,7 @@ export function ResultModal() {
       const plantnet_identify_score = Number(identify?.score ?? 0);
       const detail = (points?.detail && typeof points.detail === "object") ? points.detail : {};
 
-      // Fetch description in parallel — resolved later before showing result
       const lang = document.documentElement.lang || "en";
-      const descriptionPromise = (identify?.gbif_id)
-        ? fetchDescription({ gbif_id: identify.gbif_id, name: speciesName, lang }).catch(() => null)
-        : Promise.resolve(null);
 
       // Low confidence — show tentative result, do not save observation
       if (plantnet_identify_score < 0.2) {
@@ -83,9 +79,16 @@ export function ResultModal() {
       }
 
       // Check if this observation completed any daily quests (+ relevé / perfect day badges)
-      const tQuests = performance.now();
-      const { completedQuestIds, newlyUnlockedBadges: questBadges } = await checkAndAwardQuestCompletions(user.uid);
-      timings.quests = Math.round(performance.now() - tQuests);
+      let completedQuestIds = [], questBadges = [];
+      if (user) {
+        const tQuests = performance.now();
+        try {
+          ({ completedQuestIds, newlyUnlockedBadges: questBadges } = await checkAndAwardQuestCompletions(user.uid));
+        } catch (e) {
+          console.error("[ResultModal] checkAndAwardQuestCompletions failed:", e);
+        }
+        timings.quests = Math.round(performance.now() - tQuests);
+      }
       for (const _ of completedQuestIds) {
         badges.push({ kind: "quest", emoji: "🏆", label: t("result.badge.questComplete"), bonus: QUEST_BONUS });
       }
@@ -97,14 +100,21 @@ export function ResultModal() {
       const newLevel = Math.floor(1 + estimatedNewTotal / 11000);
 
       // Check all achievement badges
-      const achievementBadgeIds = await checkAndUnlockBadges(user.uid, {
-        obsCount:         obsResult.obsCount         ?? 0,
-        missionObsCount:  obsResult.missionObsCount  ?? 0,
-        discoveriesCount: obsResult.discoveriesCount ?? 0,
-        hasEpicObs:       obsResult.hasEpicObs       ?? false,
-        hasLegendaryObs:  obsResult.hasLegendaryObs  ?? false,
-        level:            newLevel,
-      });
+      let achievementBadgeIds = [];
+      if (user) {
+        try {
+          achievementBadgeIds = await checkAndUnlockBadges(user.uid, {
+            obsCount:         obsResult.obsCount         ?? 0,
+            missionObsCount:  obsResult.missionObsCount  ?? 0,
+            discoveriesCount: obsResult.discoveriesCount ?? 0,
+            hasEpicObs:       obsResult.hasEpicObs       ?? false,
+            hasLegendaryObs:  obsResult.hasLegendaryObs  ?? false,
+            level:            newLevel,
+          });
+        } catch (e) {
+          console.error("[ResultModal] checkAndUnlockBadges failed:", e);
+        }
+      }
 
       // Merge all newly unlocked achievement badges (from obs + quests)
       const allNewBadgeIds = [...new Set([...achievementBadgeIds, ...questBadges])];
@@ -112,11 +122,6 @@ export function ResultModal() {
         const def = BADGE_DEFINITIONS.find((b) => b.id === id);
         if (def) badges.push({ kind: "achievement", emoji: def.emoji, label: t(def.nameKey), desc: t(def.descKey) });
       }
-
-      const tDesc = performance.now();
-      const descResult = await descriptionPromise;
-      timings.description = Math.round(performance.now() - tDesc);
-      const description = descResult?.description ?? null;
 
       if (isNearbyDuplicate) {
         // No discovery badge — nearby duplicates cannot be new discoveries
@@ -133,9 +138,11 @@ export function ResultModal() {
           finalTotal,
           isNearbyDuplicate: true,
           trivia,
-          description,
           debugData: { identify, missionHit, timings, serverTimings },
         });
+        if (identify?.gbif_id) {
+          fetchAndInject({ gbif_id: identify.gbif_id, name: speciesName, lang, trivia });
+        }
         return;
       }
 
@@ -153,11 +160,35 @@ export function ResultModal() {
         currentTotalBefore,
         finalTotal,
         trivia,
-        description,
         debugData: { identify, missionHit, timings, serverTimings },
       });
+
+      if (identify?.gbif_id) {
+        fetchAndInject({ gbif_id: identify.gbif_id, name: speciesName, lang, trivia });
+      }
     },
   };
+
+  // Fire description fetch immediately; poll for trivia if not cached yet.
+  // Both inject into the view asynchronously without blocking result display.
+  function fetchAndInject({ gbif_id, name, lang, trivia }) {
+    fetchDescription({ gbif_id, name, lang })
+      .then((res) => { if (res?.description) view.injectDescription(res.description); })
+      .catch(() => {});
+
+    if (!trivia) pollTrivia({ gbif_id, name, lang });
+  }
+
+  async function pollTrivia({ gbif_id, name, lang }) {
+    const delays = [3000, 5000, 8000, 12000]; // ~28 s total
+    for (const delay of delays) {
+      await new Promise((r) => setTimeout(r, delay));
+      try {
+        const res = await fetchTrivia({ gbif_id, name, lang });
+        if (res?.trivia) { view.injectTrivia(res.trivia); return; }
+      } catch { /* ignore, keep polling */ }
+    }
+  }
 
   async function isInMissionsList(name, gbifId) {
     try {

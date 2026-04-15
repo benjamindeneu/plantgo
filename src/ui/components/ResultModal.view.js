@@ -407,7 +407,7 @@ export function createResultModalView() {
       qs("#speciesNameDiv").appendChild(msg);
     },
 
-    async showResultUI({ speciesName, speciesVernacularName, speciesScore, baseTotal, detail, badges, currentTotalBefore, finalTotal, isNearbyDuplicate = false, trivia = null, description = null, debugData = null }) {
+    async showResultUI({ speciesName, speciesVernacularName, speciesScore, baseTotal, detail, badges, currentTotalBefore, finalTotal, isNearbyDuplicate = false, trivia = null, debugData = null }) {
       const loading = qs("#loadingTrack");
       const title = qs("#resultTitle");
       const speciesLine = qs("#speciesNameLine");
@@ -552,21 +552,6 @@ export function createResultModalView() {
       qs("#finalTotal").textContent = String(finalTotal);
       qs("#finalTotalWrap").style.display = "block";
 
-      if (description) {
-        const el = qs("#descriptionText");
-        if (description.description) {
-          const p = document.createElement("p");
-          p.textContent = description.description;
-          el.appendChild(p);
-        }
-        if (description.habitat) {
-          const p = document.createElement("p");
-          p.innerHTML = `<strong>${escapeHtml(t("missions.card.habitat"))}</strong> ${escapeHtml(description.habitat)}`;
-          el.appendChild(p);
-        }
-        if (el.childElementCount) qs("#descriptionWrap").style.display = "block";
-      }
-
       if (trivia) {
         qs("#triviaText").appendChild(document.createTextNode(trivia));
         qs("#triviaWrap").style.display = "block";
@@ -607,6 +592,33 @@ export function createResultModalView() {
 
       // make sure any translated dynamic labels are correct
       refreshI18n();
+    },
+
+    injectDescription(description) {
+      if (!description) return;
+      const wrap = qs("#descriptionWrap");
+      if (!wrap || wrap.style.display !== "none") return; // already shown
+      const el = qs("#descriptionText");
+      if (description.description) {
+        const p = document.createElement("p");
+        p.textContent = description.description;
+        el.appendChild(p);
+      }
+      if (description.habitat) {
+        const p = document.createElement("p");
+        p.innerHTML = `<strong>${escapeHtml(t("missions.card.habitat"))}</strong> ${escapeHtml(description.habitat)}`;
+        el.appendChild(p);
+      }
+      if (el.childElementCount) wrap.style.display = "block";
+    },
+
+    injectTrivia(text) {
+      if (!text) return;
+      const wrap = qs("#triviaWrap");
+      const triviaText = qs("#triviaText");
+      if (!wrap || !triviaText || wrap.style.display !== "none") return; // already shown
+      triviaText.appendChild(document.createTextNode(text));
+      wrap.style.display = "block";
     },
   };
 

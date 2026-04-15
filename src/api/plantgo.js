@@ -1,5 +1,5 @@
 // src/api/plantgo.js
-import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE, SDM_MODELS_URL } from "./config.js";
+import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE, TRIVIA_PROXY_BASE, SDM_MODELS_URL } from "./config.js";
 
 async function http(url, opts = {}) {
   const res = await fetch(url, opts);
@@ -133,6 +133,18 @@ export async function fetchAvailableModels({ lat, lon }) {
  */
 export async function fetchDescription({ gbif_id, name, lang = "en" }) {
   return http(`${DESCRIPTION_PROXY_BASE}/${gbif_id}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, lang }),
+  });
+}
+
+/**
+ * Fetch trivia for a single species.
+ * Returns { gbif_id, trivia } — trivia is null if not yet cached (backend computes in background).
+ */
+export async function fetchTrivia({ gbif_id, name, lang = "en" }) {
+  return http(`${TRIVIA_PROXY_BASE}/${gbif_id}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, lang }),
