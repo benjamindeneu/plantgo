@@ -249,8 +249,8 @@ export function createMissionsPanelView() {
           doubleClickZoom: true,
           keyboard: false,
         }).setView([lat, lon], 16);
-        L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
-          maxZoom: 17,
+        L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+          maxZoom: 19,
         }).addTo(leafletMap);
         const icon = L.icon({
           iconUrl: "./assets/plantgo_logo2.png",
