@@ -4,6 +4,7 @@
   "nav.signup": "Registrati",
 
   "common.close": "Chiudi",
+  "common.copied": "Copiato!",
 
   "login.pageTitle": "PlantGo • Accesso",
   "login.title": "Bentornato",
@@ -148,6 +149,10 @@
   "result.lowConfidence.message": "La confidenza è troppo bassa per convalidare questa osservazione. Prova a scattare altre foto della stessa pianta, includendo organi diversi (foglie, fiori, frutti, corteccia) per migliorare la previsione.",
   "result.error.title": "Identificazione fallita",
   "result.error.generic": "Qualcosa è andato storto. Riprova.",
+  "result.description.loading": "Caricamento descrizione…",
+  "result.description.unavailable": "Impossibile ottenere la descrizione al momento.",
+  "result.trivia.loading": "Caricamento curiosità…",
+  "result.trivia.unavailable": "Impossibile ottenere la curiosità al momento.",
 
   "challenge.title": "Sfida",
   "challenge.modal.title": "Sfida",

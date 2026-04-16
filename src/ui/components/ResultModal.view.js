@@ -594,11 +594,25 @@ export function createResultModalView() {
       refreshI18n();
     },
 
-    injectDescription(description) {
-      if (!description) return;
+    startDescriptionLoading() {
       const wrap = qs("#descriptionWrap");
-      if (!wrap || wrap.style.display !== "none") return; // already shown
       const el = qs("#descriptionText");
+      if (!wrap || !el) return;
+      el.innerHTML = `<span class="fetch-loading"><span class="loading-spinner"></span>${escapeHtml(t("result.description.loading"))}</span>`;
+      wrap.dataset.loading = "true";
+      wrap.style.display = "block";
+    },
+
+    injectDescription(description) {
+      const wrap = qs("#descriptionWrap");
+      if (!wrap || wrap.dataset.loading !== "true") return; // already filled
+      if (!description) {
+        qs("#descriptionText").innerHTML = `<p class="fetch-error">${escapeHtml(t("result.description.unavailable"))}</p>`;
+        delete wrap.dataset.loading;
+        return;
+      }
+      const el = qs("#descriptionText");
+      el.innerHTML = "";
       if (description.description) {
         const p = document.createElement("p");
         p.textContent = description.description;
@@ -609,16 +623,34 @@ export function createResultModalView() {
         p.innerHTML = `<strong>${escapeHtml(t("missions.card.habitat"))}</strong> ${escapeHtml(description.habitat)}`;
         el.appendChild(p);
       }
-      if (el.childElementCount) wrap.style.display = "block";
+      if (el.childElementCount) {
+        delete wrap.dataset.loading;
+      } else {
+        wrap.style.display = "none"; // nothing to show after all
+      }
+    },
+
+    startTriviaLoading() {
+      const wrap = qs("#triviaWrap");
+      const triviaText = qs("#triviaText");
+      if (!wrap || !triviaText) return;
+      triviaText.innerHTML = `<span class="fetch-loading"><span class="loading-spinner"></span>${escapeHtml(t("result.trivia.loading"))}</span>`;
+      wrap.dataset.loading = "true";
+      wrap.style.display = "block";
     },
 
     injectTrivia(text) {
-      if (!text) return;
       const wrap = qs("#triviaWrap");
       const triviaText = qs("#triviaText");
-      if (!wrap || !triviaText || wrap.style.display !== "none") return; // already shown
+      if (!wrap || !triviaText || wrap.dataset.loading !== "true") return; // already filled
+      if (!text) {
+        triviaText.innerHTML = `<span class="fetch-error">${escapeHtml(t("result.trivia.unavailable"))}</span>`;
+        delete wrap.dataset.loading;
+        return;
+      }
+      triviaText.innerHTML = `<span class="trivia-icon" aria-hidden="true">i</span>`;
       triviaText.appendChild(document.createTextNode(text));
-      wrap.style.display = "block";
+      delete wrap.dataset.loading;
     },
   };
 

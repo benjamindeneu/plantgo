@@ -4,6 +4,7 @@
   "nav.signup": "Inscription",
 
   "common.close": "Fermer",
+  "common.copied": "Copié !",
 
   "login.pageTitle": "PlantGo • Connexion",
   "login.title": "Bon retour",
@@ -148,6 +149,10 @@
   "result.lowConfidence.message": "La confiance est trop faible pour valider cette observation. Essayez de prendre d'autres photos de la même plante, en incluant différents organes (feuilles, fleurs, fruits, écorce) pour améliorer la prédiction.",
   "result.error.title": "Identification échouée",
   "result.error.generic": "Une erreur s'est produite. Veuillez réessayer.",
+  "result.description.loading": "Chargement de la description…",
+  "result.description.unavailable": "Impossible d'obtenir la description pour le moment.",
+  "result.trivia.loading": "Chargement de l'anecdote…",
+  "result.trivia.unavailable": "Impossible d'obtenir l'anecdote pour le moment.",
 
   "challenge.title": "Défi",
   "challenge.modal.title": "Défi",

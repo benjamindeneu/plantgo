@@ -172,11 +172,15 @@ export function ResultModal() {
   // Fire description fetch immediately; poll for trivia if not cached yet.
   // Both inject into the view asynchronously without blocking result display.
   function fetchAndInject({ gbif_id, name, lang, trivia }) {
+    view.startDescriptionLoading();
     fetchDescription({ gbif_id, name, lang })
-      .then((res) => { if (res?.description) view.injectDescription(res.description); })
-      .catch(() => {});
+      .then((res) => view.injectDescription(res?.description ?? null))
+      .catch(() => view.injectDescription(null));
 
-    if (!trivia) pollTrivia({ gbif_id, name, lang });
+    if (!trivia) {
+      view.startTriviaLoading();
+      pollTrivia({ gbif_id, name, lang });
+    }
   }
 
   async function pollTrivia({ gbif_id, name, lang }) {
@@ -188,6 +192,8 @@ export function ResultModal() {
         if (res?.trivia) { view.injectTrivia(res.trivia); return; }
       } catch { /* ignore, keep polling */ }
     }
+    // All attempts exhausted — hide the spinner
+    view.injectTrivia(null);
   }
 
   async function isInMissionsList(name, gbifId) {

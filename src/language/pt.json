@@ -4,6 +4,7 @@
   "nav.signup": "Registar",
 
   "common.close": "Fechar",
+  "common.copied": "Copiado!",
 
   "login.pageTitle": "PlantGo • Entrar",
   "login.title": "Bem-vindo de volta",
@@ -147,6 +148,10 @@
   "result.lowConfidence.message": "A confiança é muito baixa para validar esta observação. Tente tirar mais fotos da mesma planta, incluindo diferentes órgãos (folhas, flores, frutos, casca) para melhorar a previsão.",
   "result.error.title": "Identificação falhou",
   "result.error.generic": "Algo correu mal. Por favor, tente novamente.",
+  "result.description.loading": "A carregar descrição…",
+  "result.description.unavailable": "Impossível obter a descrição de momento.",
+  "result.trivia.loading": "A carregar curiosidade…",
+  "result.trivia.unavailable": "Impossível obter a curiosidade de momento.",
 
   "challenge.title": "Desafio",
   "challenge.modal.title": "Desafio",

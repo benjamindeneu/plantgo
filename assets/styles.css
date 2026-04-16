@@ -1045,6 +1045,27 @@ header, .nav{
   color: var(--text);
 }
 .result-description p:last-child { margin-bottom: 0; }
+.result-description .fetch-error,
+.result-trivia .fetch-error {
+  font-size: .85rem;
+  color: var(--text-muted, #888);
+  font-style: italic;
+  margin: 0;
+}
+.fetch-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: .85rem;
+  color: var(--text-muted, #888);
+  font-style: italic;
+}
+.fetch-loading .loading-spinner {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex-shrink: 0;
+}
 
 .result-trivia {
   background: linear-gradient(135deg, #fff8f1, #fff3e6);

@@ -4,6 +4,7 @@
   "nav.signup": "Registrieren",
 
   "common.close": "Schließen",
+  "common.copied": "Kopiert!",
 
   "login.pageTitle": "PlantGo • Anmeldung",
   "login.title": "Willkommen zurück",
@@ -148,6 +149,10 @@
   "result.lowConfidence.message": "Die Konfidenz ist zu niedrig, um diese Beobachtung zu bestätigen. Versuche, weitere Fotos derselben Pflanze zu machen – auch von verschiedenen Organen (Blätter, Blüten, Früchte, Rinde) – um die Vorhersage zu verbessern.",
   "result.error.title": "Identifizierung fehlgeschlagen",
   "result.error.generic": "Ein Fehler ist aufgetreten. Bitte versuche es erneut.",
+  "result.description.loading": "Beschreibung wird geladen…",
+  "result.description.unavailable": "Beschreibung momentan nicht verfügbar.",
+  "result.trivia.loading": "Wissenswertes wird geladen…",
+  "result.trivia.unavailable": "Wissenswertes momentan nicht verfügbar.",
 
   "challenge.title": "Wettbewerb",
   "challenge.modal.title": "Wettbewerb",

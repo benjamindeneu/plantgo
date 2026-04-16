@@ -237,7 +237,7 @@ export function createChallengePanelView() {
         try {
           await navigator.clipboard.writeText(code);
           const originalHtml = codeSpan.innerHTML;
-          codeSpan.textContent = "Copied!";
+          codeSpan.textContent = t("common.copied");
           codeSpan.classList.add("copied");
           setTimeout(() => {
             codeSpan.innerHTML = originalHtml;

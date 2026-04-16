@@ -4,6 +4,7 @@
   "nav.signup": "Sign up",
 
   "common.close": "Close",
+  "common.copied": "Copied!",
 
   "login.pageTitle": "PlantGo • Login",
   "login.title": "Welcome back",
@@ -148,6 +149,10 @@
   "result.lowConfidence.message": "Confidence is too low to validate this observation. Try taking more photos of the same plant, including different organs (leaves, flowers, fruits, bark) to improve the prediction.",
   "result.error.title": "Identification failed",
   "result.error.generic": "Something went wrong. Please try again.",
+  "result.description.loading": "Loading description…",
+  "result.description.unavailable": "Impossible to get description at the moment.",
+  "result.trivia.loading": "Loading trivia…",
+  "result.trivia.unavailable": "Impossible to get trivia at the moment.",
 
   "challenge.title": "Challenge",
   "challenge.modal.title": "Challenge",
