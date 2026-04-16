@@ -43,11 +43,15 @@ export function ChallengeModal() {
       <div id="speciesCountRow" style="display:none; gap:8px; align-items:center; flex-wrap:wrap">
         <label class="muted" for="challengeSpeciesCount" data-i18n="challenge.speciesHunt.speciesCount">Species</label>
         <select id="challengeSpeciesCount" class="input" style="width:160px">
-          <option value="5">5</option>
-          <option value="10">10</option>
+            <option value="10">10</option>
           <option value="15">15</option>
           <option value="20" selected>20</option>
+          <option value="25">25</option>
           <option value="30">30</option>
+          <option value="35">35</option>
+          <option value="40">40</option>
+          <option value="45">45</option>
+          <option value="50">50</option>
         </select>
       </div>
       <div id="speciesHuntInfo" class="muted" style="display:none; font-size:0.9em"></div>
@@ -148,6 +152,7 @@ export function ChallengeModal() {
     try {
       setFeedback("");
       show(joinOut, "");
+      btnCreate.style.display = "none";
 
       const durationSec = Number(elDuration?.value || 1800);
       const type = elType?.value || "points";
@@ -163,14 +168,13 @@ export function ChallengeModal() {
         // Step 2: fetch predictions from backend
         show(createOut, t("challenge.speciesHunt.fetchingSpecies"));
         const model = elModel?.value || "best";
-        const data = await fetchPredictions({ lat, lon, lang, model });
+        const limit = Number(elSpeciesCount?.value || 20);
+        const data = await fetchPredictions({ lat, lon, lang, model, limit });
         const predictions = Array.isArray(data?.predictions) ? data.predictions : [];
         // Sort by rank ascending (rank 0 = best); fall back to index for species without rank
-        const wantedCount = Number(elSpeciesCount?.value || 20);
         fetchedPredictions = predictions
           .slice()
-          .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity))
-          .slice(0, wantedCount);
+          .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity));
 
         if (fetchedPredictions.length < 2) {
           show(createOut, "");
@@ -198,6 +202,7 @@ export function ChallengeModal() {
     } catch (e) {
       show(createOut, "");
       setFeedback(e?.message || t("challenge.error.generic"));
+      btnCreate.style.display = "";
     }
   });
 
