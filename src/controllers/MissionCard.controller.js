@@ -2,6 +2,7 @@
 import { createMissionCardView } from "../ui/components/MissionCard.view.js";
 import { Modal } from "../ui/components/Modal.js";
 import { getWikipediaImage, getWikipediaSummaryHtml } from "../data/wiki.service.js";
+import { fetchDescription } from "../api/plantgo.js";
 import { t } from "../language/i18n.js";
 
 /** ---- Wikipedia caching + concurrency ---- */
@@ -125,15 +126,42 @@ export function MissionCard(species, { showPoints = true, showMissionPrefix = tr
 
   function buildAndRender(wikiHtml) {
     if (!view.element.isConnected) return;
-    let html = "";
+
+    // Wiki section (top)
     if (wikiHtml) {
-      html += wikiHtml;
+      let wikiSection = wikiHtml;
       if (wikiUrl) {
-        html += `<p class="wiki-more-link"><a href="${wikiUrl}" target="_blank" rel="noopener noreferrer">${escapeHtml(t("missions.card.moreOnWikipedia"))}</a></p>`;
+        wikiSection += `<p class="wiki-more-link"><a href="${wikiUrl}" target="_blank" rel="noopener noreferrer">${escapeHtml(t("missions.card.moreOnWikipedia"))}</a></p>`;
       }
+      view.setWikiDescriptionHtml(wikiSection);
     }
-    html += backendDescHtml();
-    if (html) view.setWikiDescriptionHtml(html);
+
+    // Backend description section (below wiki) — use cached data or poll
+    const bdHtml = backendDescHtml();
+    const gbifId = species.gbif_id ?? species.gbifId;
+    if (bdHtml) {
+      view.setBackendDescription(backendDesc);
+    } else if (gbifId || sciName) {
+      view.startDescriptionLoading();
+      pollDescription({ gbif_id: gbifId, name: sciName, lang });
+    }
+  }
+
+  async function pollDescription({ gbif_id, name }) {
+    const delays = [3000, 5000, 8000, 12000];
+    for (const delay of delays) {
+      await new Promise((r) => setTimeout(r, delay));
+      if (!view.element.isConnected) return;
+      try {
+        const res = await fetchDescription({ gbif_id, name, lang });
+        const desc = res?.description;
+        if (desc?.description) {
+          view.injectDescription(desc);
+          return;
+        }
+      } catch { /* keep retrying */ }
+    }
+    view.injectDescription(null);
   }
 
   // Use backend-provided Wikipedia extract if available, otherwise fetch live

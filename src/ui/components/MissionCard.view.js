@@ -41,6 +41,7 @@ export function createMissionCardView({
       </div>
     </div>
     <div class="wiki-desc muted" id="wikiDesc" style="display:none;"></div>
+    <div class="result-description" id="backendDesc" style="display:none"><div id="backendDescText"></div></div>
     <div class="mission-debug-section"></div>
     <div id="extLinksCard" class="ext-links-bar" style="display:none">
       <span class="ext-links-label"></span>
@@ -79,6 +80,8 @@ export function createMissionCardView({
   const gbifLinkEl = root.querySelector("#gbifLink");
   const badgesEl = root.querySelector("#badges");
   const wikiDescEl = root.querySelector("#wikiDesc");
+  const backendDescEl   = root.querySelector("#backendDesc");
+  const backendDescText = root.querySelector("#backendDescText");
 
   let onPoints = null;
   pointsBtn?.addEventListener("click", () => { if (onPoints) onPoints(); });
@@ -155,6 +158,54 @@ function refreshI18n() {
       }
       wikiDescEl.style.display = "";
       wikiDescEl.textContent = cleaned;
+    },
+
+    startDescriptionLoading() {
+      if (!backendDescEl || !backendDescText) return;
+      backendDescText.innerHTML = `<span class="fetch-loading"><span class="loading-spinner"></span>${escapeHtml(t("result.description.loading"))}</span>`;
+      backendDescEl.dataset.loading = "true";
+      backendDescEl.style.display = "";
+    },
+
+    injectDescription(description) {
+      if (!backendDescEl || !backendDescText || backendDescEl.dataset.loading !== "true") return;
+      if (!description) {
+        backendDescText.innerHTML = `<p class="fetch-error">${escapeHtml(t("result.description.unavailable"))}</p>`;
+        delete backendDescEl.dataset.loading;
+        return;
+      }
+      backendDescText.innerHTML = "";
+      if (description.description) {
+        const p = document.createElement("p");
+        p.textContent = description.description;
+        backendDescText.appendChild(p);
+      }
+      if (description.habitat) {
+        const p = document.createElement("p");
+        p.innerHTML = `<strong>${escapeHtml(t("missions.card.habitat"))}</strong> ${escapeHtml(description.habitat)}`;
+        backendDescText.appendChild(p);
+      }
+      if (backendDescText.childElementCount) {
+        delete backendDescEl.dataset.loading;
+      } else {
+        backendDescEl.style.display = "none";
+      }
+    },
+
+    setBackendDescription(description) {
+      if (!backendDescEl || !backendDescText) return;
+      backendDescText.innerHTML = "";
+      if (description.description) {
+        const p = document.createElement("p");
+        p.textContent = description.description;
+        backendDescText.appendChild(p);
+      }
+      if (description.habitat) {
+        const p = document.createElement("p");
+        p.innerHTML = `<strong>${escapeHtml(t("missions.card.habitat"))}</strong> ${escapeHtml(description.habitat)}`;
+        backendDescText.appendChild(p);
+      }
+      if (backendDescText.childElementCount) backendDescEl.style.display = "";
     },
 
     setWikiLinkUrl(url) {
