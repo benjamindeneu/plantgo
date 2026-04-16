@@ -40,6 +40,16 @@ export function ChallengeModal() {
           <option value="geoplantnet" data-i18n="missions.model.geoplantnet">GeoPlantNet</option>
         </select>
       </div>
+      <div id="speciesCountRow" style="display:none; gap:8px; align-items:center; flex-wrap:wrap">
+        <label class="muted" for="challengeSpeciesCount" data-i18n="challenge.speciesHunt.speciesCount">Species</label>
+        <select id="challengeSpeciesCount" class="input" style="width:160px">
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="15">15</option>
+          <option value="20" selected>20</option>
+          <option value="30">30</option>
+        </select>
+      </div>
       <div id="speciesHuntInfo" class="muted" style="display:none; font-size:0.9em"></div>
       <button id="btnCreate" class="primary" type="button" data-i18n="challenge.create.button">Create</button>
       <div id="createOut" class="muted" style="display:none"></div>
@@ -93,6 +103,8 @@ export function ChallengeModal() {
   const elDuration = modal.querySelector("#challengeDuration");
   const modelRow = modal.querySelector("#modelRow");
   const elModel = modal.querySelector("#challengeModel");
+  const speciesCountRow = modal.querySelector("#speciesCountRow");
+  const elSpeciesCount = modal.querySelector("#challengeSpeciesCount");
   const speciesHuntInfo = modal.querySelector("#speciesHuntInfo");
   const btnCreate = modal.querySelector("#btnCreate");
   const createOut = modal.querySelector("#createOut");
@@ -118,6 +130,7 @@ export function ChallengeModal() {
   elType?.addEventListener("change", () => {
     const isHunt = elType.value === "species_hunt";
     modelRow.style.display = isHunt ? "flex" : "none";
+    speciesCountRow.style.display = isHunt ? "flex" : "none";
     if (!isHunt) {
       speciesHuntInfo.style.display = "none";
       fetchedPredictions = [];
@@ -153,9 +166,11 @@ export function ChallengeModal() {
         const data = await fetchPredictions({ lat, lon, lang, model });
         const predictions = Array.isArray(data?.predictions) ? data.predictions : [];
         // Sort by rank ascending (rank 0 = best); fall back to index for species without rank
+        const wantedCount = Number(elSpeciesCount?.value || 20);
         fetchedPredictions = predictions
           .slice()
-          .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity));
+          .sort((a, b) => (a.rank ?? Infinity) - (b.rank ?? Infinity))
+          .slice(0, wantedCount);
 
         if (fetchedPredictions.length < 2) {
           show(createOut, "");
