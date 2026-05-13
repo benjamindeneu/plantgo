@@ -90,6 +90,7 @@
   "missions.status.locateError": "Location/mission error.",
   "missions.modelUsed": "Species distribution model",
   "missions.chooseModel": "Model",
+  "missions.model.loading": "Loading available models for your location…",
   "missions.model.auto": "Auto",
   "missions.model.group.default": "Best for your location",
   "missions.model.group.available": "Available models",

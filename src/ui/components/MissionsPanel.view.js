@@ -39,6 +39,8 @@ export function createMissionsPanelView() {
 
     <p id="tabDesc" class="tab-desc muted"></p>
 
+    <div id="locationMap" class="location-map" style="display:none"></div>
+
     <div style="display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:8px">
       <button id="locate" class="secondary" type="button" data-i18n="missions.refresh.around">
         Refresh predictions
@@ -48,8 +50,6 @@ export function createMissionsPanelView() {
 
     <div id="status" aria-live="polite" class="validation-feedback"></div>
     <div id="loadingTrack" class="loading-spinner" style="display:none" aria-hidden="true"></div>
-
-    <div id="locationMap" class="location-map" style="display:none"></div>
 
     <div id="paneAround" class="form-grid" style="text-align:center"></div>
     <div id="paneMissions" class="form-grid" style="text-align:center;display:none"></div>
@@ -101,6 +101,9 @@ export function createMissionsPanelView() {
     locateBtn.textContent = t(tab === "around" ? "missions.refresh.around" : "missions.refresh");
     tabDescEl.setAttribute("data-i18n", tab === "around" ? "missions.desc.around" : "missions.desc.missions");
     tabDescEl.textContent = t(tab === "around" ? "missions.desc.around" : "missions.desc.missions");
+    const model = tab === "missions" ? lastModel : lastModelAround;
+    const list  = tab === "missions" ? lastMissions : lastAround;
+    renderModelLine(modelEl, model, list);
     if (tabSwitchHandler) tabSwitchHandler(tab);
   }
 
@@ -122,7 +125,12 @@ export function createMissionsPanelView() {
 
     const loadingTrackModal = document.createElement("div");
     loadingTrackModal.className = "loading-spinner";
+    const loadingTextModal = document.createElement("p");
+    loadingTextModal.className = "muted";
+    loadingTextModal.style.cssText = "text-align:center;margin-top:8px";
+    loadingTextModal.textContent = t("missions.model.loading");
     body.appendChild(loadingTrackModal);
+    body.appendChild(loadingTextModal);
     modelLabel.style.display = "none";
     body.appendChild(modelLabel);
 
@@ -171,19 +179,23 @@ export function createMissionsPanelView() {
       }
     }).catch(() => {}).finally(() => {
       loadingTrackModal.remove();
+      loadingTextModal.remove();
       modelLabel.style.display = "";
     });
   });
 
   // keep last data so we can re-render on language change
-  let lastMissions = [];
-  let lastAround   = [];
-  let lastModel    = "";
+  let lastMissions      = [];
+  let lastAround        = [];
+  let lastModel         = "";
+  let lastModelAround   = "";
 
   function refreshI18n() {
     renderMissionsList(listMissions, lastMissions, { showPoints: true,  showMissionPrefix: true  });
     renderMissionsList(listAround,   lastAround,   { showPoints: false, showMissionPrefix: false });
-    renderModelLine(modelEl, lastModel, activeTab === "missions" ? lastMissions : lastAround);
+    const model = activeTab === "missions" ? lastModel : lastModelAround;
+    const list  = activeTab === "missions" ? lastMissions : lastAround;
+    renderModelLine(modelEl, model, list);
   }
 
   translateDom(document);
@@ -215,10 +227,11 @@ export function createMissionsPanelView() {
       if (activeTab === "missions") renderModelLine(modelEl, lastModel, lastMissions);
     },
 
-    renderAround(species) {
+    renderAround(species, model) {
       lastAround = Array.isArray(species) ? species : [];
+      if (model !== undefined) lastModelAround = model ?? "";
       renderMissionsList(listAround, lastAround, { showPoints: false, showMissionPrefix: false });
-      if (activeTab === "around") renderModelLine(modelEl, "", lastAround);
+      if (activeTab === "around") renderModelLine(modelEl, lastModelAround, lastAround);
     },
 
     onTabSwitch(handler) {

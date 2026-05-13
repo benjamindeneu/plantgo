@@ -81,7 +81,7 @@ export function MissionsPanel() {
       const selectedModel = view.getSelectedModel();
       const lang = document.documentElement.lang?.split("-")[0] || "en";
 
-      const { predictions } = await fetchPredictions({
+      const { predictions, model: usedModel } = await fetchPredictions({
         lat: lastPos.coords.latitude,
         lon: lastPos.coords.longitude,
         model: selectedModel,
@@ -92,7 +92,7 @@ export function MissionsPanel() {
       view.setLoading(false);
       // Sort by rank ascending (rank 0 = best match)
       const sorted = [...(predictions ?? [])].sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999));
-      view.renderAround(sorted);
+      view.renderAround(sorted, usedModel ?? selectedModel);
       view.setStatus("");
     } catch (e) {
       console.error("[MissionsPanel] Around fetch error:", e);
