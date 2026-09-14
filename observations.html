@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="color-scheme" content="light" />
   <meta name="theme-color" content="#ffffff" />
 
@@ -27,18 +27,12 @@
 <body class="v2">
   <header id="appHeader" class="nav"></header>
 
-  <main class="app-shell">
-    <h1 data-i18n="observations.title">Your Observations</h1>
-
-    <section class="card">
-      <div
-        id="observationsList"
-        class="form-grid"
-        aria-live="polite"
-        data-i18n="herbarium.loading"
-      >
-        Loading…
-      </div>
+  <!-- The view replaces this placeholder wholesale: a hero with the running
+       totals, then one card per observation with the result modal's own
+       points breakdown folded inside. -->
+  <main class="app-shell mp-obs-page">
+    <section id="observationsList" class="mp-obs" aria-live="polite">
+      <div class="mp-obs__status" data-i18n="herbarium.loading">Loading…</div>
     </section>
   </main>
 

@@ -948,6 +948,670 @@
   text-align: center;
 }
 
+/* ============================================================
+   BADGES PAGE
+   ------------------------------------------------------------
+   Built the way the front page's sheet is: a brand-gradient hero
+   that sums the collection up, then the badges grouped by what
+   earns them, as medallion tiles whose ring takes the map's grade
+   colours. `.badge-card` above is the result modal's, and stays.
+   ============================================================ */
+.v2 .mp-badges-page { padding-top: 12px; }
+.v2 .mp-badges { display: grid; gap: 22px; }
+
+/* ---------- hero ---------- */
+/* Shared by the badges, herbarium and observations pages: the page's name
+   and one headline number on the brand gradient, where the front page's
+   level chip and counts already live. */
+.v2 .mp-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 18px 16px;
+  display: grid;
+  gap: 14px;
+  color: #fff;
+  background: var(--mp-grad);
+  border-radius: var(--mp-r);
+  box-shadow: 0 2px 6px rgba(4,136,78,.18), 0 16px 38px rgba(4,136,78,.28);
+  text-shadow: var(--mp-on-brand-shadow);
+}
+/* A soft highlight in the top corner, so the gradient reads as lit rather
+   than printed. */
+.v2 .mp-hero::before {
+  content: "";
+  position: absolute;
+  top: -80px; right: -60px;
+  width: 240px; height: 240px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255,255,255,.28), transparent);
+  pointer-events: none;
+}
+.v2 .mp-hero__top {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.v2 .mp-hero__title {
+  margin: 0 0 2px;
+  font-family: var(--mp-ui);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.1;
+  color: #fff;
+}
+.v2 .mp-hero__subtitle {
+  margin: 0;
+  font-size: .86rem;
+  font-weight: 500;
+  color: rgba(255,255,255,.88);
+}
+.v2 .mp-hero__count {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  font-family: var(--mp-ui);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.v2 .mp-hero__count-n  { font-size: 2.3rem; font-weight: 700; letter-spacing: -.03em; }
+.v2 .mp-hero__count-of { font-size: 1rem;   font-weight: 600; color: rgba(255,255,255,.72); }
+
+.v2 .mp-badges__rail {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.18);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.14);
+  overflow: hidden;
+}
+.v2 .mp-badges__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 10px rgba(255,255,255,.55);
+  transition: width 520ms var(--mp-ease);
+}
+
+/* The nearest locked badge, as a frosted row inside the hero. */
+.v2 .mp-badges__next {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px 9px 10px;
+  border-radius: var(--mp-r-md);
+  background: rgba(255,255,255,.16);
+  border: 1px solid rgba(255,255,255,.22);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.v2 .mp-badges__next[hidden] { display: none; }
+.v2 .mp-badges__next-emoji {
+  width: 34px; height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255,255,255,.9);
+  font-size: 1.15rem;
+  line-height: 1;
+  text-shadow: none;
+}
+.v2 .mp-badges__next-body { min-width: 0; display: grid; gap: 1px; }
+.v2 .mp-badges__next-label {
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.78);
+}
+.v2 .mp-badges__next-name {
+  font-size: .92rem;
+  font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.v2 .mp-badges__next-meta {
+  font-size: .8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---------- groups ---------- */
+.v2 .mp-badges__group { display: grid; gap: 10px; }
+.v2 .mp-badges__group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 4px;
+}
+.v2 .mp-badges__group-title {
+  margin: 0;
+  font-family: var(--mp-ui);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--mp-ink-2);
+}
+.v2 .mp-badges__group-count {
+  font-family: var(--mp-ui);
+  font-size: .72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mp-ink-2);
+}
+.v2 .mp-badges__group.is-complete .mp-badges__group-title,
+.v2 .mp-badges__group.is-complete .mp-badges__group-count { color: var(--mp-brand-text); }
+
+.v2 .mp-badges__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
+  gap: 10px;
+}
+
+/* ---------- one badge ---------- */
+/* Same sheet as a mission row: white, hairline, one soft lift. The tier
+   colour drives the medallion ring, the state glyph and the tint behind
+   the emoji, all off one custom property. */
+.v2 .mp-badge {
+  --tier: var(--mp-common);
+  --tier-tint: var(--mp-common-tint);
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 10px;
+  padding: 14px 12px 12px;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r-md);
+  box-shadow: 0 1px 2px rgba(22,36,28,.04);
+  animation: mp-badge-in 320ms var(--mp-ease) both;
+  transition: transform 180ms var(--mp-ease), box-shadow 180ms var(--mp-ease);
+}
+.v2 .mp-badge:hover { transform: translateY(-2px); box-shadow: var(--mp-lift); }
+.v2 .mp-badge--rare      { --tier: var(--mp-rare);      --tier-tint: var(--mp-rare-tint); }
+.v2 .mp-badge--epic      { --tier: var(--mp-epic);      --tier-tint: var(--mp-epic-tint); }
+.v2 .mp-badge--legendary { --tier: var(--mp-legendary); --tier-tint: var(--mp-legendary-tint); }
+@keyframes mp-badge-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.v2 .mp-badge__medal {
+  position: relative;
+  width: 58px; height: 58px;
+  justify-self: center;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--tier-tint);
+  box-shadow: 0 0 0 2px var(--tier), 0 0 0 5px color-mix(in srgb, var(--tier) 18%, transparent);
+}
+.v2 .mp-badge__emoji {
+  font-size: 1.75rem;
+  line-height: 1;
+  transform: translateY(1px);
+}
+/* The tick / padlock sits on the ring's lower edge, as a coin on the map's
+   rare rows does. */
+.v2 .mp-badge__state {
+  position: absolute;
+  right: -4px; bottom: -2px;
+  width: 20px; height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--tier);
+  box-shadow: 0 0 0 2px var(--mp-surface), 0 2px 6px rgba(22,36,28,.16);
+}
+
+.v2 .mp-badge__body {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 3px;
+  text-align: center;
+}
+.v2 .mp-badge__name {
+  margin: 0;
+  font-family: var(--mp-ui);
+  font-size: .9rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -.01em;
+  color: var(--mp-ink);
+}
+.v2 .mp-badge__desc {
+  margin: 0;
+  font-size: .74rem;
+  line-height: 1.4;
+  color: var(--mp-ink-2);
+}
+.v2 .mp-badge__foot {
+  align-self: end;
+  margin-top: 6px;
+  display: grid;
+  gap: 4px;
+  justify-items: center;
+}
+.v2 .mp-badge__rail {
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(22,36,28,.09);
+  overflow: hidden;
+}
+.v2 .mp-badge__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mp-grad);
+  transition: width 420ms var(--mp-ease);
+}
+.v2 .mp-badge__meta,
+.v2 .mp-badge__date {
+  font-family: var(--mp-ui);
+  font-size: .7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mp-ink-2);
+}
+.v2 .mp-badge.is-unlocked .mp-badge__date { font-weight: 600; color: var(--mp-brand-text); }
+
+/* Locked: the emoji goes grey and the ring is a dashed outline rather than
+   a solid one, so an empty slot reads as a slot, not as a dimmer copy of a
+   won badge. The tile itself stays fully opaque — the name and the count
+   are what tell you how to win it, and those should be readable. */
+.v2 .mp-badge.is-locked .mp-badge__medal {
+  background: var(--mp-surface-2);
+  box-shadow: none;
+  border: 2px dashed color-mix(in srgb, var(--tier) 45%, var(--mp-line));
+}
+.v2 .mp-badge.is-locked .mp-badge__emoji { filter: grayscale(1); opacity: .55; }
+.v2 .mp-badge.is-locked .mp-badge__state {
+  color: var(--mp-ink-2);
+  background: var(--mp-surface);
+  box-shadow: 0 0 0 1px var(--mp-line), 0 2px 6px rgba(22,36,28,.1);
+}
+.v2 .mp-badge.is-locked .mp-badge__name { color: var(--mp-ink-2); }
+
+/* ---------- loading / error ---------- */
+.v2 .mp-badges__status {
+  padding: 40px 16px;
+  display: grid;
+  place-items: center;
+  font-family: var(--mp-ui);
+  font-size: .9rem;
+  color: var(--mp-ink-2);
+  text-align: center;
+}
+
+@media (max-width: 360px) {
+  .v2 .mp-badges__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .v2 .mp-badge { padding: 12px 9px 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v2 .mp-badge { animation: none; }
+  .v2 .mp-badges__fill,
+  .v2 .mp-badge__fill { transition: none; }
+}
+
+/* ============================================================
+   HERBARIUM PAGE
+   ------------------------------------------------------------
+   A hero, a search-and-sort strip that rides under the page
+   header, and the front page's own species rows (.mp-row, which
+   the front-page block below defines and shares).
+   ============================================================ */
+.v2 .mp-herb-page { padding-top: 12px; }
+.v2 .mp-herb { display: grid; gap: 12px; }
+.v2 .mp-herb .mp-hero { margin-bottom: 4px; }
+
+/* Sticky under the header (--mp-nav-h is measured, see navHeight.js). The
+   negative side margins and matching padding let its paper background run
+   to the page edges, so rows slide under it rather than past its sides. */
+.v2 .mp-herb__tools {
+  position: sticky;
+  top: var(--mp-nav-h, 0px);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 -14px;
+  padding: 6px 14px 10px;
+  background: var(--mp-bg);
+}
+.v2 .mp-herb__tools::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 100%;
+  height: 10px;
+  background: linear-gradient(var(--mp-bg), transparent);
+  pointer-events: none;
+}
+/* Doubled up to outrank .mp-select's own flex, defined later in the file:
+   the sort pill keeps its label's width and the search field takes the rest. */
+.v2 .mp-select.mp-herb__sort { flex: 0 0 auto; max-width: 46%; background: var(--mp-surface); }
+.v2 .mp-herb__status { margin: 0 4px; font-size: .86rem; color: var(--mp-ink-2); }
+.v2 .mp-herb__status[hidden] { display: none; }
+
+/* ---------- search pill ---------- */
+/* The same pill as .mp-select next to it, with the field laid bare inside
+   rather than hidden — you type into this one. */
+.v2 .mp-search {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px 0 12px;
+  height: 38px;
+  border-radius: 999px;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-line);
+  box-shadow: 0 1px 2px rgba(22,36,28,.04);
+  transition: border-color 200ms var(--mp-ease), box-shadow 200ms var(--mp-ease);
+}
+.v2 .mp-search:focus-within {
+  border-color: var(--mp-brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mp-brand) 18%, transparent);
+}
+.v2 .mp-search__icon { flex: none; display: grid; color: var(--mp-ink-2); }
+.v2 .mp-search__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+  font-family: var(--mp-ui);
+  font-size: .9rem;
+  font-weight: 500;
+  color: var(--mp-ink);
+}
+.v2 .mp-search__input::placeholder { color: var(--mp-ink-2); font-weight: 400; }
+.v2 .mp-search__input::-webkit-search-cancel-button,
+.v2 .mp-search__input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
+.v2 .mp-search__clear {
+  flex: none;
+  width: 26px; height: 26px;
+  margin: 0; padding: 0;
+  display: grid; place-items: center;
+  color: var(--mp-ink-2);
+  background: var(--mp-surface-2);
+  border: 0;
+  border-radius: 50%;
+  box-shadow: none;
+  text-shadow: none;
+  cursor: pointer;
+}
+.v2 .mp-search__clear:hover { background: var(--mp-soft); color: var(--mp-ink); transform: none; filter: none; }
+.v2 .mp-search__clear[hidden] { display: none; }
+
+/* ---------- a row that leads somewhere ---------- */
+/* .mp-row with a third column for the chevron, and a date where the map's
+   rows print the Latin name — the Latin name *is* the name here. */
+/* Doubled up to outrank .mp-row's own columns, which come later in the file. */
+.v2 .mp-row.mp-row--nav {
+  grid-template-columns: 62px 1fr auto;
+  animation: mp-badge-in 300ms var(--mp-ease) both;
+}
+.v2 .mp-row__chevron { display: grid; color: var(--mp-ink-2); opacity: .7; }
+.v2 .mp-row__date {
+  font-family: var(--mp-ui);
+  font-size: .76rem;
+  font-weight: 500;
+  color: var(--mp-ink-2);
+}
+.v2 .mp-row__sci[hidden] { display: none; }
+
+/* ============================================================
+   OBSERVATIONS PAGE
+   ------------------------------------------------------------
+   A hero with the running totals, then one card per find. The
+   card's head is the find; its body is the result modal's points
+   breakdown — .details / .detail-line / .badge / .result-total,
+   the very same classes — folded up until tapped.
+   ============================================================ */
+.v2 .mp-obs-page { padding-top: 12px; }
+.v2 .mp-obs { display: grid; gap: 12px; }
+.v2 .mp-obs .mp-hero { margin-bottom: 4px; }
+.v2 .mp-obs__status { margin: 0 4px; font-size: .86rem; color: var(--mp-ink-2); }
+.v2 .mp-obs__status[hidden] { display: none; }
+.v2 .mp-obs__sentinel { height: 1px; }
+.v2 .mp-obs__list { display: grid; gap: 6px; }
+
+/* ---------- date groups ---------- */
+/* Each stretch of time is named by a chip — the same frosted pill as the
+   map's daily-quests chip, so it belongs to the app rather than to a
+   settings screen. It sticks just under the page header for as long as its
+   group is on screen and the next chip shoves it out; being a pill on a
+   blurred ground, it floats over the cards rather than blanking a strip.
+   Centred, the way a messaging app dates its threads. */
+.v2 .mp-obs__group { display: grid; gap: 8px; }
+.v2 .mp-obs__group + .mp-obs__group { margin-top: 8px; }
+.v2 .mp-obs__period {
+  position: sticky;
+  top: calc(var(--mp-nav-h, 0px) + 8px);
+  z-index: 20;
+  justify-self: center;
+  margin: 0;
+  padding: 5px 12px 5px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--mp-brand-text);
+  background: rgba(255,255,255,.9);
+  border: 1px solid rgba(255,255,255,.8);
+  border-radius: 999px;
+  box-shadow: var(--mp-lift);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-family: var(--mp-ui);
+  font-size: .76rem;
+  font-weight: 700;
+  letter-spacing: .01em;
+  line-height: 1.3;
+  text-transform: none;
+  white-space: nowrap;
+}
+.v2 .mp-obs__period::before {
+  content: "";
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--mp-grad);
+  box-shadow: 0 0 0 2px var(--mp-soft);
+}
+.v2 .mp-obs__period-count {
+  padding-left: 7px;
+  border-left: 1px solid var(--mp-line);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--mp-ink-2);
+}
+
+.v2 .mp-obs-card {
+  overflow: hidden;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r-md);
+  box-shadow: 0 1px 2px rgba(22,36,28,.04);
+  animation: mp-badge-in 300ms var(--mp-ease) both;
+  transition: box-shadow 180ms var(--mp-ease);
+}
+.v2 .mp-obs-card:hover { box-shadow: var(--mp-lift); }
+
+/* The head is a button, so the whole find is one tap target; v1's global
+   button paint (green, full-width, lifted) is undone here. */
+.v2 .mp-obs-card__head {
+  width: 100%;
+  margin: 0;
+  padding: 11px 12px;
+  display: grid;
+  grid-template-columns: 62px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  color: var(--mp-ink);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  text-shadow: none;
+  font: inherit;
+  letter-spacing: normal;
+  cursor: pointer;
+  transition: background 160ms var(--mp-ease);
+}
+.v2 .mp-obs-card__head:hover { background: var(--mp-surface-2); transform: none; filter: none; }
+.v2 .mp-obs-card__head:active { transform: none; filter: none; }
+.v2 .mp-obs-card__text { min-width: 0; display: grid; gap: 3px; }
+.v2 .mp-obs-card__name {
+  font-family: var(--mp-display);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -.01em;
+  color: var(--mp-ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.v2 .mp-obs-card__name.is-unknown { font-family: var(--mp-ui); color: var(--mp-ink-2); }
+.v2 .mp-obs-card__meta {
+  font-family: var(--mp-ui);
+  font-size: .76rem;
+  line-height: 1.35;
+  color: var(--mp-ink-2);
+}
+.v2 .mp-obs-card__tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+.v2 .mp-obs-card__tags:empty { display: none; }
+
+.v2 .mp-obs-card__side {
+  display: grid;
+  justify-items: end;
+  align-items: center;
+  gap: 4px;
+}
+/* The result modal's chip, a size down so it fits a row. */
+.v2 .mp-obs-card__chip.points-badge {
+  padding: 5px 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .86rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.v2 .mp-obs-card__chip .rarity-label { font-size: .58rem; letter-spacing: .06em; }
+.v2 .mp-obs-card__chevron {
+  display: grid;
+  color: var(--mp-ink-2);
+  opacity: .7;
+  transition: transform 220ms var(--mp-ease);
+}
+.v2 .mp-obs-card.is-open .mp-obs-card__chevron { transform: rotate(180deg); }
+
+.v2 .mp-obs-card__body {
+  display: grid;
+  gap: 10px;
+  padding: 2px 12px 12px;
+  border-top: 1px solid var(--mp-line);
+  animation: mp-detail-in 220ms var(--mp-ease) both;
+}
+.v2 .mp-obs-card__body[hidden] { display: none; }
+.v2 .mp-obs-card__details { margin-top: 10px; }
+.v2 .mp-obs-card__details .detail-line { animation: none; }
+.v2 .mp-obs-card__badges {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  margin: 0;
+}
+.v2 .mp-obs-card__badges[hidden] { display: none; }
+.v2 .mp-obs-card__badges .badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+.v2 .mp-obs-card__badges .badge .txt { flex: 1; min-width: 0; }
+.v2 .mp-obs-card__badges .badge .add {
+  flex: none;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mp-brand-text);
+}
+.v2 .mp-obs-card__badges .badge--mission .add { color: var(--tier-ink); }
+.v2 .mp-obs-card__total { padding: 10px 12px; font-size: .96rem; }
+.v2 .mp-obs-card__total strong { font-variant-numeric: tabular-nums; }
+
+.v2 .mp-obs-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.v2 .mp-obs-card__foot:empty { display: none; }
+.v2 .mp-obs-card__coords {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--mp-ui);
+  font-size: .76rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--mp-ink-2);
+  text-decoration: none;
+}
+.v2 .mp-obs-card__coords:hover { color: var(--mp-ink); }
+/* Same pill as the species screen's back button: it leads to that screen. */
+.v2 .mp-obs-card__species {
+  width: auto;
+  margin: 0 0 0 auto;
+  padding: 7px 14px 7px 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--mp-brand-text);
+  background: var(--mp-soft);
+  border: 0;
+  border-radius: 999px;
+  box-shadow: none;
+  text-shadow: none;
+  font-family: var(--mp-ui);
+  font-size: .83rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  cursor: pointer;
+}
+.v2 .mp-obs-card__species:hover { background: #d8f2e3; transform: none; filter: none; }
+
+@media (max-width: 360px) {
+  .v2 .mp-obs-card__head { grid-template-columns: 52px 1fr auto; gap: 9px; padding: 10px; }
+  .v2 .mp-obs-card__head .mp-row__thumb { width: 52px; height: 52px; }
+  .v2 .mp-obs-card__chip.points-badge { padding: 4px 9px; font-size: .8rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v2 .mp-obs-card,
+  .v2 .mp-obs-card__body,
+  .v2 .mp-row.mp-row--nav { animation: none; }
+  .v2 .mp-obs-card__chevron { transition: none; }
+}
+
 /* The rarity chips keep v1's colours — they are the same grade shown on the
    same scale as the map's pins and rows — but take v2's pill shape. */
 .v2 .points-badge,
@@ -1215,10 +1879,100 @@
 }
 
 /* ============================================================
+   SPECIES SHEET — the species screen, off the map
+   ------------------------------------------------------------
+   The herbarium and observations pages open a species in this:
+   a panel that rises over the page and holds the same
+   .mp-detail the map's sheet does (see SpeciesSheet.js).
+   ============================================================ */
+.v2.mp-sheet-open { overflow: hidden; }
+.v2 .mp-species-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.v2 .mp-species-sheet__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(22,36,28,.34);
+  opacity: 0;
+  transition: opacity 280ms var(--mp-ease);
+}
+.v2 .mp-species-sheet.is-open .mp-species-sheet__backdrop { opacity: 1; }
+.v2 .mp-species-sheet__panel {
+  position: relative;
+  width: 100%;
+  max-width: var(--mp-col);
+  margin: 0 auto;
+  height: min(88dvh, 100%);
+  display: flex;
+  flex-direction: column;
+  background: var(--mp-surface);
+  border-radius: var(--mp-r) var(--mp-r) 0 0;
+  box-shadow: var(--mp-lift-2);
+  transform: translateY(103%);
+  transition: transform 320ms var(--mp-ease);
+}
+.v2 .mp-species-sheet.is-open .mp-species-sheet__panel { transform: translateY(0); }
+.v2 .mp-species-sheet__grab {
+  flex: none;
+  width: 38px; height: 4px;
+  margin: 9px auto 5px;
+  border-radius: 999px;
+  background: var(--mp-line);
+}
+.v2 .mp-species-sheet__close {
+  position: absolute;
+  top: 14px; right: 12px;
+  z-index: 4;
+  width: 32px; height: 32px;
+  margin: 0; padding: 0;
+  display: grid; place-items: center;
+  font-size: 1.3rem; line-height: 1;
+  color: var(--mp-ink-2);
+  background: var(--mp-surface-2);
+  border: 0;
+  border-radius: 50%;
+  box-shadow: none;
+  text-shadow: none;
+  cursor: pointer;
+}
+.v2 .mp-species-sheet__close:hover { background: var(--mp-soft); color: var(--mp-ink); transform: none; filter: none; }
+/* Same padding as the map sheet's scroller: the detail's sticky bar undoes
+   14px of it to paint edge to edge, and the two must agree. */
+.v2 .mp-species-sheet__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 14px calc(24px + env(safe-area-inset-bottom, 0px));
+}
+/* The close button sits over the bar's right end; the raster switch never
+   appears off the map, so the spacer can simply stop short of it. */
+.v2 .mp-species-sheet .mp-detail__bar { padding-right: 52px; }
+.v2 .mp-species-sheet .mp-detail__bar-grab { cursor: default; touch-action: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .v2 .mp-species-sheet__panel,
+  .v2 .mp-species-sheet__backdrop { transition: none; }
+}
+
+/* ============================================================
    FRONT PAGE — the mission map
    ------------------------------------------------------------
    Last in the file so these win over the generic `.v2` rules
    above wherever the two describe the same element.
+
+   Not everything in here is the map's alone any more: the row,
+   tag, select, empty state, spinner and the species detail are
+   scoped to `.v2` so the herbarium and observations pages can
+   set the same rows and open the same detail. They stay in this
+   block because it is where they grew up and where their
+   companions still live.
    ============================================================ */
 .map-page {
   margin: 0;
@@ -1677,8 +2431,13 @@
 
 /* The visible pill is only 38x4, but that's a poor touch target — the
    button itself spans the sheet's full width so a thumb anywhere near the
-   top edge catches the drag, and the pill is drawn on top via ::after. */
+   top edge catches the drag, and the pill is drawn on top via ::after.
+   The ::before below stretches the hit area a further 12px up over the
+   map's bottom edge without moving anything: that strip is bare tiles
+   (the map's controls live at its top), and a thumb that overshoots the
+   pill upward is still reaching for it. */
 .map-page .mp-sheet__grab {
+  position: relative;
   flex: none;
   width: 100%;
   height: 22px;
@@ -1703,6 +2462,14 @@
 .map-page .mp-sheet__grab:active {
   transform: none;
   filter: none;
+}
+.map-page .mp-sheet__grab::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -12px;
+  bottom: 0;
 }
 .map-page .mp-sheet__grab::after {
   content: "";
@@ -1967,8 +2734,8 @@
   /* clears the floating camera button */
   padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px));
 }
-.map-page .mp-list { display: grid; gap: 9px; }
-.map-page .mp-list[hidden] { display: none; }
+.v2 .mp-list { display: grid; gap: 9px; }
+.v2 .mp-list[hidden] { display: none; }
 
 /* ---------- around-you toolbar ---------- */
 /* One row above the list: which model to ask, and a button to ask again. */
@@ -1983,7 +2750,7 @@
    pill at zero opacity, so the platform's own picker opens — which on a phone
    is a full-height wheel no custom menu is going to beat — while the pill
    shows the chosen model in the app's own type. */
-.map-page .mp-select {
+.v2 .mp-select {
   position: relative;
   flex: 1 1 auto;
   min-width: 0;
@@ -1997,12 +2764,12 @@
   cursor: pointer;
   transition: background 200ms var(--mp-ease), border-color 200ms var(--mp-ease);
 }
-.map-page .mp-select:hover { background: var(--mp-soft); }
-.map-page .mp-select:focus-within {
+.v2 .mp-select:hover { background: var(--mp-soft); }
+.v2 .mp-select:focus-within {
   border-color: var(--mp-brand);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--mp-brand) 18%, transparent);
 }
-.map-page .mp-select__label {
+.v2 .mp-select__label {
   flex: 1;
   min-width: 0;
   font-family: var(--mp-ui);
@@ -2014,8 +2781,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.map-page .mp-select__caret { flex: none; color: var(--mp-ink-2); }
-.map-page .mp-select__input {
+.v2 .mp-select__caret { flex: none; color: var(--mp-ink-2); }
+.v2 .mp-select__input {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -2029,7 +2796,7 @@
   appearance: none;
 }
 
-.map-page .mp-icon-btn {
+.v2 .mp-icon-btn {
   flex: none;
   width: 34px; height: 34px;
   margin: 0;
@@ -2045,10 +2812,10 @@
   cursor: pointer;
   transition: background 200ms var(--mp-ease);
 }
-.map-page .mp-icon-btn:hover { background: #d8f2e3; transform: none; filter: none; }
-.map-page .mp-icon-btn:active { transform: scale(.94); }
-.map-page .mp-icon-btn:disabled { opacity: .55; cursor: default; }
-.map-page .mp-icon-btn.is-busy svg { animation: mp-spin .9s linear infinite; }
+.v2 .mp-icon-btn:hover { background: #d8f2e3; transform: none; filter: none; }
+.v2 .mp-icon-btn:active { transform: scale(.94); }
+.v2 .mp-icon-btn:disabled { opacity: .55; cursor: default; }
+.v2 .mp-icon-btn.is-busy svg { animation: mp-spin .9s linear infinite; }
 
 /* Which model produced the list on screen — provenance, so it sits under the
    control rather than competing with it. */
@@ -2066,7 +2833,7 @@
 /* The grade is the row, not a chip on it: a legendary find should be visible
    from across the list, and a tag the same size as every other tag was not
    doing that. Tint, border and badge all come off one custom property. */
-.map-page .mp-row {
+.v2 .mp-row {
   --tier: var(--mp-common);
   position: relative;
   overflow: hidden;
@@ -2087,26 +2854,26 @@
   transition: transform 180ms var(--mp-ease), box-shadow 180ms var(--mp-ease);
 }
 /* Ungraded predictions stay plain paper — there is no grade to celebrate. */
-.map-page .mp-row--graded {
+.v2 .mp-row--graded {
   background: linear-gradient(120deg,
     color-mix(in srgb, var(--tier) 18%, var(--mp-surface)), var(--mp-surface) 75%);
   border-color: color-mix(in srgb, var(--tier) 28%, var(--mp-line));
 }
-.map-page .mp-row--rare      { --tier: var(--mp-rare); }
+.v2 .mp-row--rare      { --tier: var(--mp-rare); }
 /* Epic and legendary borrow the exact hue the points chip and pin use, so the
    grade reads as the same colour everywhere it shows up. */
-.map-page .mp-row--epic      { --tier: #9c27b0; }
-.map-page .mp-row--legendary { --tier: #e5a400; }
+.v2 .mp-row--epic      { --tier: #9c27b0; }
+.v2 .mp-row--legendary { --tier: #e5a400; }
 /* The top two grades earn a ring, so they read before the words do. */
-.map-page .mp-row--epic,
-.map-page .mp-row--legendary { box-shadow: 0 1px 2px rgba(22,36,28,.05), 0 4px 16px color-mix(in srgb, var(--tier) 22%, transparent); }
-.map-page .mp-row:hover { transform: none; filter: none; box-shadow: var(--mp-lift); }
-.map-page .mp-row:active { transform: scale(.985); }
+.v2 .mp-row--epic,
+.v2 .mp-row--legendary { box-shadow: 0 1px 2px rgba(22,36,28,.05), 0 4px 16px color-mix(in srgb, var(--tier) 22%, transparent); }
+.v2 .mp-row:hover { transform: none; filter: none; box-shadow: var(--mp-lift); }
+.v2 .mp-row:active { transform: scale(.985); }
 /* A wash on the card itself, not a sweep over the photo and text — it sits
    behind both (.mp-row__thumb and .mp-row__text paint above a negative
    z-index) rather than washing out what you're trying to read. */
-.map-page .mp-row--epic::after,
-.map-page .mp-row--legendary::after {
+.v2 .mp-row--epic::after,
+.v2 .mp-row--legendary::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -2121,7 +2888,7 @@
   mix-blend-mode: overlay;
 }
 
-.map-page .mp-row__thumb {
+.v2 .mp-row__thumb {
   position: relative;
   width: 62px; height: 62px;
   display: grid;
@@ -2130,26 +2897,26 @@
   background: linear-gradient(145deg, var(--mp-soft), var(--mp-surface-2));
   box-shadow: inset 0 0 0 1px rgba(22,36,28,.05);
 }
-.map-page .mp-row__thumb > * { grid-area: 1 / 1; }
-.map-page .mp-row__thumb img {
+.v2 .mp-row__thumb > * { grid-area: 1 / 1; }
+.v2 .mp-row__thumb img {
   width: 100%; height: 100%;
   object-fit: cover;
   display: block;
   opacity: 0;
   transition: opacity 320ms var(--mp-ease);
 }
-.map-page .mp-row__thumb.has-photo img { opacity: 1; }
-.map-page .mp-row__thumb.has-photo .mp-row__leaf { opacity: 0; }
-.map-page .mp-row__leaf {
+.v2 .mp-row__thumb.has-photo img { opacity: 1; }
+.v2 .mp-row__thumb.has-photo .mp-row__leaf { opacity: 0; }
+.v2 .mp-row__leaf {
   display: grid; place-items: center;
   font-size: 1.35rem;
   opacity: .5;
   transition: opacity 320ms var(--mp-ease);
 }
 
-.map-page .mp-row__text { min-width: 0; display: grid; gap: 3px; }
-.map-page .mp-row__head { display: flex; align-items: flex-start; gap: 8px; }
-.map-page .mp-row__name {
+.v2 .mp-row__text { min-width: 0; display: grid; gap: 3px; }
+.v2 .mp-row__head { display: flex; align-items: flex-start; gap: 8px; }
+.v2 .mp-row__name {
   flex: 1;
   min-width: 0;
   font-family: var(--mp-display);
@@ -2160,7 +2927,7 @@
   color: var(--mp-ink);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.map-page .mp-row__badge {
+.v2 .mp-row__badge {
   flex: none;
   position: relative;
   overflow: hidden;
@@ -2177,14 +2944,14 @@
   line-height: 1.35;
   white-space: nowrap;
 }
-.map-page .mp-row__badge[hidden] { display: none; }
+.v2 .mp-row__badge[hidden] { display: none; }
 /* Same chip, same colours, same sheen, same timing as .epic-points/
    .legendary-points on the old main page (styles.css) — this is the same
    grade shown on a different screen, not a new look for it. */
-.map-page .mp-row--epic .mp-row__badge      { background: linear-gradient(180deg,#b46ad3,#9c27b0); }
-.map-page .mp-row--legendary .mp-row__badge { background: linear-gradient(180deg,#ffe27a,#ffd54d); }
-.map-page .mp-row--epic .mp-row__badge::after,
-.map-page .mp-row--legendary .mp-row__badge::after {
+.v2 .mp-row--epic .mp-row__badge      { background: linear-gradient(180deg,#b46ad3,#9c27b0); }
+.v2 .mp-row--legendary .mp-row__badge { background: linear-gradient(180deg,#ffe27a,#ffd54d); }
+.v2 .mp-row--epic .mp-row__badge::after,
+.v2 .mp-row--legendary .mp-row__badge::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -2198,7 +2965,7 @@
   animation: sheen-slide var(--sheen-speed, 4s) linear infinite;
   mix-blend-mode: overlay;
 }
-.map-page .mp-row__sci {
+.v2 .mp-row__sci {
   font-family: var(--mp-ui);
   font-size: .79rem;
   font-style: italic;
@@ -2206,14 +2973,14 @@
   color: var(--mp-ink-2);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.map-page .mp-row__tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
-.map-page .mp-row__tags:empty { display: none; }
+.v2 .mp-row__tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
+.v2 .mp-row__tags:empty { display: none; }
 
 /* An accomplished mission is a result, not a struck-out chore: the name stays
    readable and the row keeps most of its colour. The band across the foot is
    what carries the news. */
-.map-page .mp-row--done { opacity: .82; }
-.map-page .mp-row__done {
+.v2 .mp-row--done { opacity: .82; }
+.v2 .mp-row__done {
   grid-column: 1 / -1;
   /* Bleeds to the row's edges — the row is `padding: 11px 12px` and clips to
      its own radius, so the band reads as part of the card, not a chip on it. */
@@ -2233,7 +3000,7 @@
   line-height: 1.3;
   text-shadow: var(--mp-on-brand-shadow);
 }
-.map-page .mp-row__done-tick {
+.v2 .mp-row__done-tick {
   display: grid;
   place-items: center;
   width: 14px; height: 14px;
@@ -2244,7 +3011,7 @@
 }
 
 /* ---------- tags ---------- */
-.map-page .mp-tag {
+.v2 .mp-tag {
   --tone: var(--mp-common);
   padding: 2px 9px;
   border-radius: 999px;
@@ -2256,29 +3023,29 @@
   color: var(--tone);
   background: color-mix(in srgb, var(--tone) 13%, transparent);
 }
-.map-page .mp-tag--rare      { --tone: var(--mp-rare); }
-.map-page .mp-tag--epic      { --tone: var(--mp-epic); }
-.map-page .mp-tag--legendary { --tone: var(--mp-legendary); }
-.map-page .mp-tag--chance    { --tone: #2b8a86; }
-.map-page .mp-tag--pheno     { --tone: #cc6316; }
-.map-page .mp-tag[hidden]    { display: none; }
+.v2 .mp-tag--rare      { --tone: var(--mp-rare); }
+.v2 .mp-tag--epic      { --tone: var(--mp-epic); }
+.v2 .mp-tag--legendary { --tone: var(--mp-legendary); }
+.v2 .mp-tag--chance    { --tone: #2b8a86; }
+.v2 .mp-tag--pheno     { --tone: #cc6316; }
+.v2 .mp-tag[hidden]    { display: none; }
 
 /* ---------- empty state ---------- */
-.map-page .mp-empty {
+.v2 .mp-empty {
   display: grid;
   justify-items: center;
   gap: 12px;
   padding: 22px 20px 30px;
   text-align: center;
 }
-.map-page .mp-empty__icon {
+.v2 .mp-empty__icon {
   display: grid; place-items: center;
   width: 54px; height: 54px;
   border-radius: 50%;
   background: radial-gradient(circle at 30% 25%, var(--mp-soft), var(--mp-surface-2));
   font-size: 1.5rem;
 }
-.map-page .mp-empty p {
+.v2 .mp-empty p {
   margin: 0;
   max-width: 28ch;
   font-family: var(--mp-ui);
@@ -2288,7 +3055,7 @@
 }
 
 /* ---------- spinner ---------- */
-.map-page .mp-spinner {
+.v2 .mp-spinner {
   width: 26px; height: 26px;
   margin: 28px auto;
   border-radius: 50%;
@@ -2296,23 +3063,64 @@
   border-top-color: var(--mp-brand);
   animation: mp-spin .8s linear infinite;
 }
-.map-page .mp-spinner[hidden] { display: none; }
+.v2 .mp-spinner[hidden] { display: none; }
 
 /* ---------- detail screen ---------- */
-.map-page .mp-detail {
+.v2 .mp-detail {
   --tier: var(--mp-common);
   display: grid;
   gap: 14px;
-  padding-top: 2px;
 }
-.map-page .mp-detail--rare      { --tier: var(--mp-rare); }
-.map-page .mp-detail--epic      { --tier: var(--mp-epic); }
-.map-page .mp-detail--legendary { --tier: var(--mp-legendary); }
+.v2 .mp-detail--rare      { --tier: var(--mp-rare); }
+.v2 .mp-detail--epic      { --tier: var(--mp-epic); }
+.v2 .mp-detail--legendary { --tier: var(--mp-legendary); }
 
-.map-page .mp-detail__bar { display: flex; align-items: center; gap: 8px; }
-/* Back on the left, the map control hard right. */
-.map-page .mp-detail__bar .mp-switch { margin-left: auto; }
-.map-page .mp-detail__back {
+/* The bar stays put while the write-up scrolls under it: the way back and
+   the map toggle are wanted most once the reader is deep in the prose, not
+   only at the top. It is sticky rather than lifted out of the scroller so
+   the component stays self-contained. The negative side margins undo the
+   scroller's 14px padding so its background covers the full width — text
+   would otherwise be seen sliding past on either side — and the ::after is
+   a short fade that softens the edge the prose disappears under. */
+.v2 .mp-detail__bar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 -14px;
+  padding: 2px 14px 6px;
+  background: var(--mp-surface);
+}
+.v2 .mp-detail__bar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 10px;
+  background: linear-gradient(var(--mp-surface), transparent);
+  pointer-events: none;
+}
+/* Back on the left, the map control hard right, and the gap between them
+   is a drag handle for the sheet (see MapPage.view.js): it sits directly
+   under the grab pill, and a thumb that lands there was aiming for it.
+   Invisible on purpose — the bar is meant to look exactly as it did.
+   The negative margins push it out through the bar's own padding so it
+   butts up against the pill's button above with no dead strip between
+   the two handles, and reaches the fade below. */
+.v2 .mp-detail__bar-grab {
+  flex: 1 1 auto;
+  align-self: stretch;
+  margin: -2px 0 -6px;
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.map-page .mp-sheet--dragging .mp-detail__bar-grab { cursor: grabbing; }
+.v2 .mp-detail__back {
   width: auto;
   margin: 0;
   padding: 7px 15px 7px 10px;
@@ -2329,21 +3137,21 @@
   font-weight: 600;
   cursor: pointer;
 }
-.map-page .mp-detail__back:hover { background: #d8f2e3; transform: none; filter: none; }
+.v2 .mp-detail__back:hover { background: #d8f2e3; transform: none; filter: none; }
 
-.map-page .mp-detail__hero {
+.v2 .mp-detail__hero {
   height: 150px;
   overflow: hidden;
   border-radius: var(--mp-r-md);
   background: linear-gradient(150deg, var(--mp-soft), var(--mp-surface-2));
   animation: mp-fade-in 320ms var(--mp-ease);
 }
-.map-page .mp-detail__hero[hidden] { display: none; }
-.map-page .mp-detail__hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.v2 .mp-detail__hero[hidden] { display: none; }
+.v2 .mp-detail__hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
 @keyframes mp-fade-in { from { opacity: 0; } to { opacity: 1; } }
 
-.map-page .mp-detail__heading { display: grid; gap: 3px; }
-.map-page .mp-detail__name {
+.v2 .mp-detail__heading { display: grid; gap: 3px; }
+.v2 .mp-detail__name {
   margin: 0;
   font-family: var(--mp-display);
   font-size: 1.36rem;
@@ -2353,7 +3161,7 @@
   text-align: left;
   color: var(--mp-ink);
 }
-.map-page .mp-detail__sci {
+.v2 .mp-detail__sci {
   margin: 0;
   font-family: var(--mp-ui);
   font-size: .87rem;
@@ -2361,25 +3169,25 @@
   color: var(--mp-ink-2);
 }
 
-.map-page .mp-detail__tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.v2 .mp-detail__tags { display: flex; flex-wrap: wrap; gap: 6px; }
 
-.map-page .mp-detail__prose {
+.v2 .mp-detail__prose {
   font-family: var(--mp-ui);
   font-size: .91rem;
   line-height: 1.62;
   color: var(--mp-ink);
 }
-.map-page .mp-detail__prose p { margin: 0 0 10px; }
-.map-page .mp-detail__prose p:last-child { margin-bottom: 0; }
-.map-page .mp-detail__wiki:empty { display: none; }
+.v2 .mp-detail__prose p { margin: 0 0 10px; }
+.v2 .mp-detail__prose p:last-child { margin-bottom: 0; }
+.v2 .mp-detail__wiki:empty { display: none; }
 /* The backend's own write-up sits under Wikipedia's, separated rather than
    replacing it — they say different things and both are worth reading. It
    reads bigger and bolder than the Wikipedia summary above it, since it's the
    write-up this app actually generated for the species — but stays plain
    text, not a panel, so it doesn't read as "aside" the way the trivia box
    deliberately does. */
-.map-page .mp-detail__backend:empty { display: none; }
-.map-page .mp-detail__backend:not(:empty) {
+.v2 .mp-detail__backend:empty { display: none; }
+.v2 .mp-detail__backend:not(:empty) {
   margin-top: 14px;
   padding-top: 14px;
   border-top: 1px solid var(--mp-line);
@@ -2388,25 +3196,25 @@
   line-height: 1.6;
   color: var(--mp-ink);
 }
-.map-page .mp-detail__habitat { color: var(--mp-ink-2); font-size: .87rem; }
-.map-page .mp-detail__muted { color: var(--mp-ink-2); font-style: italic; }
-.map-page .mp-detail__icon {
+.v2 .mp-detail__habitat { color: var(--mp-ink-2); font-size: .87rem; }
+.v2 .mp-detail__muted { color: var(--mp-ink-2); font-style: italic; }
+.v2 .mp-detail__icon {
   display: inline-block;
   flex: none;
   margin-right: 7px;
   vertical-align: -2px;
   color: var(--mp-brand-text);
 }
-.map-page .mp-detail__habitat .mp-detail__icon { color: var(--mp-ink-2); }
+.v2 .mp-detail__habitat .mp-detail__icon { color: var(--mp-ink-2); }
 
-.map-page .mp-detail__trivia {
+.v2 .mp-detail__trivia {
   padding: 13px 15px;
   border-radius: var(--mp-r-md);
   background: var(--mp-soft);
   border-left: 3px solid var(--mp-brand);
 }
-.map-page .mp-detail__trivia[hidden] { display: none; }
-.map-page .mp-detail__trivia-label {
+.v2 .mp-detail__trivia[hidden] { display: none; }
+.v2 .mp-detail__trivia-label {
   display: block;
   margin-bottom: 4px;
   font-family: var(--mp-ui);
@@ -2416,7 +3224,7 @@
   text-transform: uppercase;
   color: var(--mp-brand-text);
 }
-.map-page .mp-detail__trivia p {
+.v2 .mp-detail__trivia p {
   margin: 0;
   font-family: var(--mp-ui);
   font-size: .89rem;
@@ -2428,7 +3236,7 @@
    card-width row with a description under it, which cost the sheet 60px for
    one boolean — and the sheet only shows a third of a phone screen. The whole
    thing is a <label>, so the text is part of the tap target. */
-.map-page .mp-switch {
+.v2 .mp-switch {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -2440,14 +3248,14 @@
   user-select: none;
   transition: background 200ms var(--mp-ease), border-color 200ms var(--mp-ease);
 }
-.map-page .mp-switch[hidden] { display: none; }
-.map-page .mp-switch:hover { background: var(--mp-soft); }
-.map-page .mp-switch:has(.mp-switch__input:checked) {
+.v2 .mp-switch[hidden] { display: none; }
+.v2 .mp-switch:hover { background: var(--mp-soft); }
+.v2 .mp-switch:has(.mp-switch__input:checked) {
   background: var(--mp-soft);
   border-color: color-mix(in srgb, var(--mp-brand) 34%, var(--mp-line));
 }
 
-.map-page .mp-switch__label {
+.v2 .mp-switch__label {
   font-family: var(--mp-ui);
   font-size: .74rem;
   font-weight: 600;
@@ -2455,17 +3263,17 @@
   white-space: nowrap;
   color: var(--mp-ink-2);
 }
-.map-page .mp-switch:has(.mp-switch__input:checked) .mp-switch__label { color: var(--mp-brand-text); }
+.v2 .mp-switch:has(.mp-switch__input:checked) .mp-switch__label { color: var(--mp-brand-text); }
 
 /* The input stays in the layout — not display:none — so it keeps its place in
    the tab order and reaches :focus-visible. */
-.map-page .mp-switch__input {
+.v2 .mp-switch__input {
   position: absolute;
   width: 1px; height: 1px;
   opacity: 0;
   pointer-events: none;
 }
-.map-page .mp-switch__track {
+.v2 .mp-switch__track {
   flex: none;
   position: relative;
   width: 30px; height: 18px;
@@ -2474,7 +3282,7 @@
   box-shadow: inset 0 1px 2px rgba(22,36,28,.16);
   transition: background 240ms var(--mp-ease);
 }
-.map-page .mp-switch__knob {
+.v2 .mp-switch__knob {
   position: absolute;
   top: 2px; left: 2px;
   width: 14px; height: 14px;
@@ -2483,20 +3291,20 @@
   box-shadow: 0 1px 2px rgba(22,36,28,.32);
   transition: transform 240ms var(--mp-ease);
 }
-.map-page .mp-switch__input:checked + .mp-switch__track {
+.v2 .mp-switch__input:checked + .mp-switch__track {
   background: var(--mp-grad);
   box-shadow: inset 0 1px 2px rgba(3,58,33,.2);
 }
-.map-page .mp-switch__input:checked + .mp-switch__track .mp-switch__knob {
+.v2 .mp-switch__input:checked + .mp-switch__track .mp-switch__knob {
   transform: translateX(12px);
 }
-.map-page .mp-switch__input:focus-visible + .mp-switch__track {
+.v2 .mp-switch__input:focus-visible + .mp-switch__track {
   outline: 3px solid color-mix(in srgb, var(--mp-brand) 45%, #fff);
   outline-offset: 2px;
 }
 
-.map-page .mp-detail__links { display: flex; gap: 8px; }
-.map-page .mp-detail__link {
+.v2 .mp-detail__links { display: flex; gap: 8px; }
+.v2 .mp-detail__link {
   padding: 8px 16px;
   border-radius: 999px;
   background: var(--mp-surface-2);
@@ -2506,8 +3314,8 @@
   font-weight: 600;
   text-decoration: none;
 }
-.map-page .mp-detail__link:hover { background: var(--mp-soft); }
-.map-page .mp-detail__link[hidden] { display: none; }
+.v2 .mp-detail__link:hover { background: var(--mp-soft); }
+.v2 .mp-detail__link[hidden] { display: none; }
 
 /* ---------- camera ---------- */
 .map-page .mp-fab-wrap {
@@ -2728,13 +3536,13 @@
 
 /* A hunt species already found steps well back — the checklist is a list of
    what is left, so what is done is nearly finished business. */
-.map-page .mp-row--found { opacity: .55; }
-.map-page .mp-row--found .mp-row__name { text-decoration: line-through; }
+.v2 .mp-row--found { opacity: .55; }
+.v2 .mp-row--found .mp-row__name { text-decoration: line-through; }
 /* The tick is absolutely positioned in the row's top-right corner, which is
    also where the grade badge ends. Reserve the width so the two do not sit on
    top of each other. */
-.map-page .mp-row--found .mp-row__head { padding-right: 22px; }
-.map-page .mp-row--found::before {
+.v2 .mp-row--found .mp-row__head { padding-right: 22px; }
+.v2 .mp-row--found::before {
   content: "✓";
   position: absolute;
   top: 8px; right: 10px;
@@ -2824,25 +3632,25 @@
 @media (prefers-reduced-motion: reduce) {
   .map-page .mp-observe,
   .map-page .mp-fab,
-  .map-page .mp-row,
+  .v2 .mp-row,
   .map-page .mp-tab,
   .map-page .mp-map-btn,
-  .map-page .mp-row__thumb img,
-  .map-page .mp-row__leaf,
+  .v2 .mp-row__thumb img,
+  .v2 .mp-row__leaf,
   .map-page .mp-lead__fill,
   .map-page .mp-chal__code,
-  .map-page .mp-switch,
-  .map-page .mp-switch__track,
-  .map-page .mp-switch__knob,
-  .map-page .mp-select,
-  .map-page .mp-icon-btn,
+  .v2 .mp-switch,
+  .v2 .mp-switch__track,
+  .v2 .mp-switch__knob,
+  .v2 .mp-select,
+  .v2 .mp-icon-btn,
   .map-page .leaflet-marker-icon,
   .mp-pin { transition: none; }
   .map-page .mp-screen--detail,
   .map-page .mp-info,
-  .map-page .mp-detail__hero { animation: none; }
+  .v2 .mp-detail__hero { animation: none; }
   .map-page .mp-map-status.is-busy::before,
   .map-page .mp-extent-line,
-  .map-page .mp-icon-btn.is-busy svg,
-  .map-page .mp-spinner { animation: none; }
+  .v2 .mp-icon-btn.is-busy svg,
+  .v2 .mp-spinner { animation: none; }
 }

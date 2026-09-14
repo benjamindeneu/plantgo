@@ -31,7 +31,7 @@ export function createMapPageView() {
     </div>
 
     <div class="mp-sheet">
-      <button type="button" class="mp-sheet__grab" id="sheetGrab" aria-label=""></button>
+      <button type="button" class="mp-sheet__grab" id="sheetGrab" data-sheet-grab aria-label=""></button>
 
       <div id="screenList" class="mp-screen">
         <div class="mp-sheet__head">
@@ -270,8 +270,17 @@ export function createMapPageView() {
     requestAnimationFrame(() => resizeCb?.());
   }
 
-  sheetGrab.addEventListener("pointerdown", (e) => {
+  // The pill is not the only handle. Anything inside the sheet marked
+  // `data-sheet-grab` starts the same drag — the detail screen's back bar
+  // uses it for the blank stretch between its two controls, which sits
+  // pinned right under the pill and is what a thumb reaching for the pill
+  // actually lands on. The pointer is captured by the pill's button
+  // regardless of which handle caught it, so the move/up listeners below
+  // stay in one place.
+  sheet.addEventListener("pointerdown", (e) => {
     if (e.button != null && e.button !== 0) return;
+    if (dragPointerId !== null) return;
+    if (!(e.target instanceof Element) || !e.target.closest("[data-sheet-grab]")) return;
     dragPointerId = e.pointerId;
     dragStartY = e.clientY;
     dragStartHeight = sheet.getBoundingClientRect().height;

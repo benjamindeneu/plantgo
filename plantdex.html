@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="color-scheme" content="light" />
   <meta name="theme-color" content="#ffffff" />
 
@@ -27,19 +27,11 @@
 <body class="v2">
   <header id="appHeader" class="nav"></header>
 
-  <main class="app-shell">
-    <h1 data-i18n="herbarium.title">Your Discoveries</h1>
-
-    <section class="card">
-      <!-- This is just a placeholder that will be replaced by the panel -->
-      <div
-        id="discoveriesList"
-        class="form-grid"
-        aria-live="polite"
-        data-i18n="herbarium.loading"
-      >
-        Loading…
-      </div>
+  <!-- The view replaces this placeholder wholesale: a hero, a search-and-
+       sort strip, and the same species rows the front page's lists use. -->
+  <main class="app-shell mp-herb-page">
+    <section id="discoveriesList" class="mp-herb" aria-live="polite">
+      <div class="mp-herb__status" data-i18n="herbarium.loading">Loading…</div>
     </section>
   </main>
 

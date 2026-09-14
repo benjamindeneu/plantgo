@@ -93,6 +93,7 @@ export function ResultModal() {
           plantnetImageCode,
           plantnet_identify_score,
           gbif_id: identify?.gbif_id ?? null,
+          vernacularName: identify?.vernacularName || null,
           pointsMap: detail,
           total_points: baseTotal,
           extraBonus: missionBonus,

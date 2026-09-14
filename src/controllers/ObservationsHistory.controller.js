@@ -1,12 +1,17 @@
 // src/controllers/ObservationsHistory.controller.js
 import { createObservationsHistoryView } from "../ui/components/ObservationsHistory.view.js";
-import { loadObservationsPage } from "../data/observations.repo.js";
+import { openSpeciesSheet } from "../ui/components/SpeciesSheet.js";
+import { loadObservationsPage, loadObservationTotals } from "../data/observations.repo.js";
 import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 import { t } from "../language/i18n.js";
 
 export function ObservationsHistoryPanel() {
-  const view = createObservationsHistoryView();
+  const view = createObservationsHistoryView({
+    // The same screen the map opens for a pin. An observation keeps its
+    // GBIF id, which is what the write-up and trivia are fetched by.
+    onOpenSpecies: (obs) => openSpeciesSheet({ name: obs.speciesName, gbif_id: obs.gbif_id ?? null }),
+  });
 
   let lastDoc  = null;
   let hasMore  = true;
@@ -58,6 +63,12 @@ export function ObservationsHistoryPanel() {
     hasMore = true;
     loading = false;
     view.clearEntries();
+
+    // The hero's totals come off the user document; they are not waited
+    // for, since the list is the page and the numbers can land a beat later.
+    loadObservationTotals(user.uid)
+      .then((totals) => view.setTotals(totals))
+      .catch((e) => console.warn("[ObservationsHistory] totals failed:", e));
 
     try {
       view.setStatus(t("observations.status.loading"));

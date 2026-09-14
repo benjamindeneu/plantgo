@@ -14,15 +14,23 @@ export function BadgesPanel() {
 
   // Keep latest values from both subscriptions so we can re-render when either changes
   let latestUnlocked = new Set();
+  let latestDates = new Map();
   let latestCounts = { obs: 0, mission: 0, discoveries: 0, level: 1 };
+  // The first paint waits for both, or the hero would count "0 of 17" and
+  // every bar would sit empty for a beat before the real numbers land.
+  let haveCounts = false;
+  let haveBadges = false;
 
   function refresh() {
-    view.update(latestUnlocked, latestCounts);
+    if (!haveCounts || !haveBadges) return;
+    view.update(latestUnlocked, latestCounts, latestDates);
   }
 
   onAuthStateChanged(auth, async (user) => {
     if (unsubBadges) { unsubBadges(); unsubBadges = null; }
     if (unsubUser)   { unsubUser();   unsubUser = null; }
+    haveCounts = false;
+    haveBadges = false;
     if (!user) { view.showError(); return; }
 
     // Retroactive unlock for existing accounts (no-op if already done)
@@ -37,12 +45,15 @@ export function BadgesPanel() {
         discoveries: Number(data.total_discoveries         ?? 0),
         level:       Math.floor(1 + (Number(data.total_points) || 0) / 11000),
       };
+      haveCounts = true;
       refresh();
     });
 
     // Subscribe to badges collection
-    unsubBadges = subscribeBadges(user.uid, (unlockedSet) => {
+    unsubBadges = subscribeBadges(user.uid, (unlockedSet, dates) => {
       latestUnlocked = unlockedSet;
+      latestDates = dates;
+      haveBadges = true;
       refresh();
     });
   });

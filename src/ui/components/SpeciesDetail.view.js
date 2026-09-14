@@ -38,6 +38,8 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
         <span class="mp-detail__back-label"></span>
       </button>
 
+      <span class="mp-detail__bar-grab" data-sheet-grab aria-hidden="true"></span>
+
       <label class="mp-switch" hidden>
         <span class="mp-switch__label"></span>
         <input class="mp-switch__input" type="checkbox">
@@ -73,7 +75,11 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
 
   el.querySelector(".mp-detail__back-label").textContent = t("map.detail.back");
   el.querySelector(".mp-detail__name").textContent = commonName;
-  el.querySelector(".mp-detail__sci").textContent = sciName;
+  const sciEl = el.querySelector(".mp-detail__sci");
+  sciEl.textContent = sciName;
+  // A herbarium entry knows only the Latin name, which then heads the
+  // screen; printing it again in italics underneath said nothing new.
+  if (commonName === sciName) sciEl.hidden = true;
 
   const backBtn = el.querySelector(".mp-detail__back");
   if (onBack) backBtn.addEventListener("click", onBack);
@@ -109,6 +115,13 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
   // It rides in the back bar rather than getting a row of its own: it is a
   // control for the map behind the sheet, not a fact about the species, and
   // the bar already had the width going spare.
+  //
+  // The bar stays pinned to the top of the sheet while the write-up scrolls
+  // (see .mp-detail__bar), so the blank stretch between the two controls is
+  // always right under the sheet's grab pill — and a thumb that lands there
+  // is reaching for the pill, not the page. The spacer between them carries
+  // `data-sheet-grab`, which MapPage treats as another handle for the same
+  // drag-resize.
   const rasterSwitch = el.querySelector(".mp-switch");
   const rasterInput = el.querySelector(".mp-switch__input");
   el.querySelector(".mp-switch__label").textContent = t("map.detail.showRaster");
@@ -195,8 +208,13 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
     return true;
   }
 
-  if (!setBackend(species.description) && (gbifId || sciName)) {
+  // The backend's routes are keyed by GBIF id; a name alone (a herbarium
+  // entry from before ids were kept) has nowhere to be sent.
+  if (!setBackend(species.description) && gbifId) {
     pollDescription(gbifId, sciName);
+  } else if (!gbifId) {
+    backendSettled = true;
+    settlePending();
   }
 
   async function pollDescription(id, name) {
@@ -249,7 +267,7 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
     return true;
   }
 
-  if (!setTrivia(species.trivia) && (gbifId || sciName)) {
+  if (!setTrivia(species.trivia) && gbifId) {
     pollTrivia(gbifId, sciName);
   }
 

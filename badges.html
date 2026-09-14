@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="color-scheme" content="light" />
   <meta name="theme-color" content="#ffffff" />
 
@@ -27,11 +27,12 @@
 <body class="v2">
   <header id="appHeader" class="nav"></header>
 
-  <main class="app-shell">
-    <h1 data-i18n="badges.title">Badges</h1>
-
-    <section class="card">
-      <div id="badgesRoot" aria-live="polite" data-i18n="badges.loading">Loading…</div>
+  <!-- No heading-over-a-card here: the page is built the way the front
+       page's sheet is, a hero that sums the collection up and the badges
+       grouped beneath it. The view replaces this placeholder wholesale. -->
+  <main class="app-shell mp-badges-page">
+    <section id="badgesRoot" class="mp-badges" aria-live="polite">
+      <div class="mp-badges__status" data-i18n="badges.loading">Loading…</div>
     </section>
   </main>
 

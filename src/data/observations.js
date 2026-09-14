@@ -72,6 +72,7 @@ export async function addObservationAndDiscovery({
   plantnetImageCode,
   plantnet_identify_score,
   gbif_id,
+  vernacularName = null, // the common name identify gave, kept for the herbarium
   pointsMap,      // backend points.detail (mapping)
   total_points,   // backend points.total (BASE)
   extraBonus = 0, // mission bonus etc
@@ -131,6 +132,7 @@ export async function addObservationAndDiscovery({
     total_points: basePoints, // BASE only
     points: pointsMap || {},
     gbif_id: gbif_id ?? null,
+    vernacularName: vernacularName || null,
     bonus: {
       discovery: 0,
       mission: missionBonus,
@@ -152,6 +154,11 @@ export async function addObservationAndDiscovery({
       discoveredAt: serverTimestamp(),
       location: new GeoPoint(lat, lon),
       observationId: observationDoc.id,
+      // Kept so the herbarium can open the species screen without first
+      // reading the observation back for it, and print the common name
+      // without asking GBIF.
+      gbif_id: gbif_id ?? null,
+      vernacularName: vernacularName || null,
     });
   }
 

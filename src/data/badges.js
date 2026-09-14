@@ -19,33 +19,39 @@ import {
  * nameKey / descKey  → i18n keys
  * countKey           → key in the counts object passed to the view  (null = binary/no bar)
  * threshold          → unlock threshold for that counter
+ * group              → i18n key suffix the badges page files it under (badges.group.*)
+ * tier               → ring colour on the badges page: the same common → legendary
+ *                      scale the map grades species on, so the top of each
+ *                      series reads as the prize it is
  */
 export const BADGE_DEFINITIONS = [
   // Observations
-  { id: "obs_1",       emoji: "🌱", nameKey: "badges.obs1.name",       descKey: "badges.obs1.desc",       countKey: "obs",         threshold: 1 },
-  { id: "obs_100",     emoji: "🌿", nameKey: "badges.obs100.name",     descKey: "badges.obs100.desc",     countKey: "obs",         threshold: 100 },
-  { id: "obs_1000",    emoji: "🌳", nameKey: "badges.obs1000.name",    descKey: "badges.obs1000.desc",    countKey: "obs",         threshold: 1000 },
+  { id: "obs_1",       emoji: "🌱", nameKey: "badges.obs1.name",       descKey: "badges.obs1.desc",       countKey: "obs",         threshold: 1,    group: "observations", tier: "common" },
+  { id: "obs_100",     emoji: "🌿", nameKey: "badges.obs100.name",     descKey: "badges.obs100.desc",     countKey: "obs",         threshold: 100,  group: "observations", tier: "rare" },
+  { id: "obs_1000",    emoji: "🌳", nameKey: "badges.obs1000.name",    descKey: "badges.obs1000.desc",    countKey: "obs",         threshold: 1000, group: "observations", tier: "epic" },
   // Missions
-  { id: "mission_1",   emoji: "🎯", nameKey: "badges.mission1.name",   descKey: "badges.mission1.desc",   countKey: "mission",     threshold: 1 },
-  { id: "mission_10",  emoji: "🏹", nameKey: "badges.mission10.name",  descKey: "badges.mission10.desc",  countKey: "mission",     threshold: 10 },
-  { id: "mission_100", emoji: "🏆", nameKey: "badges.mission100.name", descKey: "badges.mission100.desc", countKey: "mission",     threshold: 100 },
-  // Relevé
-  { id: "releve_1",    emoji: "🔬", nameKey: "badges.releve1.name",    descKey: "badges.releve1.desc",    countKey: null,          threshold: null },
+  { id: "mission_1",   emoji: "🎯", nameKey: "badges.mission1.name",   descKey: "badges.mission1.desc",   countKey: "mission",     threshold: 1,    group: "missions", tier: "common" },
+  { id: "mission_10",  emoji: "🏹", nameKey: "badges.mission10.name",  descKey: "badges.mission10.desc",  countKey: "mission",     threshold: 10,   group: "missions", tier: "rare" },
+  { id: "mission_100", emoji: "🏆", nameKey: "badges.mission100.name", descKey: "badges.mission100.desc", countKey: "mission",     threshold: 100,  group: "missions", tier: "epic" },
   // Species diversity
-  { id: "disc_10",     emoji: "🌺", nameKey: "badges.disc10.name",     descKey: "badges.disc10.desc",     countKey: "discoveries", threshold: 10 },
-  { id: "disc_50",     emoji: "🌸", nameKey: "badges.disc50.name",     descKey: "badges.disc50.desc",     countKey: "discoveries", threshold: 50 },
-  { id: "disc_100",    emoji: "🌍", nameKey: "badges.disc100.name",    descKey: "badges.disc100.desc",    countKey: "discoveries", threshold: 100 },
-  { id: "disc_500",    emoji: "🏛️", nameKey: "badges.disc500.name",    descKey: "badges.disc500.desc",    countKey: "discoveries", threshold: 500 },
-  // Perfect day
-  { id: "perfect_day", emoji: "🌄", nameKey: "badges.perfectDay.name", descKey: "badges.perfectDay.desc", countKey: null,          threshold: null },
+  { id: "disc_10",     emoji: "🌺", nameKey: "badges.disc10.name",     descKey: "badges.disc10.desc",     countKey: "discoveries", threshold: 10,   group: "discoveries", tier: "common" },
+  { id: "disc_50",     emoji: "🌸", nameKey: "badges.disc50.name",     descKey: "badges.disc50.desc",     countKey: "discoveries", threshold: 50,   group: "discoveries", tier: "rare" },
+  { id: "disc_100",    emoji: "🌍", nameKey: "badges.disc100.name",    descKey: "badges.disc100.desc",    countKey: "discoveries", threshold: 100,  group: "discoveries", tier: "epic" },
+  { id: "disc_500",    emoji: "🏛️", nameKey: "badges.disc500.name",    descKey: "badges.disc500.desc",    countKey: "discoveries", threshold: 500,  group: "discoveries", tier: "legendary" },
+  // Daily quests: relevé + perfect day
+  { id: "releve_1",    emoji: "🔬", nameKey: "badges.releve1.name",    descKey: "badges.releve1.desc",    countKey: null,          threshold: null, group: "quests", tier: "rare" },
+  { id: "perfect_day", emoji: "🌄", nameKey: "badges.perfectDay.name", descKey: "badges.perfectDay.desc", countKey: null,          threshold: null, group: "quests", tier: "rare" },
   // Rarity
-  { id: "epic_obs",       emoji: "💜", nameKey: "badges.epicObs.name",       descKey: "badges.epicObs.desc",       countKey: null, threshold: null },
-  { id: "legendary_obs",  emoji: "🥇", nameKey: "badges.legendaryObs.name",  descKey: "badges.legendaryObs.desc",  countKey: null, threshold: null },
+  { id: "epic_obs",       emoji: "💜", nameKey: "badges.epicObs.name",       descKey: "badges.epicObs.desc",       countKey: null, threshold: null, group: "rarity", tier: "epic" },
+  { id: "legendary_obs",  emoji: "🥇", nameKey: "badges.legendaryObs.name",  descKey: "badges.legendaryObs.desc",  countKey: null, threshold: null, group: "rarity", tier: "legendary" },
   // Level milestones
-  { id: "level_5",  emoji: "⭐", nameKey: "badges.level5.name",  descKey: "badges.level5.desc",  countKey: "level", threshold: 5 },
-  { id: "level_10", emoji: "🌟", nameKey: "badges.level10.name", descKey: "badges.level10.desc", countKey: "level", threshold: 10 },
-  { id: "level_20", emoji: "💫", nameKey: "badges.level20.name", descKey: "badges.level20.desc", countKey: "level", threshold: 20 },
+  { id: "level_5",  emoji: "⭐", nameKey: "badges.level5.name",  descKey: "badges.level5.desc",  countKey: "level", threshold: 5,  group: "level", tier: "common" },
+  { id: "level_10", emoji: "🌟", nameKey: "badges.level10.name", descKey: "badges.level10.desc", countKey: "level", threshold: 10, group: "level", tier: "rare" },
+  { id: "level_20", emoji: "💫", nameKey: "badges.level20.name", descKey: "badges.level20.desc", countKey: "level", threshold: 20, group: "level", tier: "legendary" },
 ];
+
+/** Display order of the groups on the badges page. */
+export const BADGE_GROUPS = ["observations", "missions", "discoveries", "quests", "rarity", "level"];
 
 /**
  * Check which badges should be unlocked given current counts,
@@ -170,12 +176,21 @@ export async function checkRetroactiveBadges(userId) {
 
 /**
  * Subscribe to the user's unlocked badges in real-time.
- * Calls callback with a Set<string> of unlocked badge IDs.
+ * Calls callback with a Set<string> of unlocked badge IDs, and a
+ * Map<string, Date|null> of when each was unlocked (null while the server
+ * timestamp of a badge unlocked this very session is still pending).
  * Returns an unsubscribe function.
  */
 export function subscribeBadges(userId, callback) {
   const badgesCol = collection(db, "users", userId, "badges");
   return onSnapshot(badgesCol, (snap) => {
-    callback(new Set(snap.docs.map((d) => d.id)));
+    const ids = new Set();
+    const dates = new Map();
+    for (const d of snap.docs) {
+      ids.add(d.id);
+      const at = d.data()?.unlockedAt;
+      dates.set(d.id, typeof at?.toDate === "function" ? at.toDate() : null);
+    }
+    callback(ids, dates);
   });
 }
