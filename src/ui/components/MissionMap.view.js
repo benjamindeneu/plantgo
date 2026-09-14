@@ -13,6 +13,12 @@ const PIN_BOX_SLACK = 4; // room for the box-shadow around the pin shape
 // what it had just added, and watching a third of the pins vanish and reappear
 // on each pan looked like the map reloading.
 const MAX_PINS = 400;
+// Pins whose map positions land within this many screen pixels of each other
+// merge into one. Just over a legendary pin's box, so two pins never overlap
+// and a merged one only appears where separate ones would have collided.
+const CLUSTER_RADIUS_PX = 48;
+// A merged pin carries the colour of the best mission in it.
+const TIER_RANK = { common: 0, rare: 1, epic: 2, legendary: 3 };
 
 // The species raster sits in a pane of its own, between the satellite imagery
 // (tilePane, 200) and the extent outline (overlayPane, 400). Sharing the tile
@@ -125,7 +131,13 @@ export function createMissionMapView() {
   // casing and the bright dashed line over it — so they are cleared together.
   let extentLayers = [];
   let fallbackCircle = null;
-  const markersById = new Map();
+  // Every mission the map knows about, keyed by `keyOf`. What is actually
+  // drawn is derived from this on each zoom (see `syncPins`).
+  const missionsById = new Map();
+  // What is on the map right now: one entry per pin, single or merged, keyed
+  // by the sorted mission keys it stands for. A single mission's pin is keyed
+  // by its own mission key, so `selectedId` can be looked up here directly.
+  const markersByKey = new Map();
   // Mission ids the player has already accomplished today.
   let missionsDone = new Set();
   let selectedId = null;
@@ -169,6 +181,10 @@ export function createMissionMapView() {
     // an animated zoom, which keeps the edge on the zone instead of letting it
     // drift and snap back at the end.
     map.on("move zoom zoomend viewreset", applyRasterClip);
+    // Which pins sit on top of each other depends on the zoom, and only on
+    // the zoom: the merge is computed in absolute pixel space, so a pan
+    // leaves it alone.
+    map.on("zoomend", syncPins);
 
     map.on("moveend", () => {
       const vp = getViewport();
@@ -215,30 +231,148 @@ export function createMissionMapView() {
     return !!mission?.id && missionsDone.has(mission.id);
   }
 
-  function missionIcon(mission, isSelected) {
-    const tier = mission?.grade?.tier || "common";
-    const done = isDone(mission);
-    // A mission accomplished today wears a tick instead of its initial: at pin
-    // size there is room for one glyph, and which mission it is matters less
-    // than that there is nothing left to do there until tomorrow.
-    const label = done
-      ? "✓"
-      : (mission.vernacular_name || mission.name || "?").trim().charAt(0).toUpperCase();
+  function tierOf(mission) {
+    return mission?.grade?.tier || "common";
+  }
+
+  /**
+   * Group missions whose pins would collide at the current zoom.
+   *
+   * Greedy, in pixel space at the current zoom: a mission joins the first
+   * group whose founding pin lies within CLUSTER_RADIUS_PX of it, else it
+   * founds one. Projecting at the *zoom* rather than the current view makes
+   * the result independent of where the map is panned, so groups only shift
+   * when the zoom does. The selected mission never merges — the whole point
+   * of selecting it is to look at that one — and at the map's deepest zoom
+   * nothing does, since there is no further zoom for a tap to split it.
+   */
+  function clusterPins() {
+    const zoom = map.getZoom();
+    const canMerge = zoom < map.getMaxZoom();
+    const groups = [];
+    for (const [key, mission] of missionsById) {
+      const p = map.project([mission.lat, mission.lon], zoom);
+      if (canMerge && key !== selectedId) {
+        const home = groups.find((g) => g.open && g.anchor.distanceTo(p) < CLUSTER_RADIUS_PX);
+        if (home) {
+          home.keys.push(key);
+          home.sum = home.sum.add(p);
+          continue;
+        }
+      }
+      groups.push({ open: canMerge && key !== selectedId, anchor: p, sum: p, keys: [key] });
+    }
+    return groups.map((g) => ({
+      key: g.keys.length === 1 ? g.keys[0] : [...g.keys].sort().join("|"),
+      keys: g.keys,
+      // A merged pin sits at the centroid of what it stands for; a single one
+      // stays exactly on its mission.
+      latlng: g.keys.length === 1
+        ? [missionsById.get(g.keys[0]).lat, missionsById.get(g.keys[0]).lon]
+        : map.unproject(g.sum.divideBy(g.keys.length), zoom),
+    }));
+  }
+
+  /**
+   * The icon for a pin standing for one or several missions.
+   *
+   * Returns the paint string alongside, a cheap summary of everything the
+   * icon depends on, so `syncPins` can skip pins whose look has not changed.
+   */
+  function pinIcon(missions, isSelected) {
+    const merged = missions.length > 1;
+    // Highest grade in the group: a legendary among five commons is what the
+    // player should see from across the map.
+    const tier = missions
+      .map(tierOf)
+      .reduce((best, t) => (TIER_RANK[t] ?? 0) > (TIER_RANK[best] ?? 0) ? t : best, "common");
+    // A merged pin is "done" only when every mission in it is — one left to
+    // do is still a reason to go there.
+    const done = missions.every(isDone);
+    // A merged pin wears its count; a single accomplished mission wears a tick
+    // instead of its initial: at pin size there is room for one glyph, and
+    // which mission it is matters less than that there is nothing left to do
+    // there until tomorrow.
+    const label = merged
+      ? String(missions.length)
+      : done
+        ? "✓"
+        : (missions[0].vernacular_name || missions[0].name || "?").trim().charAt(0).toUpperCase();
+    const paint = `${tier}|${done ? 1 : 0}|${isSelected ? 1 : 0}|${label}`;
     const box = (PIN_SIZE[tier] ?? PIN_SIZE.common) + PIN_BOX_SLACK;
-    return L.divIcon({
+    const icon = L.divIcon({
       className: "",
-      html: `<div class="mp-pin mp-pin--${tier}${isSelected ? " is-selected" : ""}${done ? " is-done" : ""}">
+      html: `<div class="mp-pin mp-pin--${tier}${merged ? " mp-pin--cluster" : ""}${isSelected ? " is-selected" : ""}${done ? " is-done" : ""}">
                <span class="mp-pin__glyph">${escapeHtml(label)}</span>
              </div>`,
       iconSize: [box, box],
       iconAnchor: [box / 2, box],
     });
+    return { icon, paint };
   }
 
-  /** Repaint only the two pins whose state changed, not all of them. */
-  function repaint(key) {
-    const entry = key && markersById.get(key);
-    if (entry) entry.marker.setIcon(missionIcon(entry.mission, key === selectedId));
+  function pinTitle(missions) {
+    return missions.length > 1
+      ? t("map.cluster.title", { count: missions.length })
+      : (missions[0].vernacular_name || missions[0].name || "");
+  }
+
+  /** A tap on a merged pin zooms in far enough for it to come apart. */
+  function zoomIntoCluster(keys) {
+    const bounds = L.latLngBounds(keys.map((k) => {
+      const m = missionsById.get(k);
+      return [m.lat, m.lon];
+    }));
+    // Far enough to spread the group across the view, at least one level
+    // deeper regardless, and never past what the tiles can show — missions
+    // on the very same spot would otherwise ask for an infinite zoom.
+    const fit = map.getBoundsZoom(bounds, false, L.point(60, 60));
+    const target = Math.min(Math.max(fit, map.getZoom() + 1), map.getMaxZoom());
+    map.setView(bounds.getCenter(), target);
+  }
+
+  /**
+   * Bring what is on the map in line with the missions and the zoom.
+   *
+   * Diffed against what is already drawn: a pin whose group and look have not
+   * changed is left alone, so a fetch that adds three missions touches three
+   * markers rather than redrawing four hundred, and a completion arriving on
+   * the live subscription repaints one.
+   */
+  function syncPins() {
+    if (!map) return;
+    const wanted = new Map(clusterPins().map((g) => [g.key, g]));
+
+    for (const [key, entry] of markersByKey) {
+      if (wanted.has(key)) continue;
+      pinLayer.removeLayer(entry.marker);
+      markersByKey.delete(key);
+    }
+
+    for (const [key, group] of wanted) {
+      const missions = group.keys.map((k) => missionsById.get(k));
+      const { icon, paint } = pinIcon(missions, key === selectedId);
+      let entry = markersByKey.get(key);
+      if (!entry) {
+        const marker = L.marker(group.latlng, {
+          icon,
+          title: pinTitle(missions),
+          riseOnHover: true,
+        });
+        marker.on("click", () => {
+          if (group.keys.length > 1) zoomIntoCluster(group.keys);
+          else if (onPinClick) onPinClick(missionsById.get(group.keys[0]));
+        });
+        marker.addTo(pinLayer);
+        entry = { marker, keys: group.keys, paint };
+        markersByKey.set(key, entry);
+      } else if (entry.paint !== paint) {
+        entry.marker.setIcon(icon);
+        entry.paint = paint;
+      }
+    }
+
+    applyFocus();
   }
 
   /**
@@ -252,7 +386,7 @@ export function createMissionMapView() {
    */
   function applyFocus() {
     const focused = selectedId != null;
-    for (const [key, entry] of markersById) {
+    for (const [key, entry] of markersByKey) {
       const visible = !focused || key === selectedId;
       entry.marker.setOpacity(visible ? 1 : 0);
       // A pin you cannot see must not be tappable either.
@@ -401,57 +535,37 @@ export function createMissionMapView() {
 
       for (const mission of missions) {
         const key = keyOf(mission);
-        if (markersById.has(key)) {
-          markersById.get(key).mission = mission;
-          continue;
-        }
-        const marker = L.marker([mission.lat, mission.lon], {
-          icon: missionIcon(mission, false),
-          title: mission.vernacular_name || mission.name,
-          riseOnHover: true,
-        });
-        marker.on("click", () => { if (onPinClick) onPinClick(mission); });
-        marker.addTo(pinLayer);
-        markersById.set(key, { marker, mission });
-        added++;
+        if (!missionsById.has(key)) added++;
+        missionsById.set(key, mission);
       }
 
-      // A fetch can land while a mission is open; its pins must not appear on
-      // top of the one being read.
-      if (added && selectedId != null) applyFocus();
-
-      // Cap the layer so a long session does not accumulate forever; the ones
+      // Cap the store so a long session does not accumulate forever; the ones
       // furthest from where you are looking go first.
-      if (markersById.size > MAX_PINS) {
+      if (missionsById.size > MAX_PINS) {
         const centre = map.getCenter();
-        const ranked = [...markersById.entries()]
+        const ranked = [...missionsById.entries()]
           .filter(([key]) => key !== selectedId)
-          .map(([key, entry]) => [key, entry, centre.distanceTo(entry.marker.getLatLng())])
-          .sort((a, b) => b[2] - a[2]);
-        for (const [key, entry] of ranked) {
-          if (markersById.size <= MAX_PINS) break;
-          entry.marker.remove();
-          markersById.delete(key);
+          .map(([key, m]) => [key, centre.distanceTo([m.lat, m.lon])])
+          .sort((a, b) => b[1] - a[1]);
+        for (const [key] of ranked) {
+          if (missionsById.size <= MAX_PINS) break;
+          missionsById.delete(key);
         }
       }
+
+      // Also re-fades the neighbours: a fetch can land while a mission is
+      // open, and its pins must not appear on top of the one being read.
+      syncPins();
       return added;
     },
 
     /**
-     * Which missions are accomplished today. Only the pins whose state
-     * actually changed are repainted — this arrives on a live subscription,
-     * and redrawing four hundred icons for one completion would be visible.
+     * Which missions are accomplished today. This arrives on a live
+     * subscription; `syncPins` repaints only the pins whose look changed.
      */
     setMissionsDone(ids) {
-      const next = ids instanceof Set ? ids : new Set(ids || []);
-      const changed = [];
-      for (const [key, entry] of markersById) {
-        const id = entry.mission?.id;
-        if (!id) continue;
-        if (missionsDone.has(id) !== next.has(id)) changed.push(key);
-      }
-      missionsDone = next;
-      for (const key of changed) repaint(key);
+      missionsDone = ids instanceof Set ? ids : new Set(ids || []);
+      syncPins();
     },
 
     /**
@@ -461,9 +575,9 @@ export function createMissionMapView() {
       const previous = selectedId;
       selectedId = mission ? keyOf(mission) : null;
       if (previous === selectedId) return;
-      repaint(previous);
-      repaint(selectedId);
-      applyFocus();
+      // The selected mission leaves whatever group it was merged into, and
+      // the previous one may fold back into its own.
+      syncPins();
     },
 
     /** Take the selected species' surface and zone back off the map. */
@@ -585,6 +699,12 @@ export function createMissionMapView() {
       legendTitleEl.textContent = t("map.legend.title");
       legendLowEl.textContent = t("map.legend.low");
       legendHighEl.textContent = t("map.legend.high");
+      // Merged pins carry a translated tooltip; single ones the species name.
+      for (const entry of markersByKey.values()) {
+        if (entry.keys.length < 2) continue;
+        const el = entry.marker.getElement();
+        if (el) el.title = pinTitle(entry.keys.map((k) => missionsById.get(k)));
+      }
     },
   };
 }

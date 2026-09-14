@@ -263,6 +263,7 @@
   "map.recenter": "Centrar em mim",
   "map.zoomIn": "Aumentar zoom",
   "map.zoomOut": "Diminuir zoom",
+  "map.cluster.title": "{count} missões",
   "map.legend.title": "Hipótese de encontrar a espécie",
   "map.legend.low": "Baixa",
   "map.legend.high": "Alta",

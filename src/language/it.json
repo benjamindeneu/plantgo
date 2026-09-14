@@ -263,6 +263,7 @@
   "map.recenter": "Centra su di me",
   "map.zoomIn": "Aumenta zoom",
   "map.zoomOut": "Riduci zoom",
+  "map.cluster.title": "{count} missioni",
   "map.legend.title": "Probabilità di trovare la specie",
   "map.legend.low": "Bassa",
   "map.legend.high": "Alta",

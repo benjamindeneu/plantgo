@@ -263,6 +263,7 @@
   "map.recenter": "Auf mich zentrieren",
   "map.zoomIn": "Vergrößern",
   "map.zoomOut": "Verkleinern",
+  "map.cluster.title": "{count} Missionen",
   "map.legend.title": "Chance, die Art zu finden",
   "map.legend.low": "Gering",
   "map.legend.high": "Hoch",

@@ -263,6 +263,7 @@
   "map.recenter": "Recenter on me",
   "map.zoomIn": "Zoom in",
   "map.zoomOut": "Zoom out",
+  "map.cluster.title": "{count} missions",
   "map.legend.title": "Chance of finding the species",
   "map.legend.low": "Low",
   "map.legend.high": "High",
