@@ -1854,6 +1854,22 @@
 }
 .map-page .mp-info__point-icon { font-size: 1.1rem; line-height: 1.35; }
 
+.map-page .mp-info__grade {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 11px;
+  padding: 10px 13px;
+  border-radius: var(--mp-r-md);
+  background: var(--mp-surface-2);
+}
+.map-page .mp-info__grade-points {
+  font-size: .89rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mp-ink);
+}
+
 /* The caveat — that a mission is a guess — reads as an aside, in the same
    tinted, brand-ruled box the species detail uses for its trivia. */
 .map-page .mp-info__note {

@@ -292,6 +292,7 @@
   "map.info.missions.how1": "The model is uncertain whether this plant is present at this location. A new observation would help confirm its presence.",
   "map.info.missions.how2": "This plant is rarely observed in the area, or in general. Each additional observation is valuable.",
   "map.info.missions.how3": "This plant is characteristic of this location and is rarely, if ever, found elsewhere.",
+  "map.info.missions.gradesTitle": "Mission grades and their bonus",
   "map.info.missions.note": "Missions are, by definition, based on uncertainty about a plant's presence at this location. Some may be present but difficult to find, and some may also turn out to be absent.",
   "map.info.missions.doc": "See the detailed scientific procedure",
   "map.info.around.title": "Around me",

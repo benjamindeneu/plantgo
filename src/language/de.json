@@ -292,6 +292,7 @@
   "map.info.missions.how1": "Das Modell ist unsicher, ob diese Pflanze an diesem Ort vorkommt. Eine neue Beobachtung würde helfen, ihr Vorkommen zu bestätigen.",
   "map.info.missions.how2": "Diese Pflanze wird in der Umgebung, oder allgemein, nur selten beobachtet. Jede zusätzliche Beobachtung ist wertvoll.",
   "map.info.missions.how3": "Diese Pflanze ist charakteristisch für diesen Ort und kommt anderswo nur selten oder gar nicht vor.",
+  "map.info.missions.gradesTitle": "Missionsstufen und ihr Bonus",
   "map.info.missions.note": "Missionen beruhen per Definition auf der Unsicherheit über das Vorkommen einer Pflanze an diesem Ort. Manche sind zwar vorhanden, aber schwer zu finden, andere können sich auch als nicht vorhanden erweisen.",
   "map.info.missions.doc": "Detailliertes wissenschaftliches Verfahren ansehen (auf Englisch)",
   "map.info.around.title": "Um mich herum",

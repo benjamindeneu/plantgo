@@ -1,5 +1,6 @@
 // src/ui/components/InfoSheet.view.js
 import { t } from "../../language/i18n.js";
+import { MISSION_BONUS_BY_TIER } from "../../data/missions.repo.js";
 
 /**
  * A full-screen explainer for one of the sheet's tabs.
@@ -26,6 +27,13 @@ const CONTENT = {
       { icon: "🤔", key: "map.info.missions.how1" },
       { icon: "🔍", key: "map.info.missions.how2" },
       { icon: "📍", key: "map.info.missions.how3" },
+    ],
+    gradesTitleKey: "map.info.missions.gradesTitle",
+    grades: [
+      { tier: "common", labelKey: "missions.card.common" },
+      { tier: "rare", labelKey: "missions.card.rare" },
+      { tier: "epic", labelKey: "missions.card.epic" },
+      { tier: "legendary", labelKey: "missions.card.legendary" },
     ],
     noteKey: "map.info.missions.note",
     docKey: "map.info.missions.doc",
@@ -60,6 +68,8 @@ export function createInfoSheet(kind) {
       <p class="mp-info__intro"></p>
       <h3 class="mp-info__how" hidden></h3>
       <ul class="mp-info__points"></ul>
+      <h3 class="mp-info__how mp-info__grades-title" hidden></h3>
+      <ul class="mp-info__points mp-info__grades" hidden></ul>
       <p class="mp-info__note"></p>
       <a class="mp-info__doc" target="_blank" rel="noopener noreferrer" hidden></a>
     </div>
@@ -94,6 +104,25 @@ export function createInfoSheet(kind) {
     li.firstElementChild.textContent = point.icon;
     li.lastElementChild.textContent = t(point.key);
     list.appendChild(li);
+  }
+
+  const gradesTitle = root.querySelector(".mp-info__grades-title");
+  const gradesList = root.querySelector(".mp-info__grades");
+  if (spec.gradesTitleKey && spec.grades?.length) {
+    gradesTitle.hidden = false;
+    gradesTitle.textContent = t(spec.gradesTitleKey);
+    gradesList.hidden = false;
+    for (const grade of spec.grades) {
+      const li = document.createElement("li");
+      li.className = "mp-info__grade";
+      li.innerHTML = `<span class="mp-tag"></span><span class="mp-info__grade-points"></span>`;
+      const chip = li.firstElementChild;
+      if (grade.tier !== "common") chip.classList.add(`mp-tag--${grade.tier}`);
+      chip.textContent = t(grade.labelKey);
+      li.lastElementChild.textContent =
+        `+${MISSION_BONUS_BY_TIER[grade.tier]} ${t("missions.card.points")}`;
+      gradesList.appendChild(li);
+    }
   }
 
   const closeBtn = root.querySelector(".mp-info__close");

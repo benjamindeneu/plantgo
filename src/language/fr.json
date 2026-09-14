@@ -292,6 +292,7 @@
   "map.info.missions.how1": "Le modèle est incertain quant à la présence de cette plante à cet endroit. Une nouvelle observation permettrait de confirmer sa présence.",
   "map.info.missions.how2": "Cette plante est peu observée dans la région, ou en général. Chaque observation supplémentaire est utile.",
   "map.info.missions.how3": "Cette plante est caractéristique de cet endroit et se rencontre rarement, voire pas du tout, ailleurs.",
+  "map.info.missions.gradesTitle": "Les grades de mission et leur bonus",
   "map.info.missions.note": "Les missions sont par définition basées sur l'incertitude de la présence d'une plante à cet endroit. Certaines sont parfois présentes mais difficiles à trouver, certaines peuvent aussi s'avérer absentes.",
   "map.info.missions.doc": "Voir la procédure scientifique détaillée (en anglais)",
   "map.info.around.title": "Autour de moi",
