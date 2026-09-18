@@ -35,3 +35,13 @@ export function organIcon(organ) {
 /** The real logos, as the legacy card already shows them. */
 export const WIKI_MARK = `<img src="./assets/wikipedia-logo.svg" alt="" width="18" height="18" decoding="async">`;
 export const GBIF_MARK = `<img src="./assets/gbif-logo.svg" alt="" width="18" height="18" decoding="async">`;
+export const INAT_MARK = `<img src="./assets/inaturalist-logo.png" alt="" width="18" height="18" decoding="async">`;
+export const PLANTNET_MARK = `<img src="./assets/plantnet-logo.svg" alt="" width="18" height="18" decoding="async">`;
+
+/** The mark for whichever source a photo came from. */
+export function providerMark(provider) {
+  if (provider === "wikipedia") return WIKI_MARK;
+  if (provider === "inaturalist") return INAT_MARK;
+  if (provider === "plantnet") return PLANTNET_MARK;
+  return "";
+}

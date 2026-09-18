@@ -38,10 +38,6 @@ export async function saveQuizProgress(uid, progress) {
   });
 }
 
-export async function clearQuizProgress(uid) {
-  await updateDoc(doc(db, "users", uid), { quiz_progress: deleteField() });
-}
-
 /** Admin: today's lock and any quiz in progress go, so the quiz can be played again. */
 export async function resetQuiz(uid) {
   await updateDoc(doc(db, "users", uid), { quiz_last_date: deleteField(), quiz_progress: deleteField() });

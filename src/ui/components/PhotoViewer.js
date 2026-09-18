@@ -1,6 +1,7 @@
 // src/ui/components/PhotoViewer.js
 import { t } from "../../language/i18n.js";
 import { photoProviderName } from "../../api/plantgo.js";
+import { photoCreditLine } from "../photoCredit.js";
 
 /**
  * One photo, full screen, with its credit.
@@ -55,10 +56,7 @@ export function openPhotoViewer(images, index = 0, { onClose } = {}) {
     i = (n + images.length) % images.length;
     const photo = images[i];
     img.src = photo.medium || photo.full || photo.thumb || "";
-    const licence = (photo.license || "").toUpperCase();
-    credit.textContent = photo.author
-      ? t("photo.credit", { author: photo.author, license: licence || "—" })
-      : licence;
+    credit.textContent = photoCreditLine(photo);
     if (photo.source) {
       source.href = photo.source;
       source.textContent = t("photo.source", { source: photoProviderName(photo.provider) });

@@ -2,7 +2,8 @@
 import { t } from "../../language/i18n.js";
 import { calcFromLevel, calcToLevel, animateProgress, fireLevelUpConfetti } from "../levelProgress.js";
 import { photoProviderName } from "../../api/plantgo.js";
-import { WIKI_MARK } from "./organIcons.js";
+import { photoCreditLine } from "../photoCredit.js";
+import { providerMark } from "./organIcons.js";
 
 /**
  * The quiz as a game: a start screen, ten rounds and a results screen, all
@@ -109,15 +110,15 @@ function photoFigure(photo, { className = "" } = {}) {
   img.src = photo.url;
   fig.appendChild(img);
 
+  // The source's mark, then the same credit line every source gets.
   const cap = document.createElement("figcaption");
   cap.className = "mp-quiz-photo__credit";
-  const isWiki = photo.provider === "wikipedia";
-  const line = photo.author
-    ? t("photo.credit", { author: photo.author, license: photo.license || "—" })
-    : photoProviderName(photo.provider);
-  cap.innerHTML = `${isWiki ? `<span class="mp-quiz-photo__mark">${WIKI_MARK}</span>` : ""}<span class="mp-quiz-photo__credit-text"></span>`;
+  const source = photoProviderName(photo.provider);
+  const line = photoCreditLine(photo);
+  const mark = providerMark(photo.provider);
+  cap.innerHTML = `${mark ? `<span class="mp-quiz-photo__mark">${mark}</span>` : ""}<span class="mp-quiz-photo__credit-text"></span>`;
   cap.querySelector(".mp-quiz-photo__credit-text").textContent = line;
-  cap.title = isWiki && photo.author ? `${line} · Wikipedia` : line;
+  cap.title = photo.author ? `${line} · ${source}` : line;
   fig.appendChild(cap);
 
   return fig;

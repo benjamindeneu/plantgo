@@ -14,7 +14,7 @@ import { attachQuizPhotos } from "../data/quizPhoto.js";
 import { t } from "../language/i18n.js";
 import {
   getUserTotalPoints, awardQuizPoints, isQuizDoneToday, markQuizDone,
-  getQuizProgress, saveQuizProgress, clearQuizProgress,
+  getQuizProgress, saveQuizProgress,
 } from "../data/user.repo.js";
 import {
   renderLanding,
@@ -78,7 +78,12 @@ export function QuizController(container) {
       console.error("Quiz: could not check completion status", e);
     }
 
-    // A quiz left mid-way today picks up at the question it stopped on.
+    // Today's quiz, as it stands: finished, it shows its results again;
+    // left mid-way, it picks up at the question it stopped on.
+    if (progress?.finished) {
+      showResults(container, progress);
+      return;
+    }
     if (progress?.items?.length && (progress.results?.length ?? 0) < progress.items.length) {
       renderLoading(container, t("quiz.loadingQuestions"));
       await playQuiz(userId, progress);
@@ -245,17 +250,24 @@ export function QuizController(container) {
       }
     }
 
-    // Over — whether played out or cut short — so there is nothing to resume.
-    try {
-      await clearQuizProgress(userId);
-    } catch (e) {
-      console.error("Quiz: could not clear progress", e);
-    }
+    // Over — whether played out or cut short. What is kept is the outcome,
+    // so that coming back today shows the results rather than a closed door.
+    progress.finished = true;
+    progress.pointsEarned = pointsEarned;
+    progress.bestStreak = game.bestStreak;
+    delete progress.questions;
+    await persist();
 
+    showResults(container, progress);
+  }
+
+  function showResults(container, progress) {
+    const total = progress.items?.length || progress.results?.length || 0;
+    const correctCount = (progress.results || []).filter(Boolean).length;
     renderScore(container, correctCount, total, {
       currentTotalBefore: progress.currentTotalBefore || 0,
-      pointsEarned,
-      bestStreak: game.bestStreak,
+      pointsEarned: progress.pointsEarned || 0,
+      bestStreak: progress.bestStreak || 0,
     });
   }
 
