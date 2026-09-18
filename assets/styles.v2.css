@@ -3150,6 +3150,106 @@
 .v2 .mp-detail__hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
 @keyframes mp-fade-in { from { opacity: 0; } to { opacity: 1; } }
 
+/* Pl@ntNet field photos under the hero: square tiles, three across, no
+   captions — the set should read as pictures of one plant, not a table.
+   The credit line under it is the one caption the whole grid gets; the
+   per-photo author lives in the viewer a tap opens. */
+.v2 .mp-detail__gallery { display: grid; gap: 6px; animation: mp-fade-in 320ms var(--mp-ease); }
+.v2 .mp-detail__gallery[hidden] { display: none; }
+.v2 .mp-detail__gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.v2 .mp-detail__tile {
+  position: relative;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  border-radius: var(--mp-r-sm);
+  background: linear-gradient(150deg, var(--mp-soft), var(--mp-surface-2));
+  cursor: pointer;
+}
+.v2 .mp-detail__tile img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transition: opacity 240ms var(--mp-ease);
+}
+.v2 .mp-detail__tile.has-photo img { opacity: 1; }
+.v2 .mp-detail__tile:focus-visible { outline: 2px solid var(--mp-brand); outline-offset: 2px; }
+.v2 .mp-detail__gallery-credit { margin: 0; font-size: .78rem; }
+
+/* One photo full screen, above the species sheet (1200). */
+.v2 .mp-photo-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 200ms var(--mp-ease);
+}
+.v2 .mp-photo-viewer.is-open { opacity: 1; }
+.v2 .mp-photo-viewer__backdrop { position: absolute; inset: 0; background: rgba(22,36,28,.92); }
+.v2 .mp-photo-viewer__figure {
+  position: relative;
+  grid-column: 2;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  max-height: 100dvh;
+  padding: 56px 0 24px;
+  box-sizing: border-box;
+}
+.v2 .mp-photo-viewer__img {
+  max-width: 100%;
+  max-height: calc(100dvh - 130px);
+  object-fit: contain;
+  border-radius: var(--mp-r-sm);
+  background: rgba(255,255,255,.04);
+}
+.v2 .mp-photo-viewer__caption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 12px;
+  color: rgba(255,255,255,.82);
+  font-family: var(--mp-ui);
+  font-size: .82rem;
+  text-align: center;
+  padding: 0 4px;
+}
+.v2 .mp-photo-viewer__source { color: var(--mp-brand-hi); text-decoration: none; }
+.v2 .mp-photo-viewer__source:hover { text-decoration: underline; }
+.v2 .mp-photo-viewer__count { color: rgba(255,255,255,.55); }
+.v2 .mp-photo-viewer__close,
+.v2 .mp-photo-viewer__nav {
+  position: relative;
+  z-index: 1;
+  width: 40px; height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255,255,255,.12);
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 160ms var(--mp-ease);
+}
+.v2 .mp-photo-viewer__close:hover,
+.v2 .mp-photo-viewer__nav:hover { background: rgba(255,255,255,.22); }
+.v2 .mp-photo-viewer__close { position: absolute; top: 12px; right: 12px; }
+.v2 .mp-photo-viewer__nav { justify-self: center; }
+.v2 .mp-photo-viewer__nav--prev { grid-column: 1; }
+.v2 .mp-photo-viewer__nav--next { grid-column: 3; }
+.v2 .mp-photo-viewer__nav[hidden] { display: none; }
+.v2.mp-viewer-open { overflow: hidden; }
+
 .v2 .mp-detail__heading { display: grid; gap: 3px; }
 .v2 .mp-detail__name {
   margin: 0;
@@ -3649,6 +3749,8 @@
   .map-page .mp-screen--detail,
   .map-page .mp-info,
   .v2 .mp-detail__hero { animation: none; }
+  .v2 .mp-detail__gallery { animation: none; }
+  .v2 .mp-detail__tile img, .v2 .mp-photo-viewer { transition: none; }
   .map-page .mp-map-status.is-busy::before,
   .map-page .mp-extent-line,
   .v2 .mp-icon-btn.is-busy svg,

@@ -49,7 +49,7 @@ The bottom sheet has three tabs:
 | **Around you** | Species most likely to be found at the player's position | One `/api/prediction` call; invalidated once the player walks > 400 m |
 | **Challenge** | Leaderboard / species checklist of the active group challenge | Only appears while the player is in a challenge |
 
-Tapping a pin or row opens a **species detail** screen in the sheet (photo, chance of presence, description, trivia, Wikipedia/GBIF links) while the map keeps showing the zone and raster. An "What is this?" info sheet explains missions in plain language and links to [`mission-pipeline.html`](mission-pipeline.html), a long-form write-up of how missions are derived from SDM rasters.
+Tapping a pin or row opens a **species detail** screen in the sheet (Wikipedia photo, a grid of Pl@ntNet field photos across organs, chance of presence, description, trivia, Wikipedia/GBIF links) while the map keeps showing the zone and raster. An "What is this?" info sheet explains missions in plain language and links to [`mission-pipeline.html`](mission-pipeline.html), a long-form write-up of how missions are derived from SDM rasters.
 
 ### 📷 Identify & score
 
@@ -242,6 +242,7 @@ Base URL is set in [`src/api/config.js`](src/api/config.js) (`API_BASE_URL`). Th
 | `GET /api/sdm/available_models` | SDM models available at a location |
 | `POST /api/description/{gbif_id}` | Species description + habitat (cached-or-null; generated in background) |
 | `POST /api/trivia/{gbif_id}` | Species trivia (same async pattern) |
+| `GET /api/species/{gbif_id}/images` | Photo gallery: up to 12 organ-balanced Pl@ntNet photos (author, licence, thumb/medium/full URLs), served from the backend's cache |
 | `POST /api/quiz` | Quiz questions for a list of species |
 | `POST /api/missions` | Legacy missions list (old home page) |
 

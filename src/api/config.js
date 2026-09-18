@@ -8,6 +8,7 @@ export const PREDICTION_PROXY_URL = `${API_BASE_URL}prediction`; // /api/predict
 export const QUIZ_PROXY_URL = `${API_BASE_URL}quiz`;             // /api/quiz
 export const DESCRIPTION_PROXY_BASE = `${API_BASE_URL}description`; // /api/description/<gbif_id>
 export const TRIVIA_PROXY_BASE = `${API_BASE_URL}trivia`;           // /api/trivia/<gbif_id>
+export const SPECIES_IMAGES_BASE = `${API_BASE_URL}species`;      // /api/species/<gbif_id>/images
 export const SDM_MODELS_URL = `${API_BASE_URL}sdm/available_models`;
 // Mapped Missions v2. The catalogue is precomputed offline, so the map
 // endpoint is a spatial lookup rather than the per-request raster pipeline v1

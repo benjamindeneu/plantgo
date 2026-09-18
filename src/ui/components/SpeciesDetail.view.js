@@ -1,7 +1,8 @@
 // src/ui/components/SpeciesDetail.view.js
 import { getWikipediaSummaryHtml } from "../../data/wiki.service.js";
-import { fetchDescription, fetchTrivia } from "../../api/plantgo.js";
+import { fetchDescription, fetchTrivia, fetchSpeciesImages, photoProviderName } from "../../api/plantgo.js";
 import { speciesImage, tierOf } from "./SpeciesRow.view.js";
+import { openPhotoViewer } from "./PhotoViewer.js";
 import { t } from "../../language/i18n.js";
 
 function uiLang() {
@@ -55,6 +56,11 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
     <div class="mp-detail__tags"></div>
 
     <div class="mp-detail__hero" hidden></div>
+
+    <div class="mp-detail__gallery" hidden>
+      <div class="mp-detail__gallery-grid"></div>
+      <p class="mp-detail__muted mp-detail__gallery-credit"></p>
+    </div>
 
     <div class="mp-detail__prose">
       <div class="mp-detail__wiki"></div>
@@ -145,9 +151,43 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
     hero.appendChild(img);
   });
 
+  // --- gallery --------------------------------------------------------------
+  // Pl@ntNet's field photos, a few organs each, from the backend by GBIF id.
+  // Like the hero, the band exists only once there is something to show —
+  // and a three-column grid with one or two tiles in it looks broken, so
+  // fewer than three is treated as nothing. Tiles go into the document
+  // before they load and fade in on `load` (see attachPhoto for why).
+  const gbifId = species.gbif_id ?? species.gbifId;
+  const gallery = el.querySelector(".mp-detail__gallery");
+  const galleryGrid = el.querySelector(".mp-detail__gallery-grid");
+  if (gbifId) {
+    fetchSpeciesImages({ gbif_id: gbifId, limit: 9 }).then((images) => {
+      if (!el.isConnected || images.length < 3) return;
+      // Usually one provider; a topped-up gallery names both.
+      const providers = [...new Set(images.map((p) => photoProviderName(p.provider)))];
+      el.querySelector(".mp-detail__gallery-credit").textContent =
+        t("map.detail.photosCredit", { source: providers.join(" & ") });
+      images.forEach((photo, index) => {
+        const tile = document.createElement("button");
+        tile.type = "button";
+        tile.className = "mp-detail__tile";
+        const img = document.createElement("img");
+        img.alt = "";
+        img.loading = "lazy";
+        img.decoding = "async";
+        img.addEventListener("load", () => tile.classList.add("has-photo"));
+        img.addEventListener("error", () => tile.remove());
+        img.src = photo.thumb || photo.medium || photo.full;
+        tile.appendChild(img);
+        tile.addEventListener("click", () => openPhotoViewer(images, index));
+        galleryGrid.appendChild(tile);
+      });
+      gallery.hidden = false;
+    });
+  }
+
   // --- links ----------------------------------------------------------------
   const wikiUrl = binomial ? `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(binomial)}` : "";
-  const gbifId = species.gbif_id ?? species.gbifId;
   const wikiLink = el.querySelector('[data-link="wiki"]');
   const gbifLink = el.querySelector('[data-link="gbif"]');
   if (wikiUrl) wikiLink.href = wikiUrl; else wikiLink.hidden = true;

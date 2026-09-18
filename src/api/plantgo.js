@@ -1,5 +1,5 @@
 // src/api/plantgo.js
-import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE, TRIVIA_PROXY_BASE, SDM_MODELS_URL, MAP_MISSIONS_URL, MISSION_DETAIL_BASE, GPN_TILE_BASE } from "./config.js";
+import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE, TRIVIA_PROXY_BASE, SPECIES_IMAGES_BASE, SDM_MODELS_URL, MAP_MISSIONS_URL, MISSION_DETAIL_BASE, GPN_TILE_BASE } from "./config.js";
 
 async function http(url, opts = {}) {
   const res = await fetch(url, opts);
@@ -217,4 +217,33 @@ export async function fetchTrivia({ gbif_id, name, lang = "en" }) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, lang }),
   });
+}
+
+/** Gallery lookups are shared across every screen on the page, like species photos are. */
+const speciesImagesCache = new Map();
+
+/**
+ * Fetch the photo gallery for a single species, keyed by GBIF id only.
+ * Returns the images array — `[]` when the species has none or the request
+ * failed, so a caller never has to tell the two apart. Each image is
+ * { thumb, medium, full, organ, author, license, source, provider }, where
+ * provider is "plantnet" or, for a species Pl@ntNet has too few photos of,
+ * "inaturalist".
+ */
+export const PHOTO_PROVIDERS = { plantnet: "Pl@ntNet", inaturalist: "iNaturalist" };
+export function photoProviderName(provider) {
+  return PHOTO_PROVIDERS[provider] || PHOTO_PROVIDERS.plantnet;
+}
+export function fetchSpeciesImages({ gbif_id, limit = 9 }) {
+  if (!gbif_id) return Promise.resolve([]);
+  const key = `${gbif_id}|${limit}`;
+  if (!speciesImagesCache.has(key)) {
+    speciesImagesCache.set(
+      key,
+      httpWithTimeout(`${SPECIES_IMAGES_BASE}/${gbif_id}/images?limit=${limit}`, {}, 8_000)
+        .then((data) => (Array.isArray(data?.images) ? data.images : []))
+        .catch(() => []),
+    );
+  }
+  return speciesImagesCache.get(key);
 }
