@@ -49,13 +49,27 @@ async function fetchWithTimeout(url, { timeout = 4000 } = {}) {
 }
 
 // Try REST Summary first: https://{lang}.wikipedia.org/api/rest_v1/page/summary/{title}
-async function tryRestSummary(binomial, lang, thumbSize) {
+// The summary follows redirects, so a synonym lands on the accepted species'
+// page and a name with no page of its own can land on the genus. That is
+// right for a species card — the picture is the plant — and wrong for a quiz
+// distractor, which must not wear the answer's photo; `exactTitle` refuses
+// anything but the page actually named.
+async function tryRestSummary(binomial, lang, thumbSize, exactTitle) {
   const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(binomial)}`;
   const res = await fetchWithTimeout(url);
   if (!res.ok) return null;
   const data = await res.json();
+  if (exactTitle) {
+    if (data?.type === "disambiguation") return null;
+    if (!sameTitle(data?.titles?.canonical || data?.title, binomial)) return null;
+  }
   // Some summaries include original-sized thumbs; accept as-is
   return data?.thumbnail?.source || null;
+}
+
+function sameTitle(a, b) {
+  const norm = (s) => String(s || "").replace(/_/g, " ").trim().toLowerCase();
+  return norm(a) === norm(b);
 }
 
 // Fallback to Action API (like your old code)
@@ -79,21 +93,24 @@ async function tryActionApi(binomial, lang, thumbSize) {
  * - Tries multiple languages (default: en, fr, de, it).
  * - Uses REST Summary first, then Action API.
  * - Caches results in localStorage with TTL.
+ * - `exactTitle` accepts only a page titled with the name itself, never a
+ *   redirect's target (see tryRestSummary). The Action API does not follow
+ *   redirects, so it already behaves that way.
  */
 export async function getWikipediaImage(
   speciesFullName,
-  { thumbSize = 150, languages = ["en", "fr", "de", "it"], ttlMs = DEFAULT_TTL_MS } = {}
+  { thumbSize = 150, languages = ["en", "fr", "de", "it"], ttlMs = DEFAULT_TTL_MS, exactTitle = false } = {}
 ) {
   const binomial = getBinomialName(speciesFullName);
   if (!binomial) return null;
 
-  const cacheKey = `${binomial}|${thumbSize}|${languages.join(",")}`;
+  const cacheKey = `${binomial}|${thumbSize}|${languages.join(",")}${exactTitle ? "|exact" : ""}`;
   const cached = readCache(cacheKey);
   if (cached !== null) return cached;
 
   for (const lang of languages) {
     try {
-      const rest = await tryRestSummary(binomial, lang, thumbSize);
+      const rest = await tryRestSummary(binomial, lang, thumbSize, exactTitle);
       if (rest) { writeCache(cacheKey, rest, ttlMs); return rest; }
       const action = await tryActionApi(binomial, lang, thumbSize);
       if (action) { writeCache(cacheKey, action, ttlMs); return action; }

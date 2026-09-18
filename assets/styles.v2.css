@@ -420,6 +420,7 @@
   transform: none;
   filter: none;
 }
+.v2 #userMenu .menu-item[hidden] { display: none; }
 .v2 #userMenu .menu-item.danger { color: var(--mp-danger); }
 .v2 #userMenu .menu-item.danger:hover { background: var(--mp-danger-tint); color: var(--mp-danger); }
 .v2 #userMenu .menu-item--back { color: var(--mp-brand-text); font-weight: 600; }
@@ -2236,6 +2237,28 @@
 @media (prefers-reduced-motion: reduce) {
   .v2 .mp-quiz *, .v2 .mp-quiz *::before { animation: none !important; transition-duration: 0ms !important; }
 }
+
+/* ============================================================
+   ADMIN
+   ------------------------------------------------------------
+   A few tools for whoever carries the `admin` flag. One section
+   per tool: what it does, and the button that does it.
+   ============================================================ */
+.v2 .mp-admin { display: grid; gap: 14px; }
+.v2 .mp-admin__section {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border-radius: var(--mp-r-md);
+  background: var(--mp-surface-2);
+  border: 1px solid var(--mp-line);
+}
+.v2 .mp-admin__section h2 { margin: 0; font-size: 1rem; }
+.v2 .mp-admin__desc { margin: 0; font-size: .88rem; line-height: 1.5; color: var(--mp-ink-2); }
+.v2 .mp-admin__status { margin: 0; min-height: 1.3em; font-size: .84rem; font-weight: 600; color: var(--mp-brand-text); }
+.v2 .mp-admin__status--error { color: var(--mp-danger); }
+.v2 .mp-admin__section button { margin-top: 4px; }
+.v2 .mp-admin__status[hidden] { display: none; }
 
 /* ============================================================
    DAILY QUESTS  (old home)

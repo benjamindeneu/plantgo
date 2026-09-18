@@ -12,7 +12,10 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/fi
 import { fetchQuizQuestion } from "../api/plantgo.js";
 import { attachQuizPhotos } from "../data/quizPhoto.js";
 import { t } from "../language/i18n.js";
-import { getUserTotalPoints, awardQuizPoints, isQuizDoneToday, markQuizDone } from "../data/user.repo.js";
+import {
+  getUserTotalPoints, awardQuizPoints, isQuizDoneToday, markQuizDone,
+  getQuizProgress, saveQuizProgress, clearQuizProgress,
+} from "../data/user.repo.js";
 import {
   renderLanding,
   renderLoading,
@@ -68,10 +71,18 @@ export function QuizController(container) {
     // Show landing — tell user if already done today
     renderLoading(container, t("quiz.loading"));
     let done = false;
+    let progress = null;
     try {
-      done = await isQuizDoneToday(userId);
+      [done, progress] = await Promise.all([isQuizDoneToday(userId), getQuizProgress(userId)]);
     } catch (e) {
       console.error("Quiz: could not check completion status", e);
+    }
+
+    // A quiz left mid-way today picks up at the question it stopped on.
+    if (progress?.items?.length && (progress.results?.length ?? 0) < progress.items.length) {
+      renderLoading(container, t("quiz.loadingQuestions"));
+      await playQuiz(userId, progress);
+      return;
     }
 
     if (done) {
@@ -102,15 +113,27 @@ export function QuizController(container) {
     });
   }
 
-  async function startQuiz(userId, items) {
+  // A question is not ready until its pictures are: the photo (and its
+  // credit) come from Wikipedia rather than from the backend, so they are
+  // resolved right after the question arrives, as part of the same fetch.
+  function loadQuestion(item) {
     const lang = document.documentElement.lang || "en";
-    const total = items.length;
+    return fetchQuizQuestion({ item, lang }).then(attachQuizPhotos);
+  }
 
-    // A question is not ready until its pictures are: the photo (and its
-    // credit) come from Wikipedia rather than from the backend, so they are
-    // resolved right after the question arrives, as part of the same fetch.
-    const loadQuestion = (item) => fetchQuizQuestion({ item, lang }).then(attachQuizPhotos);
+  // What gets saved: the question as the backend sent it. Photos are looked
+  // up again on resume — they come from a cache — so they are not carried.
+  function storable(question) {
+    const { photo, ...rest } = question;
+    if (question.quiz_type === "species_image") {
+      rest.choices = Object.fromEntries(
+        Object.entries(question.choices).map(([k, { photo: _p, ...c }]) => [k, c])
+      );
+    }
+    return rest;
+  }
 
+  async function startQuiz(userId, items) {
     // Fetch first question before showing anything
     renderLoading(container, t("quiz.loadingQuestions"));
     let firstQuestion;
@@ -142,25 +165,55 @@ export function QuizController(container) {
       console.error("Quiz: could not fetch total points", e);
     }
 
-    // First question received — kick off ALL remaining fetches in parallel
-    const questionPromises = [Promise.resolve(firstQuestion)];
-    for (let j = 1; j < total; j++) {
-      const idx = j;
-      questionPromises[j] = loadQuestion(items[idx])
-        .catch((e) => {
-          console.error(`Quiz: failed to fetch question ${idx + 1}`, e);
-          return null;
-        });
+    const progress = {
+      items,
+      questions: [storable(firstQuestion)],
+      results: [],
+      currentTotalBefore,
+    };
+    try {
+      await saveQuizProgress(userId, progress);
+    } catch (e) {
+      console.error("Quiz: could not save progress", e);
     }
+
+    await playQuiz(userId, progress, firstQuestion);
+  }
+
+  /**
+   * Play from wherever `progress` stands: fresh from the start screen, or
+   * back from a closed tab with some answers already in. Questions already
+   * fetched are reused; the rest are fetched now, all in parallel.
+   */
+  async function playQuiz(userId, progress, firstQuestion = null) {
+    const { items } = progress;
+    const total = items.length;
+    progress.questions ||= [];
+    progress.results ||= [];
+
+    const persist = () => saveQuizProgress(userId, progress)
+      .catch((e) => console.error("Quiz: could not save progress", e));
+
+    const questionPromises = items.map((item, idx) => {
+      if (idx === 0 && firstQuestion) return Promise.resolve(firstQuestion);
+      const stored = progress.questions[idx];
+      const p = stored
+        ? attachQuizPhotos(structuredClone(stored))
+        : loadQuestion(item).then((q) => { if (q) progress.questions[idx] = storable(q); return q; });
+      return p.catch((e) => {
+        console.error(`Quiz: failed to fetch question ${idx + 1}`, e);
+        return null;
+      });
+    });
+    // Once every question is in, the whole set is on record, so a later
+    // resume has nothing left to generate.
+    Promise.all(questionPromises).then(persist);
 
     // Run questions — each one is likely already fetched by the time user reaches it.
     // The HUD carries the running score and streak; the view only shows them.
     const game = { score: 0, streak: 0, bestStreak: 0, results: [] };
     let correctCount = 0;
-    for (let i = 0; i < total; i++) {
-      const question = await questionPromises[i];
-      if (!question) break;
-      const correct = await renderQuestion(container, question, i, total, { ...game, pointsPerCorrect: POINTS_PER_CORRECT });
+    const tally = (correct) => {
       game.results.push(correct);
       if (correct) {
         correctCount++;
@@ -170,6 +223,16 @@ export function QuizController(container) {
       } else {
         game.streak = 0;
       }
+    };
+    progress.results.forEach(tally);
+
+    for (let i = progress.results.length; i < total; i++) {
+      const question = await questionPromises[i];
+      if (!question) break;
+      const correct = await renderQuestion(container, question, i, total, { ...game, pointsPerCorrect: POINTS_PER_CORRECT });
+      tally(correct);
+      progress.results.push(correct);
+      await persist();
     }
 
     // Award points
@@ -182,8 +245,15 @@ export function QuizController(container) {
       }
     }
 
+    // Over — whether played out or cut short — so there is nothing to resume.
+    try {
+      await clearQuizProgress(userId);
+    } catch (e) {
+      console.error("Quiz: could not clear progress", e);
+    }
+
     renderScore(container, correctCount, total, {
-      currentTotalBefore,
+      currentTotalBefore: progress.currentTotalBefore || 0,
       pointsEarned,
       bestStreak: game.bestStreak,
     });

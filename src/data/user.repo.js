@@ -1,6 +1,6 @@
 // src/data/user.repo.js
 import { auth, db } from "../../firebase-config.js";
-import { doc, getDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { doc, getDoc, updateDoc, increment, serverTimestamp, deleteField } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
 function todayKey() {
   const d = new Date();
@@ -14,6 +14,44 @@ export async function isQuizDoneToday(uid) {
 
 export async function markQuizDone(uid) {
   await updateDoc(doc(db, "users", uid), { quiz_last_date: todayKey() });
+}
+
+/**
+ * A quiz in progress: the day's species, the questions fetched so far and
+ * the answers given, so that closing the page mid-way and coming back
+ * resumes at the same question rather than meeting "already done".
+ *
+ * Kept as one JSON string: the questions carry nested objects and the odd
+ * undefined, and Firestore accepts neither arrays in arrays nor undefined.
+ * It is only ever read back by the same code that wrote it.
+ */
+export async function getQuizProgress(uid) {
+  const snap = await getDoc(doc(db, "users", uid));
+  const p = snap.data()?.quiz_progress;
+  if (!p || p.date !== todayKey() || !p.json) return null;
+  try { return JSON.parse(p.json); } catch { return null; }
+}
+
+export async function saveQuizProgress(uid, progress) {
+  await updateDoc(doc(db, "users", uid), {
+    quiz_progress: { date: todayKey(), json: JSON.stringify(progress) },
+  });
+}
+
+export async function clearQuizProgress(uid) {
+  await updateDoc(doc(db, "users", uid), { quiz_progress: deleteField() });
+}
+
+/** Admin: today's lock and any quiz in progress go, so the quiz can be played again. */
+export async function resetQuiz(uid) {
+  await updateDoc(doc(db, "users", uid), { quiz_last_date: deleteField(), quiz_progress: deleteField() });
+}
+
+/** The `admin` field on the user doc, and only `true` counts; absent is false. */
+export async function isAdmin(uid) {
+  if (!uid) return false;
+  const snap = await getDoc(doc(db, "users", uid));
+  return snap.data()?.admin === true;
 }
 
 export async function getCurrentUser() {

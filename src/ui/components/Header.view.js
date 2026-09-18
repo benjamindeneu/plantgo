@@ -56,6 +56,7 @@ export function createHeaderView({
           <button class="menu-item" role="menuitem" id="menuQuiz">🌿 Quiz</button>
           <div class="menu-divider"></div>
           <button class="menu-item" role="menuitem" id="menuSettings">⚙ Settings</button>
+          <button class="menu-item" role="menuitem" id="menuAdmin" hidden>🛡 Admin</button>
           <div class="lang-wrapper">
             <select class="lang-select" id="langSelect" aria-label="Language">
               <option value="en">🇬🇧 EN</option>
@@ -88,6 +89,7 @@ export function createHeaderView({
   const quizMenuBtn = root.querySelector("#menuQuiz");
   const settingsMenuBtn = root.querySelector("#menuSettings");
   const observationsMenuBtn = root.querySelector("#menuObservations");
+  const adminMenuBtn = root.querySelector("#menuAdmin");
 
   // callbacks set by controller
   let onMenuToggle = null;
@@ -99,6 +101,7 @@ export function createHeaderView({
   let onQuiz = null;
   let onSettings = null;
   let onObservations = null;
+  let onAdmin = null;
 
   function toggleMenu(force) {
     const willOpen = force !== undefined ? force : !menu.classList.contains("show");
@@ -131,6 +134,7 @@ export function createHeaderView({
     if (badgesMenuBtn) { badgesMenuBtn.textContent = `🏅 ${t("header.badges")}`; }
     if (quizMenuBtn) { quizMenuBtn.textContent = `🌿 ${t("header.quiz")}`; }
     if (observationsMenuBtn) { observationsMenuBtn.textContent = `📋 ${t("header.observations")}`; }
+    if (adminMenuBtn) { adminMenuBtn.textContent = `🛡 ${t("header.admin")}`; }
   }
 
   document.addEventListener("i18n:changed", () => {
@@ -183,6 +187,11 @@ export function createHeaderView({
     if (onObservations) onObservations();
   });
 
+  adminMenuBtn?.addEventListener("click", () => {
+    toggleMenu(false);
+    if (onAdmin) onAdmin();
+  });
+
   // initial i18n render
   refreshI18n();
 
@@ -196,6 +205,10 @@ export function createHeaderView({
     },
     setLevel(lvl) {
       levelEl.textContent = String(lvl ?? 1);
+    },
+    // The admin tab is there only for an admin; everyone else never sees it.
+    setAdmin(isAdmin) {
+      if (adminMenuBtn) adminMenuBtn.hidden = !isAdmin;
     },
 
     // allow controller to set/get lang UI state
@@ -215,5 +228,6 @@ export function createHeaderView({
     setOnQuiz(cb) { onQuiz = cb; },
     setOnSettings(cb) { onSettings = cb; },
     setOnObservations(cb) { onObservations = cb; },
+    setOnAdmin(cb) { onAdmin = cb; },
   };
 }

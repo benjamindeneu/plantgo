@@ -9,6 +9,7 @@ import { ChallengeModal } from "../controllers/ChallengeModal.controller.js";
 import { openSettingsModal } from "../controllers/SettingsModal.controller.js";
 import { LocationGate } from "../ui/components/LocationGate.js";
 import { listenUserLevel } from "../user/level.js";
+import { isAdmin } from "../data/user.repo.js";
 import { debugMode } from "../data/debugMode.js";
 
 import { auth } from "../../firebase-config.js";
@@ -38,6 +39,7 @@ function App() {
       document.body.appendChild(ChallengeModal({ onJoined: () => panel?.showChallenge() }));
     },
     onSettings: () => openSettingsModal(),
+    onAdmin: () => { location.href = "./admin.html"; },
     onLogout: async () => {
       try {
         stopLevel();
@@ -63,6 +65,7 @@ function App() {
     header.setUser(user);
     stopLevel();
     stopLevel = listenUserLevel(user.uid, (lvl) => header.setLevel(lvl));
+    isAdmin(user.uid).then((admin) => header.setAdmin(admin)).catch(() => {});
 
     // `onAuthStateChanged` fires again on token refresh, and a second call
     // used to build a second map — whose `start()` recentred on the GPS fix —

@@ -15,12 +15,17 @@ import { getWikipediaImage, getWikipediaImageInfo } from "./wiki.service.js";
  * Wikipedia has no picture of. It comes without a credit, so the caption
  * can only name the source.
  *
+ * `exactTitle` is for a wrong answer in the picture round: Wikipedia
+ * redirects a synonym to the accepted species, so without it a distractor
+ * that is merely another name for the answer would show the answer's own
+ * photo. The right answer is looked up the ordinary way, as the card is.
+ *
  * Returns { url, author, license, provider } or null when there is nothing
  * to show at all.
  */
-export async function resolveQuizPhoto(speciesName, fallbackUrl) {
+export async function resolveQuizPhoto(speciesName, fallbackUrl, { exactTitle = false } = {}) {
   let thumb = null;
-  try { thumb = await getWikipediaImage(speciesName); } catch { /* fall through */ }
+  try { thumb = await getWikipediaImage(speciesName, { exactTitle }); } catch { /* fall through */ }
 
   if (thumb) {
     let info = null;
@@ -33,8 +38,11 @@ export async function resolveQuizPhoto(speciesName, fallbackUrl) {
     };
   }
 
-  if (fallbackUrl) return { url: fallbackUrl, author: "", license: "", provider: "inaturalist" };
-  return null;
+  return fallbackPhoto(fallbackUrl);
+}
+
+function fallbackPhoto(url) {
+  return url ? { url, author: "", license: "", provider: "inaturalist" } : null;
 }
 
 /**
@@ -44,14 +52,30 @@ export async function resolveQuizPhoto(speciesName, fallbackUrl) {
  */
 export async function attachQuizPhotos(question) {
   if (!question) return question;
-  if (question.quiz_type === "species_image") {
-    await Promise.all(
-      Object.values(question.choices || {}).map(async (choice) => {
-        choice.photo = await resolveQuizPhoto(choice.name, choice.image_url);
-      })
-    );
-  } else {
+  if (question.quiz_type !== "species_image") {
     question.photo = await resolveQuizPhoto(question.species_name, question.image_url);
+    return question;
+  }
+
+  const choices = question.choices || {};
+  await Promise.all(
+    Object.entries(choices).map(async ([key, choice]) => {
+      choice.photo = await resolveQuizPhoto(choice.name, choice.image_url, { exactTitle: key !== question.answer });
+    })
+  );
+
+  // Two tiles must never show the same picture: the answer keeps its photo,
+  // and any other tile that came back with an identical one falls back to
+  // its own iNaturalist photo — or to nothing, rather than to a giveaway.
+  const seen = new Set();
+  const keys = [question.answer, ...Object.keys(choices).filter((k) => k !== question.answer)];
+  for (const key of keys) {
+    const choice = choices[key];
+    if (!choice) continue;
+    if (choice.photo?.url && seen.has(choice.photo.url)) {
+      choice.photo = seen.has(choice.image_url) ? null : fallbackPhoto(choice.image_url);
+    }
+    if (choice.photo?.url) seen.add(choice.photo.url);
   }
   return question;
 }
