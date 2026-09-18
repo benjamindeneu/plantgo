@@ -170,7 +170,7 @@ export async function getWikipediaImageInfo(thumbUrl, { width = 800, ttlMs = DEF
         const em = ii.extmetadata || {};
         info = {
           large: ii.thumburl || ii.url || thumbUrl,
-          author: stripTags(em.Artist?.value || ""),
+          author: cleanArtist(stripTags(em.Artist?.value || "")),
           license: em.LicenseShortName?.value || "",
           page: ii.descriptionurl || "",
         };
@@ -185,4 +185,14 @@ export async function getWikipediaImageInfo(thumbUrl, { width = 800, ttlMs = DEF
 
 function stripTags(html) {
   return html.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+}
+
+// Commons' Artist field is free text, and for an old upload it is often
+// boilerplate around the name — "No machine-readable author provided.
+// Foo~commonswiki assumed (based on copyright claims)." A credit line has
+// room for the name alone.
+function cleanArtist(text) {
+  const m = /^No machine-readable author provided\.?\s*(.+?)\s+assumed\b/i.exec(text);
+  const name = m ? m[1] : text;
+  return name.replace(/~commonswiki$/i, "").replace(/\s*\(talk\)\s*$/i, "").trim();
 }

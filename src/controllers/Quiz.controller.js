@@ -10,6 +10,7 @@ import {
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 import { fetchQuizQuestion } from "../api/plantgo.js";
+import { attachQuizPhotos } from "../data/quizPhoto.js";
 import { t } from "../language/i18n.js";
 import { getUserTotalPoints, awardQuizPoints, isQuizDoneToday, markQuizDone } from "../data/user.repo.js";
 import {
@@ -61,9 +62,11 @@ async function getTodaySpecies(userId) {
 
 // ── controller ────────────────────────────────────────────────────────────────
 export function QuizController(container) {
+  renderLoading(container, t("quiz.loading"));
+
   async function run(userId) {
     // Show landing — tell user if already done today
-    renderLoading(container, "");
+    renderLoading(container, t("quiz.loading"));
     let done = false;
     try {
       done = await isQuizDoneToday(userId);
@@ -103,11 +106,16 @@ export function QuizController(container) {
     const lang = document.documentElement.lang || "en";
     const total = items.length;
 
+    // A question is not ready until its pictures are: the photo (and its
+    // credit) come from Wikipedia rather than from the backend, so they are
+    // resolved right after the question arrives, as part of the same fetch.
+    const loadQuestion = (item) => fetchQuizQuestion({ item, lang }).then(attachQuizPhotos);
+
     // Fetch first question before showing anything
     renderLoading(container, t("quiz.loadingQuestions"));
     let firstQuestion;
     try {
-      firstQuestion = await fetchQuizQuestion({ item: items[0], lang });
+      firstQuestion = await loadQuestion(items[0]);
     } catch (e) {
       console.error("Quiz: failed to fetch first question", e);
       renderError(container, t("quiz.error.fetchQuiz"));
@@ -138,20 +146,30 @@ export function QuizController(container) {
     const questionPromises = [Promise.resolve(firstQuestion)];
     for (let j = 1; j < total; j++) {
       const idx = j;
-      questionPromises[j] = fetchQuizQuestion({ item: items[idx], lang })
+      questionPromises[j] = loadQuestion(items[idx])
         .catch((e) => {
           console.error(`Quiz: failed to fetch question ${idx + 1}`, e);
           return null;
         });
     }
 
-    // Run questions — each one is likely already fetched by the time user reaches it
+    // Run questions — each one is likely already fetched by the time user reaches it.
+    // The HUD carries the running score and streak; the view only shows them.
+    const game = { score: 0, streak: 0, bestStreak: 0, results: [] };
     let correctCount = 0;
     for (let i = 0; i < total; i++) {
       const question = await questionPromises[i];
       if (!question) break;
-      const correct = await renderQuestion(container, question, i, total);
-      if (correct) correctCount++;
+      const correct = await renderQuestion(container, question, i, total, { ...game, pointsPerCorrect: POINTS_PER_CORRECT });
+      game.results.push(correct);
+      if (correct) {
+        correctCount++;
+        game.score += POINTS_PER_CORRECT;
+        game.streak++;
+        game.bestStreak = Math.max(game.bestStreak, game.streak);
+      } else {
+        game.streak = 0;
+      }
     }
 
     // Award points
@@ -167,6 +185,7 @@ export function QuizController(container) {
     renderScore(container, correctCount, total, {
       currentTotalBefore,
       pointsEarned,
+      bestStreak: game.bestStreak,
     });
   }
 
