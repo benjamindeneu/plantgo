@@ -127,14 +127,22 @@ export function QuizController(container) {
   function loadQuestion(item) {
     const lang = document.documentElement.lang || "en";
     const { vernacular, ...apiItem } = item;
-    const common = vernacular
-      ? Promise.resolve(vernacular)
-      : getVernacularName({ name: item.name, gbif_id: item.gbif_id, lang }).catch(() => "");
-    return Promise.all([fetchQuizQuestion({ item: apiItem, lang }).then(attachQuizPhotos), common])
-      .then(([question, commonName]) => {
-        if (question && commonName) question.common_name = commonName;
-        return question;
-      });
+    return fetchQuizQuestion({ item: apiItem, lang }).then((q) => prepareQuestion(q, item));
+  }
+
+  // Pictures and the common name are fetched for a question whether it has
+  // just arrived or was saved earlier — a saved one may predate either.
+  async function prepareQuestion(question, item) {
+    if (!question) return question;
+    const lang = document.documentElement.lang || "en";
+    const common = question.common_name
+      ? Promise.resolve(question.common_name)
+      : item?.vernacular
+        ? Promise.resolve(item.vernacular)
+        : getVernacularName({ name: item?.name || question.species_name, gbif_id: item?.gbif_id, lang }).catch(() => "");
+    const [, commonName] = await Promise.all([attachQuizPhotos(question), common]);
+    if (commonName) question.common_name = commonName;
+    return question;
   }
 
   // What gets saved: the question as the backend sent it. Photos are looked
@@ -214,7 +222,7 @@ export function QuizController(container) {
       if (idx === 0 && firstQuestion) return Promise.resolve(firstQuestion);
       const stored = progress.questions[idx];
       const p = stored
-        ? attachQuizPhotos(structuredClone(stored))
+        ? prepareQuestion(structuredClone(stored), item)
         : loadQuestion(item).then((q) => { if (q) progress.questions[idx] = storable(q); return q; });
       return p.catch((e) => {
         console.error(`Quiz: failed to fetch question ${idx + 1}`, e);
