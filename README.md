@@ -49,7 +49,7 @@ The bottom sheet has three tabs:
 | **Around you** | Species most likely to be found at the player's position | One `/api/prediction` call; invalidated once the player walks > 400 m |
 | **Challenge** | Leaderboard / species checklist of the active group challenge | Only appears while the player is in a challenge |
 
-Tapping a pin or row opens a **species detail** screen in the sheet (Wikipedia photo, a grid of Pl@ntNet field photos across organs, chance of presence, description, trivia, Wikipedia/GBIF links) while the map keeps showing the zone and raster. An "What is this?" info sheet explains missions in plain language and links to [`mission-pipeline.html`](mission-pipeline.html), a long-form write-up of how missions are derived from SDM rasters.
+Tapping a pin or row opens a **species detail** screen in the sheet (a photo strip — the Wikipedia picture beside Pl@ntNet field photos badged by organ — chance of presence, description, trivia, Wikipedia/GBIF links) while the map keeps showing the zone and raster. An "What is this?" info sheet explains missions in plain language and links to [`mission-pipeline.html`](mission-pipeline.html), a long-form write-up of how missions are derived from SDM rasters.
 
 ### 📷 Identify & score
 

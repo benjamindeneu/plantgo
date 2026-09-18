@@ -3,6 +3,7 @@ import { getWikipediaSummaryHtml } from "../../data/wiki.service.js";
 import { fetchDescription, fetchTrivia, fetchSpeciesImages, photoProviderName } from "../../api/plantgo.js";
 import { speciesImage, tierOf } from "./SpeciesRow.view.js";
 import { openPhotoViewer } from "./PhotoViewer.js";
+import { organIcon, WIKI_MARK } from "./organIcons.js";
 import { t } from "../../language/i18n.js";
 
 function uiLang() {
@@ -55,11 +56,15 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
 
     <div class="mp-detail__tags"></div>
 
-    <div class="mp-detail__hero" hidden></div>
-
     <div class="mp-detail__gallery" hidden>
-      <div class="mp-detail__gallery-grid"></div>
-      <p class="mp-detail__muted mp-detail__gallery-credit"></p>
+      <div class="mp-detail__gallery-viewport">
+        <div class="mp-detail__gallery-scroll">
+          <div class="mp-detail__hero" hidden></div>
+          <div class="mp-detail__gallery-grid" hidden></div>
+        </div>
+        <span class="mp-detail__gallery-fade" aria-hidden="true"></span>
+      </div>
+      <p class="mp-detail__muted mp-detail__gallery-credit" hidden></p>
     </div>
 
     <div class="mp-detail__prose">
@@ -135,54 +140,78 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
   rasterInput.checked = !!rasterOn;
   rasterInput.addEventListener("change", () => onRasterToggle?.(rasterInput.checked));
 
-  // --- hero -----------------------------------------------------------------
-  // The photo band appears only once there is a photo. A placeholder rectangle
-  // for a species Wikipedia has no picture of is 170px of nothing, and the
-  // names read better on paper than over an empty gradient.
+  // --- photos ---------------------------------------------------------------
+  // One strip: Wikipedia's picture on the left, marked with a W, and
+  // Pl@ntNet's field photos beside it in two rows that together stand as
+  // tall as it, each marked with the organ it shows. The strip scrolls
+  // sideways when there are more tiles than fit, and a fade on the right
+  // edge — the same device the sticky bar uses above the prose — says so.
+  // The band appears only once there is a picture to show: a placeholder
+  // rectangle for a species nobody has photographed is 150px of nothing.
+  // Images go into the document before they load and fade in on `load`
+  // (see attachPhoto for why).
+  const gallery = el.querySelector(".mp-detail__gallery");
+  const scroller = el.querySelector(".mp-detail__gallery-scroll");
   const hero = el.querySelector(".mp-detail__hero");
+  const galleryGrid = el.querySelector(".mp-detail__gallery-grid");
+
+  function settleFade() {
+    // "More to the right" is a fact about the scroll position, so it is
+    // re-read on scroll, on load and on resize rather than set once.
+    const more = scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 1;
+    gallery.classList.toggle("has-more", more);
+  }
+  scroller.addEventListener("scroll", settleFade, { passive: true });
+  if (typeof ResizeObserver === "function") new ResizeObserver(settleFade).observe(scroller);
+
+  function reveal() {
+    gallery.hidden = false;
+    requestAnimationFrame(settleFade);
+  }
+
   speciesImage(sciName).then((url) => {
     if (!url || !el.isConnected) return;
     const img = document.createElement("img");
     img.alt = "";
     img.decoding = "async";
-    img.addEventListener("load", () => { hero.hidden = false; });
+    img.addEventListener("load", () => { hero.hidden = false; reveal(); });
     img.addEventListener("error", () => img.remove());
     img.src = url;
     hero.appendChild(img);
+    hero.insertAdjacentHTML("beforeend", `<span class="mp-detail__badge mp-detail__badge--wiki">${WIKI_MARK}</span>`);
   });
 
-  // --- gallery --------------------------------------------------------------
-  // Pl@ntNet's field photos, a few organs each, from the backend by GBIF id.
-  // Like the hero, the band exists only once there is something to show —
-  // and a three-column grid with one or two tiles in it looks broken, so
-  // fewer than three is treated as nothing. Tiles go into the document
-  // before they load and fade in on `load` (see attachPhoto for why).
+  // The backend's gallery is keyed by GBIF id; a name alone has nowhere to
+  // be sent, so such a species keeps just its Wikipedia picture.
   const gbifId = species.gbif_id ?? species.gbifId;
-  const gallery = el.querySelector(".mp-detail__gallery");
-  const galleryGrid = el.querySelector(".mp-detail__gallery-grid");
   if (gbifId) {
-    fetchSpeciesImages({ gbif_id: gbifId, limit: 9 }).then((images) => {
-      if (!el.isConnected || images.length < 3) return;
+    fetchSpeciesImages({ gbif_id: gbifId, limit: 12 }).then((images) => {
+      // Two rows: one photo would leave a half-empty column.
+      if (!el.isConnected || images.length < 2) return;
       // Usually one provider; a topped-up gallery names both.
       const providers = [...new Set(images.map((p) => photoProviderName(p.provider)))];
-      el.querySelector(".mp-detail__gallery-credit").textContent =
-        t("map.detail.photosCredit", { source: providers.join(" & ") });
+      const credit = el.querySelector(".mp-detail__gallery-credit");
+      credit.textContent = t("map.detail.photosCredit", { source: providers.join(" & ") });
+      credit.hidden = false;
       images.forEach((photo, index) => {
         const tile = document.createElement("button");
         tile.type = "button";
         tile.className = "mp-detail__tile";
         const img = document.createElement("img");
         img.alt = "";
-        img.loading = "lazy";
         img.decoding = "async";
-        img.addEventListener("load", () => tile.classList.add("has-photo"));
-        img.addEventListener("error", () => tile.remove());
+        img.addEventListener("load", () => { tile.classList.add("has-photo"); settleFade(); });
+        img.addEventListener("error", () => { tile.remove(); settleFade(); });
         img.src = photo.thumb || photo.medium || photo.full;
         tile.appendChild(img);
+        const icon = organIcon(photo.organ);
+        if (icon) tile.insertAdjacentHTML("beforeend", `<span class="mp-detail__badge">${icon}</span>`);
         tile.addEventListener("click", () => openPhotoViewer(images, index));
         galleryGrid.appendChild(tile);
       });
-      gallery.hidden = false;
+      galleryGrid.hidden = false;
+      gallery.classList.add("has-tiles");
+      reveal();
     });
   }
 

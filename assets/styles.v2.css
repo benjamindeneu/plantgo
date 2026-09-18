@@ -3139,31 +3139,67 @@
 }
 .v2 .mp-detail__back:hover { background: #d8f2e3; transform: none; filter: none; }
 
+/* The photo strip: Wikipedia's picture on the left, Pl@ntNet's tiles in
+   two rows beside it, the pair of rows exactly as tall as the picture
+   (2 × 72 + the 6px gap = 150). The strip scrolls sideways; the scrollbar
+   is hidden and a fade on the right edge, the same device the sticky bar
+   uses over the prose, shows when there is more. Each picture wears a
+   small badge in the same corner: a W for Wikipedia, the organ for a
+   field photo. */
+/* min-width: 0 on both: a grid item's default minimum is its content's
+   width, which here is every tile laid end to end — the strip would widen
+   the column instead of scrolling inside it. */
+.v2 .mp-detail__gallery { display: grid; gap: 6px; min-width: 0; animation: mp-fade-in 320ms var(--mp-ease); }
+.v2 .mp-detail__gallery[hidden] { display: none; }
+.v2 .mp-detail__gallery-viewport { position: relative; min-width: 0; }
+.v2 .mp-detail__gallery-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.v2 .mp-detail__gallery-scroll::-webkit-scrollbar { display: none; }
+.v2 .mp-detail__gallery-fade {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 44px;
+  background: linear-gradient(to right, transparent, var(--mp-surface));
+  opacity: 0;
+  transition: opacity 200ms var(--mp-ease);
+  pointer-events: none;
+}
+.v2 .mp-detail__gallery.has-more .mp-detail__gallery-fade { opacity: 1; }
+
+/* Alone, the Wikipedia picture takes the whole width as it always did;
+   beside tiles it is a 150px square. */
 .v2 .mp-detail__hero {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
   height: 150px;
   overflow: hidden;
   border-radius: var(--mp-r-md);
   background: linear-gradient(150deg, var(--mp-soft), var(--mp-surface-2));
-  animation: mp-fade-in 320ms var(--mp-ease);
 }
+.v2 .mp-detail__gallery.has-tiles .mp-detail__hero { flex: 0 0 150px; width: 150px; }
 .v2 .mp-detail__hero[hidden] { display: none; }
 .v2 .mp-detail__hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
 @keyframes mp-fade-in { from { opacity: 0; } to { opacity: 1; } }
 
-/* Pl@ntNet field photos under the hero: square tiles, three across, no
-   captions — the set should read as pictures of one plant, not a table.
-   The credit line under it is the one caption the whole grid gets; the
-   per-photo author lives in the viewer a tap opens. */
-.v2 .mp-detail__gallery { display: grid; gap: 6px; animation: mp-fade-in 320ms var(--mp-ease); }
-.v2 .mp-detail__gallery[hidden] { display: none; }
 .v2 .mp-detail__gallery-grid {
+  flex: none;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 72px);
+  grid-auto-flow: column;
+  grid-auto-columns: 72px;
   gap: 6px;
 }
+.v2 .mp-detail__gallery-grid[hidden] { display: none; }
 .v2 .mp-detail__tile {
   position: relative;
-  aspect-ratio: 1;
+  width: 72px; height: 72px;
   padding: 0;
   border: 0;
   overflow: hidden;
@@ -3180,7 +3216,22 @@
 }
 .v2 .mp-detail__tile.has-photo img { opacity: 1; }
 .v2 .mp-detail__tile:focus-visible { outline: 2px solid var(--mp-brand); outline-offset: 2px; }
+.v2 .mp-detail__badge {
+  position: absolute;
+  left: 5px; bottom: 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px; height: 18px;
+  border-radius: 6px;
+  background: rgba(22,36,28,.62);
+  color: #fff;
+  pointer-events: none;
+}
+.v2 .mp-detail__badge--wiki { left: 7px; bottom: 7px; width: 22px; height: 22px; background: rgba(255,255,255,.92); color: var(--mp-ink); }
+.v2 .mp-detail__badge-w { font-family: var(--mp-display); font-weight: 700; font-size: 15px; line-height: 1; }
 .v2 .mp-detail__gallery-credit { margin: 0; font-size: .78rem; }
+.v2 .mp-detail__gallery-credit[hidden] { display: none; }
 
 /* One photo full screen, above the species sheet (1200). */
 .v2 .mp-photo-viewer {
@@ -3750,7 +3801,7 @@
   .map-page .mp-info,
   .v2 .mp-detail__hero { animation: none; }
   .v2 .mp-detail__gallery { animation: none; }
-  .v2 .mp-detail__tile img, .v2 .mp-photo-viewer { transition: none; }
+  .v2 .mp-detail__tile img, .v2 .mp-detail__gallery-fade, .v2 .mp-photo-viewer { transition: none; }
   .map-page .mp-map-status.is-busy::before,
   .map-page .mp-extent-line,
   .v2 .mp-icon-btn.is-busy svg,
