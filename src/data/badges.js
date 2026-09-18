@@ -44,6 +44,11 @@ export const BADGE_DEFINITIONS = [
   // Rarity
   { id: "epic_obs",       emoji: "💜", nameKey: "badges.epicObs.name",       descKey: "badges.epicObs.desc",       countKey: null, threshold: null, group: "rarity", tier: "epic" },
   { id: "legendary_obs",  emoji: "🥇", nameKey: "badges.legendaryObs.name",  descKey: "badges.legendaryObs.desc",  countKey: null, threshold: null, group: "rarity", tier: "legendary" },
+  // Challenges: played and won
+  { id: "chal_1",      emoji: "🏁", nameKey: "badges.chal1.name",      descKey: "badges.chal1.desc",      countKey: "challenges",    threshold: 1,  group: "challenges", tier: "common" },
+  { id: "chal_10",     emoji: "🧭", nameKey: "badges.chal10.name",     descKey: "badges.chal10.desc",     countKey: "challenges",    threshold: 10, group: "challenges", tier: "rare" },
+  { id: "chal_win_1",  emoji: "🥇", nameKey: "badges.chalWin1.name",   descKey: "badges.chalWin1.desc",   countKey: "challengeWins", threshold: 1,  group: "challenges", tier: "rare" },
+  { id: "chal_win_10", emoji: "👑", nameKey: "badges.chalWin10.name",  descKey: "badges.chalWin10.desc",  countKey: "challengeWins", threshold: 10, group: "challenges", tier: "legendary" },
   // Level milestones
   { id: "level_5",  emoji: "⭐", nameKey: "badges.level5.name",  descKey: "badges.level5.desc",  countKey: "level", threshold: 5,  group: "level", tier: "common" },
   { id: "level_10", emoji: "🌟", nameKey: "badges.level10.name", descKey: "badges.level10.desc", countKey: "level", threshold: 10, group: "level", tier: "rare" },
@@ -51,7 +56,7 @@ export const BADGE_DEFINITIONS = [
 ];
 
 /** Display order of the groups on the badges page. */
-export const BADGE_GROUPS = ["observations", "missions", "discoveries", "quests", "rarity", "level"];
+export const BADGE_GROUPS = ["observations", "missions", "discoveries", "quests", "rarity", "challenges", "level"];
 
 /**
  * Check which badges should be unlocked given current counts,
@@ -66,6 +71,8 @@ export async function checkAndUnlockBadges(userId, {
   hasEpicObs = false,
   hasLegendaryObs = false,
   level = 1,
+  challengesPlayed = 0,
+  challengesWon = 0,
 } = {}) {
   const triggered = [];
 
@@ -87,6 +94,11 @@ export async function checkAndUnlockBadges(userId, {
   if (hasPerfectDay)   triggered.push("perfect_day");
   if (hasEpicObs)      triggered.push("epic_obs");
   if (hasLegendaryObs) triggered.push("legendary_obs");
+
+  if (challengesPlayed >= 1)  triggered.push("chal_1");
+  if (challengesPlayed >= 10) triggered.push("chal_10");
+  if (challengesWon >= 1)     triggered.push("chal_win_1");
+  if (challengesWon >= 10)    triggered.push("chal_win_10");
 
   if (level >= 5)  triggered.push("level_5");
   if (level >= 10) triggered.push("level_10");

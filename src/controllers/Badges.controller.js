@@ -44,6 +44,8 @@ export function BadgesPanel() {
         mission:     Number(data.total_mission_observations ?? 0),
         discoveries: Number(data.total_discoveries         ?? 0),
         level:       Math.floor(1 + (Number(data.total_points) || 0) / 11000),
+        challenges:    Number(data.total_challenges      ?? 0),
+        challengeWins: Number(data.total_challenge_wins  ?? 0),
       };
       haveCounts = true;
       refresh();

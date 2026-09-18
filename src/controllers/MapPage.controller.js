@@ -16,7 +16,8 @@ import { watchMissionsDoneToday } from "../data/missionsDone.js";
 import { QuestsChip } from "./QuestsChip.controller.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 import { auth } from "../../firebase-config.js";
-import { clearMyActiveChallenge } from "../data/challenges.js";
+import { clearMyActiveChallenge, settleChallenge } from "../data/challenges.js";
+import { checkAndUnlockBadges, BADGE_DEFINITIONS } from "../data/badges.js";
 
 // How far the player can walk before the "around me" predictions are about
 // somewhere else. The model resolves at a few hundred metres.
@@ -309,13 +310,63 @@ export function MapPage() {
     challengeScreen.setChecklist(rows, { found, total: speciesList.length });
   }
 
+  // --- settling an ended challenge ---
+  // The player's place, the points it pays and the record of it are written
+  // the first time this page sees the challenge over with its standings in —
+  // whether that is the moment the clock runs out or a later visit. Writing
+  // is idempotent (see settleChallenge), so an extra attempt costs nothing.
+  let settledFor = null;   // challenge id settled, or being settled, in this session
+  async function maybeSettle() {
+    const { challenge, rows, speciesList, foundSpecies, foundGbifIds, myUid } = challengeState ?? {};
+    if (!challenge || !myUid || !isEnded(challenge) || !rows?.length) return;
+    if (settledFor === challenge.id) return;
+    if (!rows.some((r) => r.uid === myUid)) return;
+    settledFor = challenge.id;
+    try {
+      const found = (speciesList || []).filter((sp) => isSpeciesFound(sp, foundSpecies, foundGbifIds)).length;
+      const outcome = await settleChallenge({
+        challengeId: challenge.id,
+        code: challenge.code,
+        type: challenge.type,
+        rows,
+        found,
+        total: (speciesList || []).length,
+      });
+      if (!outcome) { settledFor = null; return; }
+      let newBadges = [];
+      if (outcome.settledNow) {
+        try {
+          const ids = await checkAndUnlockBadges(myUid, {
+            challengesPlayed: outcome.challengesPlayed,
+            challengesWon: outcome.challengesWon,
+          });
+          newBadges = ids
+            .map((id) => BADGE_DEFINITIONS.find((b) => b.id === id))
+            .filter(Boolean)
+            .map((b) => ({ emoji: b.emoji, label: t(b.nameKey) }));
+        } catch (e) {
+          console.error("[MapPage] challenge badges failed:", e);
+        }
+      }
+      if (challengeState?.challenge?.id === challenge.id) {
+        challengeScreen.setResult({ ...outcome, newBadges });
+      }
+    } catch (e) {
+      console.error("[MapPage] settling challenge failed:", e);
+      settledFor = null;
+    }
+  }
+
   /** Repaints the tab's clock, and the screen's, once a second. */
   function tickChallenge() {
     if (!challengeState?.challenge) return;
     const ended = isEnded(challengeState.challenge);
     view.setChallengeTab({ label: challengeLabel(challengeState) });
     challengeScreen.tick(ended);
-    if (ended && challengeTimer) { clearInterval(challengeTimer); challengeTimer = null; }
+    if (ended) {
+      if (challengeTimer) { clearInterval(challengeTimer); challengeTimer = null; }
+      maybeSettle();
+    }
   }
 
   const stopChallengeWatch = watchActiveChallenge((state) => {
@@ -333,6 +384,7 @@ export function MapPage() {
     challengeScreen.setChallenge(state.challenge, { isEnded: ended });
     challengeScreen.setLeaderboard(state.rows);
     renderChecklist();
+    if (ended) maybeSettle();
 
     view.setChallengeTab({
       visible: true,

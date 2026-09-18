@@ -1,7 +1,8 @@
 // src/controllers/ChallengeModal.controller.js
 import { Modal } from "../ui/components/Modal.js";
 import { t, translateDom } from "../language/i18n.js";
-import { createChallenge, joinChallengeByCode } from "../data/challenges.js";
+import { createChallenge, joinChallengeByCode, listChallengeHistory } from "../data/challenges.js";
+import { auth } from "../../firebase-config.js";
 import { getCurrentPosition } from "../data/geo.service.js";
 import { fetchPredictions } from "../api/plantgo.js";
 
@@ -34,6 +35,8 @@ export function ChallengeModal({ onJoined } = {}) {
             data-i18n="challenge.create.tab">Create</span>
       <span class="panel-tab" id="tabJoin" role="tab" tabindex="0" aria-selected="false"
             data-i18n="challenge.join.tab">Join</span>
+      <span class="panel-tab" id="tabHistory" role="tab" tabindex="0" aria-selected="false"
+            data-i18n="challenge.history.tab">History</span>
     </div>
 
     <div id="paneCreate" style="display:flex; flex-direction:column; gap:12px">
@@ -87,6 +90,11 @@ export function ChallengeModal({ onJoined } = {}) {
       <div id="joinOut" class="muted" style="display:none"></div>
     </div>
 
+    <div id="paneHistory" class="mp-history" style="display:none">
+      <p class="mp-history__status muted" data-i18n="challenge.history.loading">Loading…</p>
+      <ol class="mp-history__list"></ol>
+    </div>
+
     <div id="feedback" class="validation-feedback" aria-live="polite"></div>
   `;
 
@@ -102,25 +110,72 @@ export function ChallengeModal({ onJoined } = {}) {
   // translate content
   translateDom(modal);
 
-  const tabCreate = modal.querySelector("#tabCreate");
-  const tabJoin = modal.querySelector("#tabJoin");
-  const paneCreate = modal.querySelector("#paneCreate");
-  const paneJoin = modal.querySelector("#paneJoin");
+  const tabs = {
+    create: { tab: modal.querySelector("#tabCreate"), pane: modal.querySelector("#paneCreate"), display: "flex" },
+    join: { tab: modal.querySelector("#tabJoin"), pane: modal.querySelector("#paneJoin"), display: "flex" },
+    history: { tab: modal.querySelector("#tabHistory"), pane: modal.querySelector("#paneHistory"), display: "block" },
+  };
 
-  function setTab(tab) {
-    const isCreate = tab === "create";
-    tabCreate.classList.toggle("panel-tab--active", isCreate);
-    tabCreate.setAttribute("aria-selected", String(isCreate));
-    tabJoin.classList.toggle("panel-tab--active", !isCreate);
-    tabJoin.setAttribute("aria-selected", String(!isCreate));
-    paneCreate.style.display = isCreate ? "flex" : "none";
-    paneJoin.style.display = isCreate ? "none" : "flex";
+  function setTab(which) {
+    for (const [name, { tab, pane, display }] of Object.entries(tabs)) {
+      const on = name === which;
+      tab.classList.toggle("panel-tab--active", on);
+      tab.setAttribute("aria-selected", String(on));
+      pane.style.display = on ? display : "none";
+    }
+    if (which === "history") loadHistory();
   }
 
-  tabCreate.addEventListener("click", () => setTab("create"));
-  tabJoin.addEventListener("click", () => setTab("join"));
-  tabCreate.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setTab("create"); } });
-  tabJoin.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setTab("join"); } });
+  for (const [name, { tab }] of Object.entries(tabs)) {
+    tab.addEventListener("click", () => setTab(name));
+    tab.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setTab(name); } });
+  }
+
+  // --- past challenges ---
+  // Read once per opening of the modal: the list only changes when a
+  // challenge ends, and that is not something that happens while it is open.
+  let historyLoaded = false;
+  const historyStatus = modal.querySelector(".mp-history__status");
+  const historyList = modal.querySelector(".mp-history__list");
+
+  async function loadHistory() {
+    if (historyLoaded) return;
+    historyLoaded = true;
+    try {
+      const items = await listChallengeHistory(auth.currentUser?.uid);
+      historyList.replaceChildren(...items.map(historyRow));
+      historyStatus.textContent = items.length ? "" : t("challenge.history.empty");
+      historyStatus.hidden = !!items.length;
+    } catch (e) {
+      console.error("[ChallengeModal] history failed:", e);
+      historyStatus.textContent = t("challenge.error.generic");
+      historyLoaded = false;
+    }
+  }
+
+  function historyRow(h) {
+    const li = document.createElement("li");
+    li.className = `mp-history__row${h.won ? " is-won" : ""}`;
+    const medal = h.rank === 1 && h.players >= 2 ? "🥇" : h.rank === 2 ? "🥈" : h.rank === 3 ? "🥉" : "🏁";
+    const date = h.endedAtMs
+      ? new Date(h.endedAtMs).toLocaleDateString(document.documentElement.lang || "en", { day: "numeric", month: "short" })
+      : "";
+    const place = h.players >= 2 ? t("challenge.result.place", { rank: h.rank, players: h.players }) : t("challenge.result.solo");
+    const found = h.total ? t("challenge.result.found", { found: h.found, total: h.total }) : "";
+    li.innerHTML = `
+      <span class="mp-history__medal" aria-hidden="true"></span>
+      <span class="mp-history__text">
+        <span class="mp-history__line"></span>
+        <span class="mp-history__meta"></span>
+      </span>
+      <span class="mp-history__pts"></span>
+    `;
+    li.querySelector(".mp-history__medal").textContent = medal;
+    li.querySelector(".mp-history__line").textContent = place;
+    li.querySelector(".mp-history__meta").textContent = [date, found].filter(Boolean).join(" · ");
+    li.querySelector(".mp-history__pts").textContent = h.points > 0 ? `+${h.points} ${t("result.ptsShort")}` : "";
+    return li;
+  }
 
   const elType = modal.querySelector("#challengeType");
   const elDuration = modal.querySelector("#challengeDuration");

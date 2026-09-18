@@ -16,6 +16,7 @@ import {
   orderBy,
   limit,
   onSnapshot,
+  increment,
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
 function makeCode(len = 5) {
@@ -325,5 +326,112 @@ export async function applySpeciesHuntScore({
     if (gbifIdNum) update.foundGbifIds = [...foundGbifIds, gbifIdNum];
 
     txn.update(memberRef, update);
+  });
+}
+
+
+// ── the end of a challenge ───────────────────────────────────────────────────
+
+/**
+ * What a place on the podium is worth. Only the podium pays: the species
+ * found along the way were already paid for as observations.
+ */
+export const PODIUM_POINTS = [1000, 600, 300];
+
+/**
+ * Standings from leaderboard rows (already sorted by score, descending).
+ * Equal scores share a place and the next place is skipped — two players
+ * on 7 are both 1st and the next is 3rd — so a tie never robs anyone.
+ * Returns [{ uid, username, score, rank }].
+ */
+export function standings(rows = []) {
+  const sorted = [...rows].sort((a, b) => (b.score || 0) - (a.score || 0));
+  let rank = 0;
+  let prevScore = null;
+  return sorted.map((r, i) => {
+    const score = r.score || 0;
+    if (score !== prevScore) { rank = i + 1; prevScore = score; }
+    return { uid: r.uid, username: r.username || "—", score, rank };
+  });
+}
+
+/**
+ * Settle an ended challenge for the signed-in player: their place, the
+ * points it earns and a record of it, written once. Runs as a transaction
+ * on the player's own history document, so a second call — another tab,
+ * another day — finds the record and returns it instead of paying twice.
+ *
+ * Podium points need company: a hunt with one player, or a place earned
+ * with nothing found, pays nothing.
+ *
+ * Returns { rank, players, score, found, total, points, challengesPlayed,
+ *           challengesWon, settledNow }.
+ */
+export async function settleChallenge({ challengeId, code, type, rows, found = 0, total = 0 }) {
+  const u = auth.currentUser;
+  if (!u || !challengeId) return null;
+
+  const table = standings(rows);
+  const me = table.find((r) => r.uid === u.uid);
+  if (!me) return null;
+
+  const players = table.length;
+  const paid = players >= 2 && me.score > 0 ? (PODIUM_POINTS[me.rank - 1] || 0) : 0;
+
+  const userRef = doc(db, "users", u.uid);
+  const histRef = doc(db, "users", u.uid, "challengeHistory", challengeId);
+
+  return runTransaction(db, async (txn) => {
+    const [histSnap, userSnap] = await Promise.all([txn.get(histRef), txn.get(userRef)]);
+    const user = userSnap.data() || {};
+    if (histSnap.exists()) {
+      const h = histSnap.data();
+      return {
+        ...h,
+        challengesPlayed: Number(user.total_challenges || 0),
+        challengesWon: Number(user.total_challenge_wins || 0),
+        settledNow: false,
+      };
+    }
+    const record = {
+      challengeId,
+      code: code || "",
+      type: type || "species_hunt",
+      endedAt: serverTimestamp(),
+      rank: me.rank,
+      players,
+      score: me.score,
+      found,
+      total,
+      points: paid,
+      won: me.rank === 1 && paid > 0,
+    };
+    txn.set(histRef, record);
+    txn.update(userRef, {
+      total_points: increment(paid),
+      total_challenges: increment(1),
+      total_challenge_wins: increment(record.won ? 1 : 0),
+    });
+    return {
+      ...record,
+      challengesPlayed: Number(user.total_challenges || 0) + 1,
+      challengesWon: Number(user.total_challenge_wins || 0) + (record.won ? 1 : 0),
+      settledNow: true,
+    };
+  });
+}
+
+/** The player's past challenges, newest first. */
+export async function listChallengeHistory(uid, max = 30) {
+  if (!uid) return [];
+  const q = query(
+    collection(db, "users", uid, "challengeHistory"),
+    orderBy("endedAt", "desc"),
+    limit(max)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => {
+    const h = d.data();
+    return { ...h, endedAtMs: h.endedAt?.toMillis ? h.endedAt.toMillis() : null };
   });
 }

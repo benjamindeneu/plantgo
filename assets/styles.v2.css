@@ -2252,6 +2252,29 @@
 }
 
 /* ============================================================
+   CHALLENGE HISTORY  (in the challenge modal)
+   ============================================================ */
+.v2 .mp-history__status { margin: 0; font-size: .88rem; text-align: center; padding: 8px 0; }
+.v2 .mp-history__status[hidden] { display: none; }
+.v2 .mp-history__list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.v2 .mp-history__row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--mp-r-sm);
+  background: var(--mp-surface-2);
+  border: 1px solid var(--mp-line);
+}
+.v2 .mp-history__row.is-won { background: var(--mp-legendary-tint); border-color: color-mix(in srgb, var(--mp-legendary) 35%, transparent); }
+.v2 .mp-history__medal { font-size: 1.3rem; line-height: 1; }
+.v2 .mp-history__text { display: grid; gap: 1px; min-width: 0; }
+.v2 .mp-history__line { font-family: var(--mp-ui); font-size: .9rem; font-weight: 600; color: var(--mp-ink); }
+.v2 .mp-history__meta { font-family: var(--mp-ui); font-size: .76rem; color: var(--mp-ink-2); }
+.v2 .mp-history__pts { font-family: var(--mp-ui); font-size: .84rem; font-weight: 700; color: var(--mp-brand-text); white-space: nowrap; }
+
+/* ============================================================
    ADMIN
    ------------------------------------------------------------
    A few tools for whoever carries the `admin` flag. One section
@@ -4145,27 +4168,48 @@
 
 .map-page .mp-chal { display: grid; gap: 14px; padding-top: 2px; }
 
-.map-page .mp-chal__head {
+/* ---------- the match card ---------- */
+/* What the hunt is, how long is left, how far along you are, who is in it.
+   The clock is the biggest thing here; it changes colour as time runs out
+   rather than relying on the player reading the digits. */
+.map-page .mp-chal__match {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--mp-r-md);
+  background: var(--mp-surface-2);
+  border: 1px solid var(--mp-line);
+}
+.map-page .mp-chal__match[hidden] { display: none; }
+.map-page .mp-chal__match-top {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
+}
+.map-page .mp-chal__kind {
+  font-family: var(--mp-ui);
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--mp-ink);
+  white-space: nowrap;
 }
 /* The join code is the one thing in here another player needs, so it is a
    button that copies itself rather than text to be read out loud. */
 .map-page .mp-chal__code {
   width: auto;
   margin: 0;
-  padding: 7px 13px;
+  padding: 5px 10px;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   color: var(--mp-brand-text);
   background: var(--mp-soft);
   border: 0;
   border-radius: 999px;
   box-shadow: none;
   font-family: var(--mp-ui);
-  font-size: .86rem;
+  font-size: .78rem;
   font-weight: 700;
   letter-spacing: .08em;
   cursor: pointer;
@@ -4176,26 +4220,259 @@
 .map-page .mp-chal__code-icon { opacity: .6; }
 .map-page .mp-chal__code.is-copied .mp-chal__code-icon { display: none; }
 
+.map-page .mp-chal__match-body {
+  display: flex;
+  align-items: stretch;
+  gap: 14px;
+}
+.map-page .mp-chal__clock-wrap { display: grid; gap: 0; align-content: center; }
 /* Tabular figures so a ticking clock does not jitter its own width. */
 .map-page .mp-chal__clock {
-  margin-left: auto;
-  padding: 6px 13px;
+  font-family: var(--mp-ui);
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--mp-brand-text);
+  transition: color 300ms var(--mp-ease);
+}
+.map-page .mp-chal__clock-label {
+  font-family: var(--mp-ui);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--mp-ink-2);
+}
+.map-page .mp-chal__match.is-warning .mp-chal__clock { color: var(--mp-legendary); }
+.map-page .mp-chal__match.is-critical .mp-chal__clock {
+  color: var(--mp-danger);
+  animation: mp-chal-tick 1s ease-in-out infinite;
+}
+@keyframes mp-chal-tick { 50% { transform: scale(1.06); opacity: .85; } }
+.map-page .mp-chal__match.is-ended .mp-chal__clock { font-size: 1.2rem; color: var(--mp-ink-2); }
+
+.map-page .mp-chal__found {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: end;
+  column-gap: 8px;
+  row-gap: 6px;
+  padding-left: 14px;
+  border-left: 1px solid var(--mp-line);
+}
+.map-page .mp-chal__found[hidden] { display: none; }
+.map-page .mp-chal__found-value {
+  font-family: var(--mp-ui);
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--mp-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.map-page .mp-chal__found-value b { font-size: 1.35rem; font-weight: 800; letter-spacing: -.02em; color: var(--mp-ink); }
+.map-page .mp-chal__found-label {
+  font-family: var(--mp-ui);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--mp-ink-2);
+  padding-bottom: 3px;
+}
+.map-page .mp-chal__found-rail {
+  grid-column: 1 / -1;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(22,36,28,.08);
+  overflow: hidden;
+}
+.map-page .mp-chal__found-fill {
+  display: block;
+  height: 100%;
   border-radius: 999px;
   background: var(--mp-grad);
-  color: #fff;
-  font-family: var(--mp-ui);
-  font-size: .86rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  text-shadow: var(--mp-on-brand-shadow);
-  box-shadow: 0 2px 8px rgba(18,185,110,.34);
+  transition: width 420ms var(--mp-ease);
 }
-.map-page .mp-chal__clock.is-ended {
-  background: var(--mp-surface-2);
-  color: var(--mp-ink-2);
+
+.map-page .mp-chal__players { display: flex; align-items: center; gap: 4px; }
+.map-page .mp-chal__players-count {
+  margin-left: 6px;
+  font-family: var(--mp-ui);
+  font-size: .76rem;
   font-weight: 600;
-  text-shadow: none;
-  box-shadow: none;
+  color: var(--mp-ink-2);
+}
+
+/* ---------- players ---------- */
+/* An initial in a coloured disc: the same disc, in the same colour, for a
+   player wherever they turn up on the screen. */
+.map-page .mp-avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: hsl(var(--hue, 152) 45% 88%);
+  color: hsl(var(--hue, 152) 45% 28%);
+  font-family: var(--mp-ui);
+  font-size: .82rem;
+  font-weight: 700;
+  border: 2px solid var(--mp-surface);
+  flex: none;
+}
+.map-page .mp-avatar.is-me { box-shadow: 0 0 0 2px var(--mp-brand); }
+.map-page .mp-avatar--sm { width: 24px; height: 24px; font-size: .7rem; margin-left: -6px; }
+.map-page .mp-avatar--sm:first-child { margin-left: 0; }
+.map-page .mp-avatar--more { background: var(--mp-surface); color: var(--mp-ink-2); border-color: var(--mp-line); font-size: .62rem; }
+.map-page .mp-avatar--row { width: 26px; height: 26px; font-size: .74rem; border-width: 0; }
+.map-page .mp-avatar--podium { width: 40px; height: 40px; font-size: 1rem; }
+
+/* ---------- podium ---------- */
+/* Second, first, third: the winner in the middle and on the tallest block.
+   Blocks are numbered with the rank rather than the column, so a tie for
+   first shows two 1s instead of pretending one of them lost. */
+.map-page .mp-podium {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: end;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.map-page .mp-podium:empty { display: none; }
+.map-page .mp-podium__spot {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 6px 4px 0;
+  border-radius: var(--mp-r-sm);
+}
+.map-page .mp-podium__spot.is-me { background: var(--mp-soft); }
+.map-page .mp-podium__crown {
+  position: absolute;
+  top: -6px;
+  font-size: .9rem;
+  line-height: 1;
+  transform: rotate(-12deg);
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.2));
+}
+.map-page .mp-podium__spot--1 .mp-avatar--podium { box-shadow: 0 0 0 3px var(--mp-legendary); }
+.map-page .mp-podium__spot--2 .mp-avatar--podium { box-shadow: 0 0 0 3px #b9c2c6; }
+.map-page .mp-podium__spot--3 .mp-avatar--podium { box-shadow: 0 0 0 3px #d29a6b; }
+.map-page .mp-podium__spot.is-me .mp-avatar--podium { box-shadow: 0 0 0 3px var(--mp-brand); }
+.map-page .mp-podium__name {
+  max-width: 100%;
+  font-family: var(--mp-ui);
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--mp-ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.map-page .mp-podium__spot.is-me .mp-podium__name { color: var(--mp-brand-text); font-weight: 700; }
+.map-page .mp-podium__score {
+  position: relative;
+  font-family: var(--mp-ui);
+  font-size: .74rem;
+  font-weight: 700;
+  color: var(--mp-ink-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.map-page .mp-podium__block {
+  width: 100%;
+  margin-top: 3px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px 8px 0 0;
+  font-family: var(--mp-ui);
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0,0,0,.25);
+}
+.map-page .mp-podium__spot--1 .mp-podium__block { height: 44px; background: linear-gradient(180deg, #f2b53a, var(--mp-legendary)); }
+.map-page .mp-podium__spot--2 .mp-podium__block { height: 32px; background: linear-gradient(180deg, #c9d1d5, #a3adb2); }
+.map-page .mp-podium__spot--3 .mp-podium__block { height: 24px; background: linear-gradient(180deg, #d9a878, #c07a3e); }
+
+/* A score that just went up. Shared by podium and rows. */
+.map-page .mp-podium__score.is-bump,
+.map-page .mp-lead__score.is-bump { animation: mp-lead-bump 420ms var(--mp-ease); color: var(--mp-brand-text); }
+@keyframes mp-lead-bump { 30% { transform: scale(1.2); } }
+.map-page .mp-lead__gain {
+  position: absolute;
+  left: 50%; top: -2px;
+  transform: translateX(-50%);
+  font-size: .78rem;
+  font-weight: 800;
+  color: var(--mp-brand-text);
+  pointer-events: none;
+  animation: mp-lead-gain 1s ease-out forwards;
+}
+@keyframes mp-lead-gain {
+  0%   { transform: translate(-50%, 0); opacity: 0; }
+  15%  { opacity: 1; }
+  100% { transform: translate(-50%, -22px); opacity: 0; }
+}
+
+/* ---------- the result ---------- */
+.map-page .mp-chal__result {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 14px 14px 12px;
+  text-align: center;
+  border-radius: var(--mp-r-md);
+  background: var(--mp-surface-2);
+  border: 1px solid var(--mp-line);
+}
+.map-page .mp-chal__result[hidden] { display: none; }
+.map-page .mp-chal__result.is-winner {
+  background: linear-gradient(160deg, var(--mp-legendary-tint), var(--mp-surface-2));
+  border-color: color-mix(in srgb, var(--mp-legendary) 40%, transparent);
+}
+.map-page .mp-chal__result-medal { font-size: 2.2rem; line-height: 1; margin-bottom: 4px; }
+.map-page .mp-chal__result-title {
+  margin: 0;
+  font-family: var(--mp-ui);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -.015em;
+  color: var(--mp-ink);
+}
+.map-page .mp-chal__result-sub { margin: 0; font-family: var(--mp-ui); font-size: .84rem; color: var(--mp-ink-2); }
+.map-page .mp-chal__result-pts {
+  margin: 6px 0 0;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: var(--mp-soft);
+  font-family: var(--mp-ui);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--mp-brand-text);
+  font-variant-numeric: tabular-nums;
+}
+.map-page .mp-chal__result-pts[hidden] { display: none; }
+.map-page .mp-chal__result-pts [data-unit] { font-size: .78rem; font-weight: 600; }
+.map-page .mp-chal__result-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 8px; }
+.map-page .mp-chal__result-badges[hidden] { display: none; }
+.map-page .mp-chal__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 6px;
+  border-radius: 999px;
+  background: var(--mp-surface);
+  border: 1px solid var(--mp-line);
+  font-family: var(--mp-ui);
+  font-size: .76rem;
+  font-weight: 600;
+  color: var(--mp-ink);
+  animation: mp-quiz-rise 320ms var(--mp-ease) both;
 }
 
 .map-page .mp-chal__section { display: grid; gap: 8px; }
@@ -4259,7 +4536,7 @@
 .map-page .mp-lead { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
 .map-page .mp-lead__row {
   display: grid;
-  grid-template-columns: 22px 1fr auto;
+  grid-template-columns: 18px auto 1fr auto;
   align-items: center;
   gap: 9px;
   padding: 8px 11px;
@@ -4267,9 +4544,6 @@
   background: var(--mp-surface-2);
   border: 1px solid transparent;
 }
-.map-page .mp-lead__row--top1 { background: var(--mp-legendary-tint); }
-.map-page .mp-lead__row--top2 { background: #f1f4f2; }
-.map-page .mp-lead__row--top3 { background: #f8f0e8; }
 .map-page .mp-lead__row.is-me {
   border-color: color-mix(in srgb, var(--mp-brand) 40%, transparent);
   background: var(--mp-soft);
@@ -4281,9 +4555,6 @@
   text-align: center;
   color: var(--mp-ink-2);
 }
-.map-page .mp-lead__row--top1 .mp-lead__rank { color: #d99b09; font-size: .95rem; }
-.map-page .mp-lead__row--top2 .mp-lead__rank { color: #9aa3a7; font-size: .95rem; }
-.map-page .mp-lead__row--top3 .mp-lead__rank { color: #c07a3e; font-size: .95rem; }
 .map-page .mp-lead__name {
   min-width: 0;
   font-family: var(--mp-ui);
@@ -4294,6 +4565,7 @@
 }
 .map-page .mp-lead__row.is-me .mp-lead__name { font-weight: 700; color: var(--mp-brand-text); }
 .map-page .mp-lead__score {
+  position: relative;
   font-family: var(--mp-ui);
   font-size: .8rem;
   font-weight: 700;
@@ -4334,6 +4606,12 @@
   .v2 .mp-row__leaf,
   .map-page .mp-lead__fill,
   .map-page .mp-chal__code,
+  .map-page .mp-chal__clock,
+  .map-page .mp-chal__found-fill,
+  .map-page .mp-podium__score,
+  .map-page .mp-lead__score,
+  .map-page .mp-lead__gain,
+  .map-page .mp-chal__badge,
   .v2 .mp-switch,
   .v2 .mp-switch__track,
   .v2 .mp-switch__knob,
