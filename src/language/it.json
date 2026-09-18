@@ -207,6 +207,8 @@
   "challenge.result.place": "{rank}º su {players}",
   "challenge.result.solo": "Caccia in solitaria",
   "challenge.result.found": "{found}/{total} trovate",
+  "challenge.result.needPlayers": "Servono almeno {n} giocatori per ottenere punti.",
+  "challenge.result.needFind": "Trova almeno una specie della lista per ottenere punti.",
   "challenge.history.tab": "Cronologia",
   "challenge.history.loading": "Caricamento…",
   "challenge.history.empty": "Nessuna sfida giocata finora.",

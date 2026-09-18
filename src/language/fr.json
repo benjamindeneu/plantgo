@@ -207,6 +207,8 @@
   "challenge.result.place": "{rank}e sur {players}",
   "challenge.result.solo": "Chasse en solo",
   "challenge.result.found": "{found}/{total} trouvées",
+  "challenge.result.needPlayers": "Il faut au moins {n} joueurs pour gagner des points.",
+  "challenge.result.needFind": "Trouvez au moins une espèce de la liste pour gagner des points.",
   "challenge.history.tab": "Historique",
   "challenge.history.loading": "Chargement…",
   "challenge.history.empty": "Aucun défi joué pour l'instant.",

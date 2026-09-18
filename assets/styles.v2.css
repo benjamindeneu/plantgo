@@ -4458,6 +4458,8 @@
 }
 .map-page .mp-chal__result-pts[hidden] { display: none; }
 .map-page .mp-chal__result-pts [data-unit] { font-size: .78rem; font-weight: 600; }
+.map-page .mp-chal__result-note { margin: 4px 0 0; font-family: var(--mp-ui); font-size: .76rem; color: var(--mp-ink-2); }
+.map-page .mp-chal__result-note[hidden] { display: none; }
 .map-page .mp-chal__result-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 8px; }
 .map-page .mp-chal__result-badges[hidden] { display: none; }
 .map-page .mp-chal__badge {

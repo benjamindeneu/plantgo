@@ -337,6 +337,8 @@ export async function applySpeciesHuntScore({
  * found along the way were already paid for as observations.
  */
 export const PODIUM_POINTS = [1000, 600, 300];
+/** A podium needs a field: fewer players than this and no place pays. */
+export const MIN_PLAYERS_FOR_POINTS = 3;
 
 /**
  * Standings from leaderboard rows (already sorted by score, descending).
@@ -361,8 +363,9 @@ export function standings(rows = []) {
  * on the player's own history document, so a second call — another tab,
  * another day — finds the record and returns it instead of paying twice.
  *
- * Podium points need company: a hunt with one player, or a place earned
- * with nothing found, pays nothing.
+ * Podium points need company: fewer than MIN_PLAYERS_FOR_POINTS players,
+ * or a place earned with nothing on the list found, pays nothing —
+ * whatever the place.
  *
  * Returns { rank, players, score, found, total, points, challengesPlayed,
  *           challengesWon, settledNow }.
@@ -376,7 +379,11 @@ export async function settleChallenge({ challengeId, code, type, rows, found = 0
   if (!me) return null;
 
   const players = table.length;
-  const paid = players >= 2 && me.score > 0 ? (PODIUM_POINTS[me.rank - 1] || 0) : 0;
+  // Found on the hunt's list, or — for a points race, which has no list —
+  // scored at all.
+  const foundAny = total > 0 ? found > 0 : me.score > 0;
+  const eligible = players >= MIN_PLAYERS_FOR_POINTS && foundAny;
+  const paid = eligible ? (PODIUM_POINTS[me.rank - 1] || 0) : 0;
 
   const userRef = doc(db, "users", u.uid);
   const histRef = doc(db, "users", u.uid, "challengeHistory", challengeId);

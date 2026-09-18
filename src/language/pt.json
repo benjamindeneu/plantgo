@@ -207,6 +207,8 @@
   "challenge.result.place": "{rank}º de {players}",
   "challenge.result.solo": "Caça a solo",
   "challenge.result.found": "{found}/{total} encontradas",
+  "challenge.result.needPlayers": "São precisos pelo menos {n} jogadores para ganhar pontos.",
+  "challenge.result.needFind": "Encontre pelo menos uma espécie da lista para ganhar pontos.",
   "challenge.history.tab": "Histórico",
   "challenge.history.loading": "A carregar…",
   "challenge.history.empty": "Ainda não jogou nenhum desafio.",

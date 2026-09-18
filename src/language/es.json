@@ -207,6 +207,8 @@
   "challenge.result.place": "{rank}º de {players}",
   "challenge.result.solo": "Búsqueda en solitario",
   "challenge.result.found": "{found}/{total} encontradas",
+  "challenge.result.needPlayers": "Se necesitan al menos {n} jugadores para ganar puntos.",
+  "challenge.result.needFind": "Encuentra al menos una especie de la lista para ganar puntos.",
   "challenge.history.tab": "Historial",
   "challenge.history.loading": "Cargando…",
   "challenge.history.empty": "Aún no has jugado ningún desafío.",

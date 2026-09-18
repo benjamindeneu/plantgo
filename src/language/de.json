@@ -207,6 +207,8 @@
   "challenge.result.place": "Platz {rank} von {players}",
   "challenge.result.solo": "Solo-Jagd",
   "challenge.result.found": "{found}/{total} gefunden",
+  "challenge.result.needPlayers": "Punkte gibt es erst ab {n} Spielern.",
+  "challenge.result.needFind": "Finde mindestens eine Art der Liste, um Punkte zu erhalten.",
   "challenge.history.tab": "Verlauf",
   "challenge.history.loading": "Wird geladen…",
   "challenge.history.empty": "Noch keine Herausforderungen gespielt.",

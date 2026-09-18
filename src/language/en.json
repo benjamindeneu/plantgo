@@ -207,6 +207,8 @@
   "challenge.result.place": "#{rank} of {players}",
   "challenge.result.solo": "Solo hunt",
   "challenge.result.found": "{found}/{total} found",
+  "challenge.result.needPlayers": "Points need at least {n} players.",
+  "challenge.result.needFind": "Find at least one species on the list to earn points.",
   "challenge.history.tab": "History",
   "challenge.history.loading": "Loading…",
   "challenge.history.empty": "No challenges played yet.",

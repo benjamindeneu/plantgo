@@ -1,7 +1,7 @@
 // src/ui/components/ChallengeScreen.view.js
 import { t } from "../../language/i18n.js";
 import { isSpeciesFound } from "../../data/activeChallenge.js";
-import { standings } from "../../data/challenges.js";
+import { standings, MIN_PLAYERS_FOR_POINTS } from "../../data/challenges.js";
 import { fireLevelUpConfetti } from "../levelProgress.js";
 
 /**
@@ -77,6 +77,7 @@ export function createChallengeScreenView({ onClose } = {}) {
       <p class="mp-chal__result-title"></p>
       <p class="mp-chal__result-sub"></p>
       <p class="mp-chal__result-pts" hidden>+<span data-pts>0</span> <span data-unit></span></p>
+      <p class="mp-chal__result-note" hidden></p>
       <div class="mp-chal__result-badges" hidden></div>
     </div>
 
@@ -116,6 +117,7 @@ export function createChallengeScreenView({ onClose } = {}) {
   const resultPts = q(".mp-chal__result-pts");
   const resultPtsValue = q("[data-pts]");
   const resultPtsUnit = q("[data-unit]");
+  const resultNote = q(".mp-chal__result-note");
   const resultBadges = q(".mp-chal__result-badges");
   const huntSection = q("#chalHunt");
   const huntLabel = q("#chalHunt .mp-chal__label");
@@ -351,18 +353,27 @@ export function createChallengeScreenView({ onClose } = {}) {
     if (!show) return;
     const { rank, players, found, total, points, newBadges = [] } = outcome;
     resultMedal.textContent = medalFor(rank);
-    result.classList.toggle("is-winner", rank === 1 && players >= 2);
-    resultTitle.textContent = rank === 1 && players >= 2
+    const contested = players >= 2;
+    result.classList.toggle("is-winner", rank === 1 && contested);
+    resultTitle.textContent = rank === 1 && contested
       ? t("challenge.result.won")
-      : rank <= 3 && players >= 2
+      : rank <= 3 && contested
         ? t("challenge.result.podium")
         : t("challenge.result.over");
-    const place = players >= 2 ? t("challenge.result.place", { rank, players }) : t("challenge.result.solo");
+    const place = contested ? t("challenge.result.place", { rank, players }) : t("challenge.result.solo");
     resultSub.textContent = challenge?.type === "species_hunt" && total
       ? `${place} · ${t("challenge.result.found", { found, total })}`
       : place;
     resultPts.hidden = !(points > 0);
     resultPtsUnit.textContent = t("result.ptsShort");
+    // Why a place paid nothing, when it might have been expected to.
+    const noPay = points <= 0 && rank <= 3
+      ? players < MIN_PLAYERS_FOR_POINTS
+        ? t("challenge.result.needPlayers", { n: MIN_PLAYERS_FOR_POINTS })
+        : t("challenge.result.needFind")
+      : "";
+    resultNote.textContent = noPay;
+    resultNote.hidden = !noPay;
     resultBadges.hidden = !newBadges.length;
     resultBadges.replaceChildren();
     for (const b of newBadges) {
@@ -454,7 +465,7 @@ export function createChallengeScreenView({ onClose } = {}) {
         if (next.settledNow) await animateCounter(resultPtsValue, next.points);
         else resultPtsValue.textContent = String(next.points);
       }
-      if (next.settledNow && next.rank === 1 && next.players >= 2) {
+      if (next.settledNow && next.rank === 1 && next.points > 0) {
         fireLevelUpConfetti(root.closest(".mp-sheet") || root);
       }
     },
