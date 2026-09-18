@@ -3154,11 +3154,18 @@
 .v2 .mp-detail__gallery-viewport { position: relative; min-width: 0; }
 .v2 .mp-detail__gallery-scroll {
   display: flex;
+  align-items: flex-start;
   gap: 6px;
+  height: 150px;
   overflow-x: auto;
+  /* Setting overflow-x alone makes overflow-y `auto` too, and a fraction of
+     a pixel of line-box slack under a tile was enough for a vertical
+     scrollbar. Nothing here may be taller than 150px, so clip. */
+  overflow-y: hidden;
   overscroll-behavior-x: contain;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  line-height: 0;
 }
 .v2 .mp-detail__gallery-scroll::-webkit-scrollbar { display: none; }
 .v2 .mp-detail__gallery-fade {
@@ -3199,9 +3206,14 @@
 .v2 .mp-detail__gallery-grid[hidden] { display: none; }
 .v2 .mp-detail__tile {
   position: relative;
+  display: block;
+  box-sizing: border-box;
   width: 72px; height: 72px;
+  margin: 0;
   padding: 0;
   border: 0;
+  appearance: none;
+  -webkit-appearance: none;
   overflow: hidden;
   border-radius: var(--mp-r-sm);
   background: linear-gradient(150deg, var(--mp-soft), var(--mp-surface-2));
@@ -3228,8 +3240,8 @@
   color: #fff;
   pointer-events: none;
 }
-.v2 .mp-detail__badge--wiki { left: 7px; bottom: 7px; width: 22px; height: 22px; background: rgba(255,255,255,.92); color: var(--mp-ink); }
-.v2 .mp-detail__badge-w { font-family: var(--mp-display); font-weight: 700; font-size: 15px; line-height: 1; }
+.v2 .mp-detail__badge--wiki { left: 7px; bottom: 7px; width: 24px; height: 24px; background: rgba(255,255,255,.92); }
+.v2 .mp-detail__badge--wiki img { width: 18px; height: 18px; display: block; }
 .v2 .mp-detail__gallery-credit { margin: 0; font-size: .78rem; }
 .v2 .mp-detail__gallery-credit[hidden] { display: none; }
 
@@ -3456,7 +3468,10 @@
 
 .v2 .mp-detail__links { display: flex; gap: 8px; }
 .v2 .mp-detail__link {
-  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 16px 7px 11px;
   border-radius: 999px;
   background: var(--mp-surface-2);
   color: var(--mp-brand-text);
@@ -3465,6 +3480,7 @@
   font-weight: 600;
   text-decoration: none;
 }
+.v2 .mp-detail__link img { width: 18px; height: 18px; display: block; }
 .v2 .mp-detail__link:hover { background: var(--mp-soft); }
 .v2 .mp-detail__link[hidden] { display: none; }
 

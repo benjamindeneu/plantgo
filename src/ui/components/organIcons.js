@@ -10,7 +10,6 @@
  * other icons are inline SVG).
  */
 const PATHS = {
-  flower: "M12 3c2 3 2 6 0 9-2-3-2-6 0-9zM21 12c-3 2-6 2-9 0 3-2 6-2 9 0zM12 21c-2-3-2-6 0-9 2 3 2 6 0 9zM3 12c3-2 6-2 9 0-3 2-6 2-9 0z",
   leaf: "M4 20C4 10 10 4 20 4c0 10-6 16-16 16zm0 0c3-6 6-9 11-12",
   fruit: "M12 21c-4 0-7-3-7-7s3-6 7-6 7 2 7 6-3 7-7 7zm0-13V5m0 0c0-1 1-2 3-2",
   bark: "M8 3c1 6-1 12 0 18M16 3c-1 6 1 12 0 18M10 9h2M13 14h2",
@@ -18,12 +17,21 @@ const PATHS = {
   other: "M12 21v-8m0 0c0-4-3-6-7-6 0 4 3 6 7 6zm0 0c0-4 3-6 7-6 0 4-3 6-7 6z",
 };
 
+// The flower is the one filled glyph: five round petals around a hollow
+// centre. Drawn as an outline it was four strokes meeting in the middle,
+// which at 12px is a cross, not a flower.
+const FLOWER = "M8.94 7.79A3.93 3.93 0 1 1 15.06 7.79A3.93 3.93 0 1 1 16.95 13.61A3.93 3.93 0 1 1 12 17.2A3.93 3.93 0 1 1 7.05 13.61A3.93 3.93 0 1 1 8.94 7.79ZM9.7 12a2.3 2.3 0 1 0 4.6 0a2.3 2.3 0 1 0-4.6 0Z";
+
 /** SVG markup for one organ, or "" for a photo that carries no organ (iNaturalist). */
 export function organIcon(organ) {
+  if (organ === "flower") {
+    return `<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" fill="currentColor" fill-rule="evenodd"><path d="${FLOWER}"/></svg>`;
+  }
   const d = PATHS[organ];
   if (!d) return "";
   return `<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
 }
 
-/** Wikipedia's own mark is a serif W; the display face is one. */
-export const WIKI_MARK = `<span class="mp-detail__badge-w" aria-hidden="true">W</span>`;
+/** The real logos, as the legacy card already shows them. */
+export const WIKI_MARK = `<img src="./assets/wikipedia-logo.svg" alt="" width="18" height="18" decoding="async">`;
+export const GBIF_MARK = `<img src="./assets/gbif-logo.svg" alt="" width="18" height="18" decoding="async">`;

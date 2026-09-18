@@ -3,7 +3,7 @@ import { getWikipediaSummaryHtml } from "../../data/wiki.service.js";
 import { fetchDescription, fetchTrivia, fetchSpeciesImages, photoProviderName } from "../../api/plantgo.js";
 import { speciesImage, tierOf } from "./SpeciesRow.view.js";
 import { openPhotoViewer } from "./PhotoViewer.js";
-import { organIcon, WIKI_MARK } from "./organIcons.js";
+import { organIcon, WIKI_MARK, GBIF_MARK } from "./organIcons.js";
 import { t } from "../../language/i18n.js";
 
 function uiLang() {
@@ -79,8 +79,8 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
     </div>
 
     <div class="mp-detail__links">
-      <a class="mp-detail__link" target="_blank" rel="noopener noreferrer" data-link="wiki">Wikipedia</a>
-      <a class="mp-detail__link" target="_blank" rel="noopener noreferrer" data-link="gbif">GBIF</a>
+      <a class="mp-detail__link" target="_blank" rel="noopener noreferrer" data-link="wiki">${WIKI_MARK}<span>Wikipedia</span></a>
+      <a class="mp-detail__link" target="_blank" rel="noopener noreferrer" data-link="gbif">${GBIF_MARK}<span>GBIF</span></a>
     </div>
   `;
 
