@@ -1945,6 +1945,17 @@
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
+/* Both names, the common one first and larger: it is the one a player
+   knows the plant by, and the Latin under it says exactly which plant. */
+.v2 .mp-quiz-stage__names { display: grid; gap: 2px; }
+.v2 .mp-quiz-stage__common {
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -.015em;
+  color: var(--mp-ink);
+  overflow-wrap: anywhere;
+}
 .v2 .mp-quiz-stage__species {
   font-family: var(--mp-display);
   font-style: italic;
@@ -1954,17 +1965,19 @@
   color: var(--mp-brand-text);
   overflow-wrap: anywhere;
 }
-.v2 .mp-quiz-stage__species--over {
+.v2 .mp-quiz-stage__common + .mp-quiz-stage__species { font-size: 1.1rem; }
+.v2 .mp-quiz-stage__names--over {
   position: absolute;
   left: 0; right: 0; bottom: 0;
   padding: 44px 14px 12px;
   border-radius: 0 0 var(--mp-r-md) var(--mp-r-md);
-  background: linear-gradient(to top, rgba(22,36,28,.78), rgba(22,36,28,0));
-  color: #fff;
-  font-size: 1.3rem;
+  background: linear-gradient(to top, rgba(22,36,28,.8), rgba(22,36,28,0));
   text-shadow: 0 1px 2px rgba(0,0,0,.4);
   pointer-events: none;
 }
+.v2 .mp-quiz-stage__names--over .mp-quiz-stage__common { color: #fff; font-size: 1.25rem; }
+.v2 .mp-quiz-stage__names--over .mp-quiz-stage__species { color: #fff; font-size: 1.3rem; }
+.v2 .mp-quiz-stage__names--over .mp-quiz-stage__common + .mp-quiz-stage__species { font-size: 1.02rem; opacity: .9; }
 
 /* a photo and its credit */
 .v2 .mp-quiz-photo {

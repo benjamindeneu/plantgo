@@ -184,17 +184,16 @@ export function renderQuestion(container, question, index, total, game = {}) {
     round.appendChild(hudEl);
 
     // --- the stage: the plant this round is about ---------------------------
-    // Every round but "which image" leads with the plant's picture; the name
-    // is laid over it, except when the name is the answer.
+    // Every round but "which image" leads with the plant's picture. Both of
+    // the plant's names are laid over it — except when the Latin one is the
+    // answer, where only the common name may show.
     const stage = document.createElement("div");
     stage.className = "mp-quiz-stage";
+    const names = namesBlock(question, { scientific: !hideName });
     if (isImagePick) {
       stage.classList.add("mp-quiz-stage--name");
-      stage.innerHTML = `
-        <span class="mp-quiz-stage__round">${t("quiz.hud.round", { n: index + 1, total })}</span>
-        <p class="mp-quiz-stage__species"></p>
-      `;
-      stage.querySelector(".mp-quiz-stage__species").textContent = question.species_name;
+      stage.innerHTML = `<span class="mp-quiz-stage__round">${t("quiz.hud.round", { n: index + 1, total })}</span>`;
+      stage.appendChild(names);
     } else {
       const fig = photoFigure(question.photo, { className: "mp-quiz-photo--hero" });
       stage.appendChild(fig);
@@ -202,11 +201,9 @@ export function renderQuestion(container, question, index, total, game = {}) {
       badge.className = "mp-quiz-stage__round mp-quiz-stage__round--over";
       badge.textContent = t("quiz.hud.round", { n: index + 1, total });
       stage.appendChild(badge);
-      if (!hideName) {
-        const name = document.createElement("p");
-        name.className = "mp-quiz-stage__species mp-quiz-stage__species--over";
-        name.textContent = question.species_name;
-        stage.appendChild(name);
+      if (names.childElementCount) {
+        names.classList.add("mp-quiz-stage__names--over");
+        stage.appendChild(names);
       }
     }
     round.appendChild(stage);
@@ -305,6 +302,25 @@ export function renderQuestion(container, question, index, total, game = {}) {
   });
 }
 
+/** The plant's common name over its Latin one; either line is left out when unknown or withheld. */
+function namesBlock(question, { scientific = true } = {}) {
+  const el = document.createElement("div");
+  el.className = "mp-quiz-stage__names";
+  if (question.common_name) {
+    const common = document.createElement("p");
+    common.className = "mp-quiz-stage__common";
+    common.textContent = question.common_name;
+    el.appendChild(common);
+  }
+  if (scientific && question.species_name) {
+    const sci = document.createElement("p");
+    sci.className = "mp-quiz-stage__species";
+    sci.textContent = question.species_name;
+    el.appendChild(sci);
+  }
+  return el;
+}
+
 function pulse(el) {
   if (reducedMotion()) return;
   el.classList.remove("is-pulsing");
@@ -353,7 +369,12 @@ export function renderEmpty(container) {
 const RING_R = 52;
 const RING_C = 2 * Math.PI * RING_R;
 
-export async function renderScore(container, correct, total, { currentTotalBefore = 0, pointsEarned = 0, bestStreak = 0 } = {}) {
+/**
+ * `animate` is for the moment the quiz ends: the ring fills, the counts
+ * climb, the level bar moves, confetti falls. Coming back later to look at
+ * the result again, the screen is drawn settled — the news is not new.
+ */
+export async function renderScore(container, correct, total, { currentTotalBefore = 0, pointsEarned = 0, bestStreak = 0, animate = true } = {}) {
   container.innerHTML = "";
 
   const wrap = document.createElement("div");
@@ -409,9 +430,22 @@ export async function renderScore(container, correct, total, { currentTotalBefor
 
   container.appendChild(wrap);
 
-  // The ring fills and the count climbs together; the points follow.
   const bar = wrap.querySelector(".mp-quiz-ring__bar");
   const target = RING_C * (1 - (total ? correct / total : 0));
+  const barEl = wrap.querySelector("#qLevelProgress");
+
+  if (!animate) {
+    bar.style.transition = "none";
+    bar.style.strokeDashoffset = String(target);
+    wrap.querySelector("[data-ring-count]").textContent = String(correct);
+    wrap.querySelector("[data-pts]").textContent = String(pointsEarned);
+    barEl.style.width = `${toPct}%`;
+    wrap.querySelector("#qLevelFrom").textContent = toLevel;
+    wrap.querySelector("#qLevelTo").textContent = toLevel + 1;
+    return;
+  }
+
+  // The ring fills and the count climbs together; the points follow.
   requestAnimationFrame(() => { bar.style.strokeDashoffset = String(target); });
   await animateCounter(wrap.querySelector("[data-ring-count]"), correct, 900);
   if (pointsEarned > 0) await animateCounter(wrap.querySelector("[data-pts]"), pointsEarned, 800);
@@ -419,7 +453,6 @@ export async function renderScore(container, correct, total, { currentTotalBefor
   if (perfect) fireLevelUpConfetti(container.closest(".card") || container);
 
   // Animate level bar
-  const barEl = wrap.querySelector("#qLevelProgress");
   const leveledUp = toLevel > fromLevel;
 
   if (leveledUp) {

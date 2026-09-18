@@ -11,6 +11,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/fi
 
 import { fetchQuizQuestion } from "../api/plantgo.js";
 import { attachQuizPhotos } from "../data/quizPhoto.js";
+import { getVernacularName } from "../data/vernacular.service.js";
 import { t } from "../language/i18n.js";
 import {
   getUserTotalPoints, awardQuizPoints, isQuizDoneToday, markQuizDone,
@@ -48,7 +49,7 @@ async function getTodaySpecies(userId) {
     if (!data.gbif_id || !data.speciesName) continue;
     if (seen.has(data.speciesName)) continue;
     seen.add(data.speciesName);
-    items.push({ gbif_id: Number(data.gbif_id), name: data.speciesName });
+    items.push({ gbif_id: Number(data.gbif_id), name: data.speciesName, vernacular: data.vernacularName || null });
   }
 
   // Randomly pick up to MAX_QUESTIONS unique species
@@ -81,7 +82,7 @@ export function QuizController(container) {
     // Today's quiz, as it stands: finished, it shows its results again;
     // left mid-way, it picks up at the question it stopped on.
     if (progress?.finished) {
-      showResults(container, progress);
+      showResults(container, progress, { animate: false });
       return;
     }
     if (progress?.items?.length && (progress.results?.length ?? 0) < progress.items.length) {
@@ -121,9 +122,19 @@ export function QuizController(container) {
   // A question is not ready until its pictures are: the photo (and its
   // credit) come from Wikipedia rather than from the backend, so they are
   // resolved right after the question arrives, as part of the same fetch.
+  // So is the plant's common name — the one identify gave the observation,
+  // or GBIF's for an older find — which the stage shows beside the Latin.
   function loadQuestion(item) {
     const lang = document.documentElement.lang || "en";
-    return fetchQuizQuestion({ item, lang }).then(attachQuizPhotos);
+    const { vernacular, ...apiItem } = item;
+    const common = vernacular
+      ? Promise.resolve(vernacular)
+      : getVernacularName({ name: item.name, gbif_id: item.gbif_id, lang }).catch(() => "");
+    return Promise.all([fetchQuizQuestion({ item: apiItem, lang }).then(attachQuizPhotos), common])
+      .then(([question, commonName]) => {
+        if (question && commonName) question.common_name = commonName;
+        return question;
+      });
   }
 
   // What gets saved: the question as the backend sent it. Photos are looked
@@ -261,13 +272,14 @@ export function QuizController(container) {
     showResults(container, progress);
   }
 
-  function showResults(container, progress) {
+  function showResults(container, progress, { animate = true } = {}) {
     const total = progress.items?.length || progress.results?.length || 0;
     const correctCount = (progress.results || []).filter(Boolean).length;
     renderScore(container, correctCount, total, {
       currentTotalBefore: progress.currentTotalBefore || 0,
       pointsEarned: progress.pointsEarned || 0,
       bestStreak: progress.bestStreak || 0,
+      animate,
     });
   }
 
