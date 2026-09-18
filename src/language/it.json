@@ -334,6 +334,7 @@
   "map.detail.loading": "Ricerca della specie…",
   "map.detail.noDescription": "Nessuna descrizione ancora disponibile.",
   "map.detail.photosCredit": "Foto dei contributori {source}",
+  "map.detail.morePhotos": "Mostra altre foto",
   "photo.close": "Chiudi",
   "photo.prev": "Foto precedente",
   "photo.next": "Foto successiva",

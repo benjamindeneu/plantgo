@@ -1,5 +1,5 @@
 // src/ui/components/SpeciesDetail.view.js
-import { getWikipediaSummaryHtml } from "../../data/wiki.service.js";
+import { getWikipediaSummaryHtml, getWikipediaImageInfo } from "../../data/wiki.service.js";
 import { fetchDescription, fetchTrivia, fetchSpeciesImages, photoProviderName } from "../../api/plantgo.js";
 import { speciesImage, tierOf } from "./SpeciesRow.view.js";
 import { openPhotoViewer } from "./PhotoViewer.js";
@@ -59,7 +59,7 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
     <div class="mp-detail__gallery" hidden>
       <div class="mp-detail__gallery-viewport">
         <div class="mp-detail__gallery-scroll">
-          <div class="mp-detail__hero" hidden></div>
+          <button class="mp-detail__hero" type="button" hidden></button>
           <div class="mp-detail__gallery-grid" hidden></div>
         </div>
         <span class="mp-detail__gallery-fade" aria-hidden="true"></span>
@@ -150,6 +150,7 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
   // rectangle for a species nobody has photographed is 150px of nothing.
   // Images go into the document before they load and fade in on `load`
   // (see attachPhoto for why).
+  const wikiUrl = binomial ? `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(binomial)}` : "";
   const gallery = el.querySelector(".mp-detail__gallery");
   const scroller = el.querySelector(".mp-detail__gallery-scroll");
   const hero = el.querySelector(".mp-detail__hero");
@@ -169,6 +170,13 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
     requestAnimationFrame(settleFade);
   }
 
+  // What the viewer pages through: Wikipedia's picture first when there is
+  // one, then the field photos — every one fetched, not only the tiles on
+  // show, so a swipe keeps going where the strip would have needed a tap.
+  let wikiPhoto = null;
+  let fieldPhotos = [];
+  const sequence = () => (wikiPhoto ? [wikiPhoto, ...fieldPhotos] : fieldPhotos);
+
   speciesImage(sciName).then((url) => {
     if (!url || !el.isConnected) return;
     const img = document.createElement("img");
@@ -179,21 +187,36 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
     img.src = url;
     hero.appendChild(img);
     hero.insertAdjacentHTML("beforeend", `<span class="mp-detail__badge mp-detail__badge--wiki">${WIKI_MARK}</span>`);
+    wikiPhoto = { thumb: url, medium: url, full: url, provider: "wikipedia", source: wikiUrl, author: "", license: "" };
+    hero.addEventListener("click", () => {
+      const viewer = openPhotoViewer(sequence(), 0);
+      // The thumbnail opens at once; the larger rendition and the
+      // photographer's credit follow from Commons and are patched in.
+      if (wikiPhoto.large) return;
+      getWikipediaImageInfo(url).then((info) => {
+        if (!info) return;
+        Object.assign(wikiPhoto, { large: info.large, medium: info.large, full: info.large, author: info.author, license: info.license });
+        viewer?._refresh?.();
+      });
+    });
   });
 
   // The backend's gallery is keyed by GBIF id; a name alone has nowhere to
   // be sent, so such a species keeps just its Wikipedia picture.
   const gbifId = species.gbif_id ?? species.gbifId;
+  const PAGE = 12;
   if (gbifId) {
-    fetchSpeciesImages({ gbif_id: gbifId, limit: 12 }).then((images) => {
+    fetchSpeciesImages({ gbif_id: gbifId, limit: 36 }).then((images) => {
       // Two rows: one photo would leave a half-empty column.
       if (!el.isConnected || images.length < 2) return;
+      fieldPhotos = images;
       // Usually one provider; a topped-up gallery names both.
       const providers = [...new Set(images.map((p) => photoProviderName(p.provider)))];
       const credit = el.querySelector(".mp-detail__gallery-credit");
       credit.textContent = t("map.detail.photosCredit", { source: providers.join(" & ") });
       credit.hidden = false;
-      images.forEach((photo, index) => {
+
+      function tileFor(photo, index) {
         const tile = document.createElement("button");
         tile.type = "button";
         tile.className = "mp-detail__tile";
@@ -206,9 +229,37 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
         tile.appendChild(img);
         const icon = organIcon(photo.organ);
         if (icon) tile.insertAdjacentHTML("beforeend", `<span class="mp-detail__badge">${icon}</span>`);
-        tile.addEventListener("click", () => openPhotoViewer(images, index));
-        galleryGrid.appendChild(tile);
+        tile.addEventListener("click", () => openPhotoViewer(sequence(), index + (wikiPhoto ? 1 : 0)));
+        return tile;
+      }
+
+      // Twelve tiles at a time. The rest are already here — the backend
+      // answers with the whole set — so "more" is a tall tile at the end of
+      // the strip that unfolds the next dozen in place, and steps back once
+      // nothing is left.
+      let shown = 0;
+      const more = document.createElement("button");
+      more.type = "button";
+      more.className = "mp-detail__tile mp-detail__tile--more";
+      more.setAttribute("aria-label", t("map.detail.morePhotos"));
+      function showNext() {
+        const next = images.slice(shown, shown + PAGE);
+        next.forEach((photo, i) => galleryGrid.insertBefore(tileFor(photo, shown + i), more));
+        shown += next.length;
+        const left = images.length - shown;
+        if (left > 0) more.innerHTML = `<span class="mp-detail__tile-plus" aria-hidden="true">+${left}</span>`;
+        else more.remove();
+        requestAnimationFrame(settleFade);
+      }
+      more.addEventListener("click", () => {
+        const from = scroller.scrollLeft;
+        showNext();
+        // Land on the first new tile rather than snapping back to the start.
+        scroller.scrollLeft = from;
       });
+      galleryGrid.appendChild(more);
+      showNext();
+
       galleryGrid.hidden = false;
       gallery.classList.add("has-tiles");
       reveal();
@@ -216,7 +267,6 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
   }
 
   // --- links ----------------------------------------------------------------
-  const wikiUrl = binomial ? `https://${lang}.wikipedia.org/wiki/${encodeURIComponent(binomial)}` : "";
   const wikiLink = el.querySelector('[data-link="wiki"]');
   const gbifLink = el.querySelector('[data-link="gbif"]');
   if (wikiUrl) wikiLink.href = wikiUrl; else wikiLink.hidden = true;

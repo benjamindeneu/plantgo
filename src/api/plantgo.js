@@ -230,7 +230,7 @@ const speciesImagesCache = new Map();
  * provider is "plantnet" or, for a species Pl@ntNet has too few photos of,
  * "inaturalist".
  */
-export const PHOTO_PROVIDERS = { plantnet: "Pl@ntNet", inaturalist: "iNaturalist" };
+export const PHOTO_PROVIDERS = { plantnet: "Pl@ntNet", inaturalist: "iNaturalist", wikipedia: "Wikipedia" };
 export function photoProviderName(provider) {
   return PHOTO_PROVIDERS[provider] || PHOTO_PROVIDERS.plantnet;
 }

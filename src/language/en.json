@@ -334,6 +334,7 @@
   "map.detail.loading": "Looking this species up…",
   "map.detail.noDescription": "No description available yet.",
   "map.detail.photosCredit": "Photos by {source} contributors",
+  "map.detail.morePhotos": "Show more photos",
   "photo.close": "Close",
   "photo.prev": "Previous photo",
   "photo.next": "Next photo",

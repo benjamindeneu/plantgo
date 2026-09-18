@@ -142,3 +142,47 @@ export async function getWikipediaSummaryHtml(
   }
 }
 
+// --- the file behind a thumbnail: a larger rendition and its credit ---
+// A thumbnail URL names its Commons file (…/thumb/7/7b/<File>/330px-<File>),
+// and Commons serves only a fixed ladder of widths, so a bigger version is
+// asked for rather than guessed at. The same imageinfo call carries the
+// photographer and licence the viewer has to show. Cached like the rest.
+const WIKI_FILE_RE = /\/thumb\/[0-9a-f]\/[0-9a-f]{2}\/([^/?#]+)\/\d+px-/;
+
+export async function getWikipediaImageInfo(thumbUrl, { width = 800, ttlMs = DEFAULT_TTL_MS } = {}) {
+  const m = WIKI_FILE_RE.exec(thumbUrl || "");
+  if (!m) return null;
+  const file = decodeURIComponent(m[1]);
+  const cacheKey = `info:${file}|${width}`;
+  const cached = readCache(cacheKey);
+  if (cached !== null) return cached;
+
+  let info = null;
+  try {
+    const url = "https://commons.wikimedia.org/w/api.php?action=query&prop=imageinfo"
+      + "&iiprop=url|extmetadata&iiextmetadatafilter=Artist|LicenseShortName"
+      + `&iiurlwidth=${width}&format=json&formatversion=2&origin=*`
+      + `&titles=${encodeURIComponent("File:" + file)}`;
+    const res = await fetchWithTimeout(url);
+    if (res.ok) {
+      const ii = (await res.json())?.query?.pages?.[0]?.imageinfo?.[0];
+      if (ii) {
+        const em = ii.extmetadata || {};
+        info = {
+          large: ii.thumburl || ii.url || thumbUrl,
+          author: stripTags(em.Artist?.value || ""),
+          license: em.LicenseShortName?.value || "",
+          page: ii.descriptionurl || "",
+        };
+      }
+    }
+  } catch {
+    // leave null; the viewer shows the thumbnail it already has
+  }
+  writeCache(cacheKey, info, ttlMs);
+  return info;
+}
+
+function stripTags(html) {
+  return html.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+}

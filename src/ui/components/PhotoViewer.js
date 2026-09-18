@@ -79,6 +79,9 @@ export function openPhotoViewer(images, index = 0, { onClose } = {}) {
     onClose?.();
   }
   overlay._close = close;
+  // A photo whose credit is still on its way (Wikipedia's) is patched in
+  // place by the caller, who then asks for the current one to be redrawn.
+  overlay._refresh = () => { if (!closed) show(i); };
 
   function onKey(e) {
     if (e.key === "Escape") close();
