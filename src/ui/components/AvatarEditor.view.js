@@ -3,7 +3,7 @@ import { t } from "../../language/i18n.js";
 import { AVATAR_SLOTS, WARDROBE_SLOTS, slotItems, itemNameKey, slotNameKey, isItemUnlocked } from "../../data/avatar.js";
 import { BADGE_DEFINITIONS } from "../../data/badges.js";
 import { tokenInfo } from "../../data/events.js";
-import { avatarSvg } from "./Avatar.view.js";
+import { avatarSvg, avatarImg } from "./Avatar.view.js";
 
 // The badges page's glyphs, so a locked tile here matches a locked badge
 // there.
@@ -144,7 +144,7 @@ export function createAvatarEditorView() {
     tile.setAttribute("aria-pressed", String(selected));
     if (!unlocked) tile.setAttribute("aria-disabled", "true");
     tile.innerHTML = `
-      <span class="mp-wardrobe__preview" aria-hidden="true">${avatarSvg({ ...avatar, [slot]: item.id })}</span>
+      <span class="mp-wardrobe__preview" aria-hidden="true">${avatarImg({ ...avatar, [slot]: item.id }, { px: 64 })}</span>
       <span class="mp-wardrobe__state" aria-hidden="true">${unlocked ? CHECK_ICON : LOCK_ICON}</span>
       <span class="mp-wardrobe__kind"></span>
       <span class="mp-wardrobe__name"></span>

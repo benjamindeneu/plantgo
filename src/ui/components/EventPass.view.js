@@ -2,7 +2,7 @@
 import { t } from "../../language/i18n.js";
 import { daysLeft, nextTier, tierToken } from "../../data/events.js";
 import { AVATAR_SLOTS, slotItems, itemNameKey, slotNameKey } from "../../data/avatar.js";
-import { avatarSvg } from "./Avatar.view.js";
+import { avatarSvg, avatarImg } from "./Avatar.view.js";
 
 /**
  * The event pass: the card that rides above the map sheet's lists, and the
@@ -75,10 +75,11 @@ function fmtXp(n) {
  * has nothing to wear, so the avatar shows the colour applied instead —
  * which is exactly what the player would get.
  */
-function rewardPortrait(avatar, rewards) {
+function rewardPortrait(avatar, rewards, { big = false } = {}) {
   const dressed = { ...avatar };
   for (const { slot, item } of rewards) dressed[slot] = item.id;
-  return avatarSvg(dressed);
+  // The fitting room's portrait is drawn inline; the list's coins are baked.
+  return big ? avatarSvg(dressed) : avatarImg(dressed, { px: 44 });
 }
 
 export function createEventPassView() {
@@ -213,7 +214,7 @@ export function createEventPassView() {
     /** Dress the portrait in one tier's reward, or in nothing but the avatar. */
     function tryOn(step) {
       const rewards = step ? rewardsOf(event.id, step.tier) : [];
-      portrait.innerHTML = rewardPortrait(avatar, rewards);
+      portrait.innerHTML = rewardPortrait(avatar, rewards, { big: true });
       tryingLine.textContent = step
         ? t("events.pass.trying", { item: rewardNames(rewards, step.tier) })
         : t("events.pass.tryHint");

@@ -56,9 +56,9 @@ export const EVENTS = [
     // The other October, to be tried against the one above: autumn as a
     // season rather than as Halloween. Same length (22 days) and the same
     // ladder, so what differs between the two is the dressing and nothing
-    // else. It keeps two of Hallows' costumes — wings and a carved lantern,
-    // warmed up and reshaped as its own items — because those are the two
-    // worth finding out whether the season can carry without the rest.
+    // else. It keeps one of Hallows' costumes — the carved pumpkin head,
+    // warmed up as its own item — and trades Hallows' wings for an autumn
+    // forest habitat: a season is better told by a place than by a costume.
     //
     // Its window opens on the 1st, where leaf-turn actually is, rather than
     // on the 12th, where the run-up to a single night begins.

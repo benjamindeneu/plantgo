@@ -8,7 +8,7 @@
  */
 
 import { t } from "../../language/i18n.js";
-import { avatarSvg } from "./Avatar.view.js";
+import { avatarImg } from "./Avatar.view.js";
 
 export function createHeaderView({
   user,
@@ -222,7 +222,7 @@ export function createHeaderView({
     // The chip stays empty until the avatar is known, so a page never
     // flashes the default outfit before the player's own.
     setAvatar(avatar) {
-      if (avatarEl) avatarEl.innerHTML = avatar ? avatarSvg(avatar, { className: "av user-avatar__svg" }) : "";
+      if (avatarEl) avatarEl.innerHTML = avatar ? avatarImg(avatar, { className: "av user-avatar__svg", small: true, px: 28 }) : "";
     },
     // The admin tab is there only for an admin; everyone else never sees it.
     setAdmin(isAdmin) {

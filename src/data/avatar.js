@@ -3,9 +3,9 @@ import { db } from "../../firebase-config.js";
 import { doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
 
 /**
- * The player's avatar: skin tone, hair style and colour, eye colour, a hat
- * and an outfit, kept as ids on the user doc
- * (`avatar: { skin, hair, hairColor, eyes, hat, torso }`). The art for
+ * The player's avatar: skin tone, hair style and colour, eye colour, a hat,
+ * an outfit, a prop and a habitat behind it, kept as ids on the user doc
+ * (`avatar: { skin, hair, hairColor, eyes, hat, torso, props, backdrop }`). The art for
  * each id lives in Avatar.view.js; this file only says what exists and what
  * it costs.
  *
@@ -14,30 +14,39 @@ import { doc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/fire
  * item. The editor is the only writer, and it refuses locked items, so
  * nothing else has to re-check.
  */
+// Colours are the watercolour washes of the Field Guide art (Avatar.view.js
+// mixes them a little towards the paper), so a swatch matches the drawing.
+// Skin `shade` is the shadow side; hair shadows are derived from `fill`.
 export const SKIN_TONES = [
-  { id: "s1", fill: "#f9dcc4", shade: "#e6c2a5", requires: null },
-  { id: "s2", fill: "#f1c68e", shade: "#d9a870", requires: null },
-  { id: "s3", fill: "#d8a06a", shade: "#bd8654", requires: null },
-  { id: "s4", fill: "#a86b3f", shade: "#8f5731", requires: null },
-  { id: "s5", fill: "#6b4226", shade: "#54321b", requires: null },
+  { id: "s1", fill: "#f9dcc4", shade: "#eab99a", requires: null },
+  { id: "s2", fill: "#f1c68e", shade: "#d9a26a", requires: null },
+  { id: "s3", fill: "#d8a06a", shade: "#b97d4d", requires: null },
+  { id: "s4", fill: "#a86b3f", shade: "#85502b", requires: null },
+  { id: "s5", fill: "#7a4b2c", shade: "#5a331d", requires: null },
 ];
 
 export const HAIR_STYLES = [
   { id: "short", requires: null },
   { id: "curly", requires: null },
   { id: "long",  requires: null },
+  { id: "bob",      requires: null },
+  { id: "buzz",     requires: null },
+  { id: "quiff",    requires: null },
+  { id: "bun",      requires: null },
+  { id: "ponytail", requires: null },
+  { id: "braids",   requires: null },
   { id: "bald",  requires: null },
 ];
 
 export const HAIR_COLORS = [
-  { id: "black",    fill: "#1f1a17", requires: null },
-  { id: "brown",    fill: "#3b2a1e", requires: null },
-  { id: "chestnut", fill: "#7a4a2a", requires: null },
-  { id: "blonde",   fill: "#e1b467", requires: null },
-  { id: "ginger",   fill: "#b5482a", requires: null },
-  { id: "silver",   fill: "#cdd2d6", requires: null },
-  { id: "moss",     fill: "#3fb36a", requires: "level_5" },
-  { id: "violet",   fill: "#8b5cf6", requires: "epic_obs" },
+  { id: "black",    fill: "#2f2733", requires: null },
+  { id: "brown",    fill: "#6e452a", requires: null },
+  { id: "chestnut", fill: "#9a562c", requires: null },
+  { id: "blonde",   fill: "#f2c35f", requires: null },
+  { id: "ginger",   fill: "#cf5a2c", requires: null },
+  { id: "silver",   fill: "#d3d6d9", requires: null },
+  { id: "moss",     fill: "#4faa62", requires: "level_5" },
+  { id: "violet",   fill: "#8b64e0", requires: "epic_obs" },
   // Event colours are gradients rather than flats: `stops` paints the hair
   // with an SVG gradient and the wardrobe swatch with the CSS one, so an
   // event colour looks like the prize it is. `fill` stays as the single
@@ -61,12 +70,12 @@ export const HAIR_COLORS = [
 ];
 
 export const EYE_COLORS = [
-  { id: "brown", fill: "#4a2f1c", requires: null },
-  { id: "dark",  fill: "#16241c", requires: null },
-  { id: "hazel", fill: "#8a6a2f", requires: null },
-  { id: "green", fill: "#3f8a5a", requires: null },
+  { id: "brown", fill: "#7a4a26", requires: null },
+  { id: "dark",  fill: "#3a2c22", requires: null },
+  { id: "hazel", fill: "#9a7a36", requires: null },
+  { id: "green", fill: "#4f9a5f", requires: null },
   { id: "blue",  fill: "#4f86c6", requires: null },
-  { id: "grey",  fill: "#7d8a94", requires: null },
+  { id: "grey",  fill: "#8a97a0", requires: null },
   { id: "witching", fill: "#b5e853", requires: "hallows_2026:1" },
   { id: "amber",    fill: "#d98a2b", requires: "harvest_2026:1" },
 ];
@@ -83,28 +92,45 @@ export const HAT_ITEMS = [
   { id: "headlamp",     requires: "perfect_day" },
   { id: "laurel",       requires: "legendary_obs" },
   { id: "crown",        requires: "chal_win_10" },
-  { id: "wizard_hat",   requires: "level_20" },
+  // The level-20 prize: a wise owl perched on the head. It replaced a
+  // wizard hat, which belonged to a fantasy game rather than a field guide.
+  { id: "owl",          requires: "level_20" },
   // Harvest & Hallows 2026
   { id: "witch_hat",       requires: "hallows_2026:6" },
-  { id: "pumpkin_lantern", requires: "hallows_2026:7" },
   // Golden Harvest 2026
   { id: "acorn_cap",       requires: "harvest_2026:6" },
+];
+
+/**
+ * Props: costume pieces that are neither a hat nor an outfit — wings worn
+ * on the back, or a carved pumpkin worn over the whole head as a mask (a
+ * hat still goes on top of it). "none" is first and is the starter — a prop
+ * is an extra, so the plain avatar has to stay one tap away.
+ */
+export const PROP_ITEMS = [
+  { id: "none",      requires: null },
+  // Harvest & Hallows 2026
+  { id: "bat_wings",       requires: "hallows_2026:3" },
+  { id: "pumpkin_lantern", requires: "hallows_2026:7" },
+  // Golden Harvest 2026 — the same pumpkin head at the same tier as
+  // Hallows', warmed up, so switching events swaps the mood and nothing else.
   { id: "harvest_lantern", requires: "harvest_2026:7" },
 ];
 
 /**
- * Props: worn on the back, behind the body, rather than on the head or
- * over the torso. "none" is first and is the starter — a prop is an extra,
- * so the plain avatar has to stay one tap away.
+ * Habitats: a scene drawn behind the avatar, filling its coin. The five
+ * base habitats are starters; event ones are prizes.
  */
-export const PROP_ITEMS = [
-  { id: "none",      requires: null },
-  { id: "bat_wings", requires: "hallows_2026:3" },
-  // Golden Harvest 2026 — the same silhouette at the same tier as Hallows'
-  // wings, in russet rather than purple-black. Same tier on purpose: it is
-  // the one item both events hand out at the same moment, so it is the one
-  // place the two themes can be compared without anything else moving.
-  { id: "dusk_wings", requires: "harvest_2026:3" },
+export const BACKDROP_ITEMS = [
+  { id: "none",             requires: null },
+  { id: "meadow",           requires: null },
+  { id: "pine_forest",      requires: null },
+  { id: "broadleaf_forest", requires: null },
+  { id: "mountain",         requires: null },
+  { id: "coastline",        requires: null },
+  // Golden Harvest 2026 — in place of the dusk wings it used to share with
+  // Hallows: a season is better told by a place than by a costume.
+  { id: "autumn_forest",    requires: "harvest_2026:3" },
 ];
 
 export const TORSO_ITEMS = [
@@ -132,12 +158,12 @@ export const TORSO_ITEMS = [
 ];
 
 /** Display order of the editor's sections; each names a key of the avatar. */
-export const AVATAR_SLOTS = ["skin", "hair", "hairColor", "eyes", "hat", "torso", "props"];
+export const AVATAR_SLOTS = ["skin", "hair", "hairColor", "eyes", "hat", "torso", "props", "backdrop"];
 
 /** The slots with something to unlock — what the hero's "n of total" counts. */
-export const WARDROBE_SLOTS = ["hairColor", "hat", "torso", "props"];
+export const WARDROBE_SLOTS = ["hairColor", "hat", "torso", "props", "backdrop"];
 
-export const DEFAULT_AVATAR = { skin: "s3", hair: "short", hairColor: "brown", eyes: "brown", hat: "none", torso: "tee_green", props: "none" };
+export const DEFAULT_AVATAR = { skin: "s3", hair: "short", hairColor: "brown", eyes: "brown", hat: "none", torso: "tee_green", props: "none", backdrop: "none" };
 
 const SLOT_ITEMS = {
   skin: SKIN_TONES,
@@ -147,6 +173,7 @@ const SLOT_ITEMS = {
   hat: HAT_ITEMS,
   torso: TORSO_ITEMS,
   props: PROP_ITEMS,
+  backdrop: BACKDROP_ITEMS,
 };
 
 export function slotItems(slot) {
@@ -179,9 +206,12 @@ export function itemsUnlockedBy(badgeId) {
 // The first version had one `head` slot holding either a hair style or a
 // hat; a doc written then still reads, landing in whichever slot fits.
 const LEGACY_HEAD_HAIR = { hair_short: "short", hair_curly: "curly", hair_long: "long" };
-// Bat wings were a hat before they were a prop; anyone wearing them keeps
-// them, on the back where they now belong.
-const LEGACY_HAT_PROPS = { bat_wings: "props" };
+// Bat wings and the pumpkin lanterns were hats before they were props;
+// anyone wearing one keeps it, in the slot where it now belongs.
+const LEGACY_HAT_PROPS = { bat_wings: "props", pumpkin_lantern: "props", harvest_lantern: "props" };
+// Items that were redrawn under a new id: whoever earned the old one wears
+// the new one.
+const LEGACY_RENAMED = { hat: { wizard_hat: "owl" } };
 
 /**
  * A stored avatar made safe to draw: every slot holds a known id, so an item
@@ -197,7 +227,10 @@ export function normalizeAvatar(raw) {
     else src.hat = src.head;
   }
   const moved = LEGACY_HAT_PROPS[src.hat];
-  if (moved && !src[moved]) { src[moved] = src.hat; src.hat = "none"; }
+  if (moved && (!src[moved] || src[moved] === "none")) { src[moved] = src.hat; src.hat = "none"; }
+  for (const [slot, renames] of Object.entries(LEGACY_RENAMED)) {
+    if (renames[src[slot]]) src[slot] = renames[src[slot]];
+  }
   for (const slot of AVATAR_SLOTS) {
     const id = src[slot];
     if (typeof id === "string" && slotItems(slot).some((it) => it.id === id)) out[slot] = id;
