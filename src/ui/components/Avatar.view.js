@@ -1,5 +1,6 @@
 // src/ui/components/Avatar.view.js
 import { SKIN_TONES, HAIR_COLORS, EYE_COLORS, AVATAR_SLOTS, normalizeAvatar } from "../../data/avatar.js";
+import { SEPIA, PAPER, n, mix, ell, circ, star, wobble, mx, both, B, D, S, LN, HL, leaf, flower, garland, inkLayers } from "./fieldGuideInk.js";
 
 /**
  * The avatar, in the "Field Guide" style: a sepia pen line over a
@@ -17,20 +18,10 @@ import { SKIN_TONES, HAIR_COLORS, EYE_COLORS, AVATAR_SLOTS, normalizeAvatar } fr
  * The RIG places both spaces on the canvas, so proportions (head size, how
  * much neck shows) are set in one spot and never by redrawing an item.
  *
- * An item is a list of flat shapes with a kind, and the renderer decides
- * how each kind is painted:
- *  - B(d, fill, {sh})     a base: washed, pen-outlined and shaded, `sh` being its shadow;
- *  - D(d, fill, {sh,cel}) a detail, clipped to its layer's bases, with a finer pen;
- *  - S(d, fill)           a cast shadow, e.g. a fringe or a brim on the face;
- *  - LN(d, colour, w)     a pen line (`ol` draws it under the washes, `fine` drops it when small);
- *  - HL(d, colour, w)     a highlight on hair.
- * A hat can set `covers: y` to hide the hair above y, and `cast`, the
- * shadow its brim throws on the forehead.
- *
- * The wobble of the hand is computed once from each path, so an avatar
- * never "boils" and costs nothing extra to paint. Line and wash share the
- * exact same wobbled path: the pen always sits on the edge of its colour.
- * Paths use only M L H V C Q Z (no arcs), so they can be wobbled.
+ * An item is a list of flat shapes (B base, D detail, S cast shadow, LN pen
+ * line, HL highlight) painted by the shared Field Guide hand in
+ * `fieldGuideInk.js`. A hat can set `covers: y` to hide the hair above y,
+ * and `cast`, the shadow its brim throws on the forehead.
  *
  * Coins of 40px and under use `small`: cropped to head and shoulders, a
  * thicker pen, flat washes, bigger eyes and no fine lines.
@@ -40,121 +31,7 @@ import { SKIN_TONES, HAIR_COLORS, EYE_COLORS, AVATAR_SLOTS, normalizeAvatar } fr
  * bakes each outfit to a bitmap once. Inline SVG is for the big portraits.
  */
 
-const SEPIA = "#4a3829";
-const PAPER = "#f6efdf";
 const PUPIL = "#2a1f17";
-
-const n = (v) => +v.toFixed(2);
-function mix(a, b, t) {
-  const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
-  const A = p(a), B = p(b);
-  return "#" + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, "0")).join("");
-}
-
-// Ellipses as four cubics rather than arcs, so they can be wobbled too.
-const K = 0.5523;
-function ell(cx, cy, rx, ry) {
-  const kx = rx * K, ky = ry * K;
-  return `M${n(cx - rx)} ${n(cy)}C${n(cx - rx)} ${n(cy - ky)} ${n(cx - kx)} ${n(cy - ry)} ${n(cx)} ${n(cy - ry)}C${n(cx + kx)} ${n(cy - ry)} ${n(cx + rx)} ${n(cy - ky)} ${n(cx + rx)} ${n(cy)}C${n(cx + rx)} ${n(cy + ky)} ${n(cx + kx)} ${n(cy + ry)} ${n(cx)} ${n(cy + ry)}C${n(cx - kx)} ${n(cy + ry)} ${n(cx - rx)} ${n(cy + ky)} ${n(cx - rx)} ${n(cy)}Z`;
-}
-const circ = (cx, cy, r) => ell(cx, cy, r, r);
-function star(cx, cy, r) {
-  let d = "";
-  for (let k = 0; k < 10; k++) {
-    const a = ((k * 36 - 90) * Math.PI) / 180, rr = k % 2 ? r * 0.45 : r;
-    d += `${k ? "L" : "M"}${n(cx + Math.cos(a) * rr)} ${n(cy + Math.sin(a) * rr)}`;
-  }
-  return d + "Z";
-}
-
-// ------------------------------------------------------- the hand's wobble
-function absPath(d) {
-  const t = d.match(/[MLHVCQZmlhvcqz]|-?(?:\d+\.?\d*|\.\d+)/g);
-  let i = 0, cx = 0, cy = 0, sx = 0, sy = 0, cmd = "M";
-  const out = [], num = () => parseFloat(t[i++]);
-  while (i < t.length) {
-    if (/[a-zA-Z]/.test(t[i])) cmd = t[i++];
-    const rel = cmd === cmd.toLowerCase(), C = cmd.toUpperCase();
-    const ox = rel ? cx : 0, oy = rel ? cy : 0;
-    if (C === "Z") { out.push({ c: "Z", p: [] }); cx = sx; cy = sy; if (i < t.length && !/[a-zA-Z]/.test(t[i])) break; continue; }
-    if (C === "M") { const x = num() + ox, y = num() + oy; out.push({ c: "M", p: [[x, y]] }); cx = sx = x; cy = sy = y; cmd = rel ? "l" : "L"; }
-    else if (C === "L") { const x = num() + ox, y = num() + oy; out.push({ c: "L", p: [[x, y]] }); cx = x; cy = y; }
-    else if (C === "H") { const x = num() + (rel ? cx : 0); out.push({ c: "L", p: [[x, cy]] }); cx = x; }
-    else if (C === "V") { const y = num() + (rel ? cy : 0); out.push({ c: "L", p: [[cx, y]] }); cy = y; }
-    else if (C === "C") { const p = [[num() + ox, num() + oy], [num() + ox, num() + oy], [num() + ox, num() + oy]]; out.push({ c: "C", p }); [cx, cy] = p[2]; }
-    else if (C === "Q") { const p = [[num() + ox, num() + oy], [num() + ox, num() + oy]]; out.push({ c: "Q", p }); [cx, cy] = p[1]; }
-    else break;
-  }
-  return out;
-}
-const toD = (segs, f = (pt) => pt) => segs.map((g) => g.c + g.p.map(f).map(([x, y]) => `${n(x)} ${n(y)}`).join(" ")).join("");
-const lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-function subdivide(segs) {
-  const out = [];
-  let cur = [0, 0], start = [0, 0];
-  for (const s of segs) {
-    if (s.c === "M") { cur = start = s.p[0]; out.push(s); }
-    else if (s.c === "L") { out.push({ c: "L", p: [lerp(cur, s.p[0], 0.5)] }, s); cur = s.p[0]; }
-    else if (s.c === "C") {
-      const [p1, p2, p3] = s.p, a = lerp(cur, p1, 0.5), b = lerp(p1, p2, 0.5), c = lerp(p2, p3, 0.5);
-      const d = lerp(a, b, 0.5), e = lerp(b, c, 0.5), m = lerp(d, e, 0.5);
-      out.push({ c: "C", p: [a, d, m] }, { c: "C", p: [e, c, p3] }); cur = p3;
-    } else if (s.c === "Q") { out.push(s); cur = s.p[1]; }
-    else { out.push(s); cur = start; }
-  }
-  return out;
-}
-const hash = (s) => { let h = 7; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return (h % 1000) / 37; };
-const nz = (x, y, s) => Math.sin(x * 0.61 + y * 0.23 + s) * 0.6 + Math.sin(y * 0.83 - x * 0.37 + s * 1.9) * 0.4;
-const wobbleCache = new Map();
-function wobble(d, amp) {
-  const key = `${d}|${amp}`;
-  let out = wobbleCache.get(key);
-  if (out === undefined) {
-    const s = hash(d);
-    out = toD(subdivide(absPath(d)), ([x, y]) => [x + amp * nz(x, y, s), y + amp * nz(y, x, s + 5)]);
-    wobbleCache.set(key, out);
-  }
-  return out;
-}
-// The left half of a symmetric item, mirrored about x = 50.
-const mx = (d) => toD(absPath(d), ([x, y]) => [100 - x, y]);
-const both = (d) => d + mx(d);
-
-// ------------------------------------------------------------ shape kinds
-const B = (d, f, o = {}) => ({ k: "b", d, f, ...o });
-const D = (d, f, o = {}) => ({ k: "d", d, f, ...o });
-const S = (d, f, o = {}) => ({ k: "s", d, f, ...o });
-const LN = (d, c, w, o = {}) => ({ k: "l", d, c, w, ...o });
-const HL = (d, c, w, o = {}) => ({ k: "h", d, c, w, ...o });
-
-function leaf(cx, cy, len, rot, f, kind = D) {
-  const h = len * 0.52, tf = `translate(${n(cx)} ${n(cy)}) rotate(${n(rot)})`;
-  const d = `M${-len} 0C${n(-len / 2)} ${n(-h)} ${n(len / 2)} ${n(-h)} ${len} 0C${n(len / 2)} ${n(h)} ${n(-len / 2)} ${n(h)} ${-len} 0Z`;
-  return [kind(d, f, { tf, sh: mix(f, "#3a1a0a", 0.25) }), LN(`M${n(-len * 0.75)} 0H${n(len * 0.75)}`, mix(f, "#2a1405", 0.35), 0.7, { tf, fine: 1 })];
-}
-function flower(cx, cy, r, f, kind = B) {
-  const out = [];
-  for (let k = 0; k < 5; k++) {
-    const a = ((k * 72 - 90) * Math.PI) / 180;
-    out.push(kind(circ(cx + Math.cos(a) * r * 0.92, cy + Math.sin(a) * r * 0.92, r * 0.66), f, { sh: f === "#ffffff" ? "#dfe4ec" : mix(f, "#a2204e", 0.3) }));
-  }
-  out.push(D(circ(cx, cy, r * 0.48), "#ffcf3f", { sh: "#e6a51c" }));
-  return out;
-}
-// Leaves along an elliptic arc about (cx, cy), from angle a0 to a1 in
-// degrees (0 = right, 90 = up), alternately nudged out and in.
-function garland(cx, cy, rx, ry, a0, a1, count, len, colours, kind = B) {
-  const out = [];
-  for (let k = 0; k < count; k++) {
-    const a = ((a0 + ((a1 - a0) * k) / (count - 1)) * Math.PI) / 180;
-    const side = k % 2 ? -1 : 1;
-    const x = cx + Math.cos(a) * (rx + side), y = cy - Math.sin(a) * (ry + side);
-    const tangent = (Math.atan2(-Math.cos(a) * ry, -Math.sin(a) * rx) * 180) / Math.PI;
-    out.push(...leaf(x, y, len, tangent + side * 22, colours[k % colours.length], kind));
-  }
-  return out;
-}
 
 // ---------------------------------------------------------------- palette
 function skinPaint(id) {
@@ -290,6 +167,21 @@ const HAIRSTYLE = {
 };
 
 // ------------------------------------------------------------------- hats
+// The wise owl, perched: the Master's (level 50) hat.
+// Drawn about 20 wide with its feet at y 19.5.
+export const OWL = [
+  B("M41 18.5C39.5 14 39.5 9 41 6L40.2 1L44.8 4Q50 3 55.2 4L59.8 1L59 6C60.5 9 60.5 14 59 18.5C55 20.5 45 20.5 41 18.5Z", "#9a7650", { sh: "#775a3a" }),
+  D(both("M41 8C38.8 11 39 16 41.5 18.8C43 15.5 43 11 41 8Z"), "#7a5a38", { sh: "#5e452b", cel: 1 }),
+  D(ell(50, 15.6, 5.2, 3.9), "#e6d2ad"),
+  LN("M47 14.6L48 15.4L49 14.6M51 14.6L52 15.4L53 14.6M49 16.9L50 17.7L51 16.9", "#9a7650", 0.8, { fine: 1 }),
+  D(circ(45.7, 8.6, 3.3) + circ(54.3, 8.6, 3.3), "#f1e2c4"),
+  D(circ(45.7, 8.6, 1.75) + circ(54.3, 8.6, 1.75), "#f2b632"),
+  D(circ(45.7, 8.7, 0.85) + circ(54.3, 8.7, 0.85), "#2a1f17"),
+  D("M48.9 10.2L51.1 10.2L50 12.6Z", "#d9962a"),
+  B(ell(46.4, 19.4, 1.9, 0.95), "#e0a02a", { sh: "#b97d14" }),
+  B(ell(53.6, 19.4, 1.9, 0.95), "#e0a02a", { sh: "#b97d14" }),
+];
+
 const BRIM_CAST = "M26 35C36 41.5 64 41.5 74 35V33H26Z";
 const HAT = {
   none: null,
@@ -392,18 +284,7 @@ const HAT = {
   // Drawn at a comfortable size, then grown by `tf` about its feet.
   owl: {
     tf: "translate(50 23) scale(1.2) translate(-50 -19.5)",
-    shapes: [
-      B("M41 18.5C39.5 14 39.5 9 41 6L40.2 1L44.8 4Q50 3 55.2 4L59.8 1L59 6C60.5 9 60.5 14 59 18.5C55 20.5 45 20.5 41 18.5Z", "#9a7650", { sh: "#775a3a" }),
-      D(both("M41 8C38.8 11 39 16 41.5 18.8C43 15.5 43 11 41 8Z"), "#7a5a38", { sh: "#5e452b", cel: 1 }),
-      D(ell(50, 15.6, 5.2, 3.9), "#e6d2ad"),
-      LN("M47 14.6L48 15.4L49 14.6M51 14.6L52 15.4L53 14.6M49 16.9L50 17.7L51 16.9", "#9a7650", 0.8, { fine: 1 }),
-      D(circ(45.7, 8.6, 3.3) + circ(54.3, 8.6, 3.3), "#f1e2c4"),
-      D(circ(45.7, 8.6, 1.75) + circ(54.3, 8.6, 1.75), "#f2b632"),
-      D(circ(45.7, 8.7, 0.85) + circ(54.3, 8.7, 0.85), "#2a1f17"),
-      D("M48.9 10.2L51.1 10.2L50 12.6Z", "#d9962a"),
-      B(ell(46.4, 19.4, 1.9, 0.95), "#e0a02a", { sh: "#b97d14" }),
-      B(ell(53.6, 19.4, 1.9, 0.95), "#e0a02a", { sh: "#b97d14" }),
-    ],
+    shapes: OWL,
   },
   // --- Harvest & Hallows 2026 ---
   // A wide brim and a crooked cone.
@@ -850,84 +731,24 @@ function face({ sk, h, eye }, small) {
 // Inline SVG ids are document-wide and a page can show thirty avatars, so
 // every render gets its own prefix.
 let seq = 0;
-const tfA = (s) => (s.tf ? ` transform="${s.tf}"` : "");
-const path = (s, attrs, d) => `<path d="${d}"${tfA(s)} ${attrs}/>`;
 
-function render(avatar, { className = "av", small = false } = {}) {
-  const id = `av${++seq}-`, M = build(normalizeAvatar(avatar)), defs = [];
-  // Washes are mixed a little towards the paper, less so when small.
-  const paper = (c) => mix(c, PAPER, small ? 0.06 : 0.16);
-  const wl = (s) => wobble(s.d, small ? 0.25 : 0.45);
-  const LW = small ? 1.9 : 1;
+function render(avatar, { className = "av", small = false, size = null } = {}) {
+  const id = `av${++seq}-`, M = build(normalizeAvatar(avatar));
+  let gradient = "";
   // An event hair colour is a gradient across the whole head of hair, in
   // head space, so every curl takes its own slice of it.
-  const hairFill = M.h.stops ? `url(#${id}hair)` : null;
-  if (hairFill) {
-    defs.push(`<linearGradient id="${id}hair" gradientUnits="userSpaceOnUse" x1="46" y1="8" x2="56" y2="60">${
-      M.h.stops.map((c, i) => `<stop offset="${n(i / (M.h.stops.length - 1))}" stop-color="${paper(c)}"/>`).join("")
-    }</linearGradient>`);
+  const fillOf = M.h.stops ? (s) => (s.hair ? `url(#${id}hair)` : null) : null;
+  if (M.h.stops) {
+    const wash = (c) => mix(c, PAPER, small ? 0.06 : 0.16);
+    gradient = `<linearGradient id="${id}hair" gradientUnits="userSpaceOnUse" x1="46" y1="8" x2="56" y2="60">${
+      M.h.stops.map((c, i) => `<stop offset="${n(i / (M.h.stops.length - 1))}" stop-color="${wash(c)}"/>`).join("")
+    }</linearGradient>`;
   }
-  const fillOf = (s) => (s.hair && hairFill ? hairFill : paper(s.f));
-  // A habitat is inked in a lighter pen over paler washes.
-  const SOFT_INK = mix(SEPIA, PAPER, 0.4);
-  const softPaper = (c) => mix(c, PAPER, small ? 0.14 : 0.26);
-  if (!small) defs.push(`<pattern id="${id}hatch" width="2.3" height="2.3" patternUnits="userSpaceOnUse" patternTransform="rotate(38)"><path d="M0 0V2.3" stroke="${SEPIA}" stroke-width=".5" opacity=".6"/></pattern>`);
-
-  let body = "";
-  M.L.forEach((layer, i) => {
-    if (layer.face) { body += `<g transform="${RIG.head}">${face(M, small)}</g>`; return; }
-    const bases = layer.shapes.filter((s) => s.k === "b");
-    const ink = layer.soft ? SOFT_INK : SEPIA;
-    const wash = layer.soft ? softPaper : paper;
-    const lw = layer.soft ? (small ? 1.1 : 0.75) : LW;
-    defs.push(`<clipPath id="${id}u${i}">${bases.map((s) => path(s, "", wl(s))).join("")}</clipPath>`);
-    let g = layer.shapes.filter((s) => s.k === "l" && s.ol)
-      .map((s) => path(s, `fill="none" stroke="${mix(s.c, SEPIA, 0.3)}" stroke-width="${small ? s.w * 1.3 : s.w}" stroke-linecap="round"`, wl(s))).join("");
-    // Wash then line, shape by shape, so a front shape's wash covers the
-    // line of the one behind it (an ear under the cheek, a brim under a crown).
-    bases.forEach((s, j) => {
-      const d = wl(s), fill = layer.soft ? wash(s.f) : fillOf(s);
-      g += path(s, `fill="${fill}"`, d);
-      if (layer.cel) {
-        // Cel shading: the shadow wash (hatched), then the shape's own wash
-        // nudged up-left and clipped to it, leaving a crescent lower right.
-        defs.push(`<clipPath id="${id}k${i}_${j}">${path(s, "", d)}</clipPath>`);
-        g += `<g clip-path="url(#${id}k${i}_${j})">${path(s, `fill="${mix(paper(s.sh || s.f), PAPER, small ? 0 : 0.25)}"`, d)}${small ? "" : path(s, `fill="url(#${id}hatch)"`, d)}<g transform="translate(-2.2 -2.6)">${path(s, `fill="${fill}"`, d)}</g></g>`;
-      }
-      // Watercolour pools at its edge: a faint darker rim.
-      if (!small) g += path(s, `fill="none" stroke="${mix(wash(s.sh || s.f), SEPIA, 0.15)}" stroke-width=".9" opacity=".35"`, d);
-      g += path(s, `fill="none" stroke="${ink}" stroke-width="${lw}" stroke-linejoin="round" stroke-linecap="round"`, d);
-    });
-    let inner = "";
-    layer.shapes.forEach((s, j) => {
-      if (s.k === "d") {
-        const d = wl(s);
-        if (s.cel && !small) {
-          defs.push(`<clipPath id="${id}d${i}_${j}">${path(s, "", d)}</clipPath>`);
-          inner += path(s, `fill="${mix(paper(s.sh), PAPER, 0.25)}"`, d)
-            + `<g clip-path="url(#${id}d${i}_${j})">${path(s, `fill="url(#${id}hatch)"`, d)}<g transform="translate(-2.2 -2.6)">${path(s, `fill="${paper(s.f)}"`, d)}</g></g>`;
-        } else {
-          inner += path(s, `fill="${wash(s.f)}"`, d);
-        }
-        inner += path(s, `fill="none" stroke="${ink}" stroke-width="${small ? 1.2 : 0.7}" stroke-linejoin="round"`, d);
-      } else if (s.k === "s") {
-        inner += path(s, `fill="${paper(s.f)}" opacity=".55"`, wl(s)) + (small ? "" : path(s, `fill="url(#${id}hatch)"`, wl(s)));
-      } else if (s.k === "h" && !small) {
-        inner += path(s, `fill="none" stroke="${PAPER}" stroke-width="${n(s.w * 0.9)}" stroke-linecap="round" opacity=".55"`, wl(s));
-      } else if (s.k === "l" && !s.ol && !(small && s.fine)) {
-        inner += path(s, `fill="none" stroke="${mix(s.c, ink, 0.55)}" stroke-width="${n(Math.min(s.w, 1.2) * (small ? 1.2 : 0.8))}" stroke-linecap="round"`, wl(s));
-      }
-    });
-    g += `<g clip-path="url(#${id}u${i})">${inner}</g>`;
-    if (layer.clipY != null) {
-      defs.push(`<clipPath id="${id}y${i}"><rect x="-10" y="${layer.clipY}" width="120" height="120"/></clipPath>`);
-      g = `<g clip-path="url(#${id}y${i})">${g}</g>`;
-    }
-    if (layer.tf) g = `<g transform="${layer.tf}">${g}</g>`;
-    body += RIG[layer.sp] ? `<g transform="${RIG[layer.sp]}">${g}</g>` : g;
-  });
+  const layers = M.L.map((l) => (l.face ? { sp: "head", markup: face(M, small) } : l));
+  const { defs, body } = inkLayers(layers, { id, small, spaces: RIG, fillOf });
   // Coins of 40px and under are cropped to head and shoulders.
-  return `<svg class="${className}" xmlns="http://www.w3.org/2000/svg" viewBox="${small ? "12 3 76 76" : "0 0 100 100"}" aria-hidden="true" focusable="false"><defs>${defs.join("")}</defs>${body}</svg>`;
+  const dims = size ? ` width="${size}" height="${size}"` : "";
+  return `<svg class="${className}" xmlns="http://www.w3.org/2000/svg"${dims} viewBox="${small ? "12 3 76 76" : "0 0 100 100"}" aria-hidden="true" focusable="false"><defs>${gradient}${defs}</defs>${body}</svg>`;
 }
 
 /**
@@ -952,13 +773,16 @@ export function avatarElement(avatar, opts) {
 // Painting the SVG costs ~1.4ms an avatar per repaint; a baked bitmap
 // costs ~0.07ms. So anything repeated (the header coin, the leaderboard,
 // wardrobe tiles) shows an <img>: first the SVG itself, then, once baked,
-// a PNG at twice its size. Bakes run one at a time off the critical path,
+// a PNG at the screen's own pixel density (at least 2×), so it is never
+// scaled up. The SVG carries the same explicit size: without one an SVG
+// image defaults to 150px and Chrome may rasterise it at that and upscale. Bakes run one at a time off the critical path,
 // and one whose image has left the page by its turn is skipped, since the
 // wardrobe redraws every tile on each pick.
 const images = new Map(); // key -> { svg, png }
 const queue = [];
 let baking = false;
 
+const density = () => Math.max(2, Math.ceil(globalThis.devicePixelRatio || 1));
 const keyOf = (a, small, px) => `${AVATAR_SLOTS.map((s) => a[s]).join(".")}.${small ? "s" : "l"}${px}`;
 
 function schedule(fn) {
@@ -976,7 +800,7 @@ async function bakeNext() {
       const img = new Image();
       img.src = entry.svg;
       await img.decode();
-      const size = job.px * 2;
+      const size = job.px * density();
       const canvas = document.createElement("canvas");
       canvas.width = canvas.height = size;
       canvas.getContext("2d").drawImage(img, 0, 0, size, size);
@@ -1001,7 +825,7 @@ export function avatarImg(avatar, { className = "av", small = false, px = 64 } =
   const key = keyOf(a, small, px);
   let entry = images.get(key);
   if (!entry) {
-    const svg = render(a, { className: "", small });
+    const svg = render(a, { className: "", small, size: px * density() });
     entry = { svg: URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" })), png: null };
     images.set(key, entry);
   }

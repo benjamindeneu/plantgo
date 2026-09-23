@@ -1,6 +1,7 @@
 // src/ui/components/Badges.view.js
 import { t } from "../../language/i18n.js";
 import { BADGE_DEFINITIONS, BADGE_GROUPS } from "../../data/badges.js";
+import { badgeImg } from "./BadgeArt.view.js";
 
 function escapeHtml(s) {
   return String(s ?? "")
@@ -25,7 +26,7 @@ function formatDate(d) {
 
 // Flat single-path glyphs in currentColor, the same technique as the map's
 // own controls — not emoji, which would land as a different icon set on
-// every platform next to the one emoji that *is* the badge.
+// every platform next to the drawn medallions.
 const CHECK_ICON = `<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M9.6 16.2 5.4 12l-1.4 1.4 5.6 5.6 12-12-1.4-1.4z"/></svg>`;
 const LOCK_ICON = `<svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="true"><path fill="currentColor" d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2zm-7-2a2 2 0 1 1 4 0v2h-4V7z"/></svg>`;
 
@@ -35,8 +36,8 @@ const LOCK_ICON = `<svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="
  * Dressed like the front page's sheet rather than as a heading over a box:
  * a brand-gradient hero that says how far along the collection is and which
  * badge is nearest, then the badges themselves grouped by what earns them,
- * each a medallion whose ring takes the map's grade colours so the top of
- * a series reads as the prize it is.
+ * each a drawn medallion (BadgeArt.view.js) whose frame takes the map's
+ * grade colours, so the top of a series reads as the prize it is.
  */
 export function createBadgesView() {
   const root = document.createElement("section");
@@ -82,7 +83,7 @@ export function createBadgesView() {
         <span class="mp-badges__fill" style="width:${pct}%"></span>
       </div>
       <div class="mp-badges__next" hidden>
-        <span class="mp-badges__next-emoji" aria-hidden="true"></span>
+        <span class="mp-badges__next-art" aria-hidden="true"></span>
         <div class="mp-badges__next-body">
           <span class="mp-badges__next-label"></span>
           <span class="mp-badges__next-name"></span>
@@ -100,7 +101,7 @@ export function createBadgesView() {
     if (next) {
       const box = hero.querySelector(".mp-badges__next");
       box.hidden = false;
-      box.querySelector(".mp-badges__next-emoji").textContent = next.def.emoji;
+      box.querySelector(".mp-badges__next-art").innerHTML = badgeImg(next.def.id, { small: true });
       box.querySelector(".mp-badges__next-label").textContent = t("badges.summary.next");
       box.querySelector(".mp-badges__next-name").textContent = t(next.def.nameKey);
       box.querySelector(".mp-badges__next-meta").textContent = `${next.p.current} / ${next.p.total}`;
@@ -118,9 +119,11 @@ export function createBadgesView() {
     // result modal's detail lines.
     tile.style.animationDelay = `${Math.min(index, 16) * 28}ms`;
     tile.innerHTML = `
-      <div class="mp-badge__medal">
-        <span class="mp-badge__emoji" aria-hidden="true"></span>
-        <span class="mp-badge__state" aria-hidden="true">${isUnlocked ? CHECK_ICON : LOCK_ICON}</span>
+      <div class="mp-badge__stage">
+        <div class="mp-badge__medal">
+          <span class="mp-badge__art" aria-hidden="true">${badgeImg(def.id)}</span>
+          <span class="mp-badge__state" aria-hidden="true">${isUnlocked ? CHECK_ICON : LOCK_ICON}</span>
+        </div>
       </div>
       <div class="mp-badge__body">
         <p class="mp-badge__name"></p>
@@ -128,7 +131,6 @@ export function createBadgesView() {
         <div class="mp-badge__foot"></div>
       </div>
     `;
-    tile.querySelector(".mp-badge__emoji").textContent = def.emoji;
     tile.querySelector(".mp-badge__name").textContent = t(def.nameKey);
     tile.querySelector(".mp-badge__desc").textContent = t(def.descKey);
 

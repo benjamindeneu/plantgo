@@ -3,6 +3,7 @@ import { t, translateDom } from "../../language/i18n.js";
 import { debugMode } from "../../data/debugMode.js";
 import confetti from "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.module.mjs";
 import { calcFromLevel, calcToLevel, animateProgress, fireLevelUpConfetti } from "../levelProgress.js";
+import { badgeImg } from "./BadgeArt.view.js";
 
 // The base observation points every find is worth. It leads the points list
 // and is written as a plain figure rather than "+100": it is what you started
@@ -295,7 +296,7 @@ export function createResultModalView() {
       const node = document.createElement("div");
       node.className = "badge-card badge-card--unlocked badge-card--pop";
       node.innerHTML = `
-        <div class="badge-card__icon">${badge.emoji}</div>
+        <div class="badge-card__icon${badge.badgeId ? " badge-card__icon--art" : ""}">${badge.badgeId ? badgeImg(badge.badgeId) : badge.emoji}</div>
         <div class="badge-card__name">${escapeHtml(badge.label)}</div>
         <div class="badge-card__desc">${escapeHtml(badge.desc ?? "")}</div>
       `;

@@ -92,9 +92,10 @@ export const HAT_ITEMS = [
   { id: "headlamp",     requires: "perfect_day" },
   { id: "laurel",       requires: "legendary_obs" },
   { id: "crown",        requires: "chal_win_10" },
-  // The level-20 prize: a wise owl perched on the head. It replaced a
-  // wizard hat, which belonged to a fantasy game rather than a field guide.
-  { id: "owl",          requires: "level_20" },
+  // The Master prize (level 50): a wise owl perched on the head. It
+  // replaced a wizard hat, which belonged to a fantasy game rather than a
+  // field guide.
+  { id: "owl",          requires: "level_50" },
   // Harvest & Hallows 2026
   { id: "witch_hat",       requires: "hallows_2026:6" },
   // Golden Harvest 2026

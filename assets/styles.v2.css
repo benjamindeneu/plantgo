@@ -949,6 +949,15 @@
 .v2 .badge-card--locked { opacity: .62; }
 .v2 .badge-card__icon { font-size: 1.8rem; line-height: 1.1; }
 .v2 .badge-card--locked .badge-card__icon { filter: grayscale(1); }
+/* A drawn medallion brings its own frame and die-cut edge: no tinted
+   circle behind it. */
+.v2 .badge-card__icon--art {
+  width: 84px; height: 84px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+.v2 .badge-card__icon--art .badge-art { display: block; width: 100%; height: 100%; }
 .v2 .badge-card__name {
   font-family: var(--mp-ui);
   font-size: .88rem;
@@ -1079,16 +1088,11 @@
   -webkit-backdrop-filter: blur(6px);
 }
 .v2 .mp-badges__next[hidden] { display: none; }
-.v2 .mp-badges__next-emoji {
-  width: 34px; height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: rgba(255,255,255,.9);
-  font-size: 1.15rem;
-  line-height: 1;
-  text-shadow: none;
+.v2 .mp-badges__next-art {
+  width: 38px; height: 38px;
+  display: block;
 }
+.v2 .mp-badges__next-art .badge-art { display: block; width: 100%; height: 100%; }
 .v2 .mp-badges__next-body { min-width: 0; display: grid; gap: 1px; }
 .v2 .mp-badges__next-label {
   font-size: .62rem;
@@ -1137,16 +1141,22 @@
 .v2 .mp-badges__group.is-complete .mp-badges__group-title,
 .v2 .mp-badges__group.is-complete .mp-badges__group-count { color: var(--mp-brand-text); }
 
+/* Most series are four badges (green, blue, purple, gold), so the grid is
+   two columns or four, never three: a series never leaves one badge alone
+   on a row. */
 .v2 .mp-badges__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+@media (min-width: 720px) {
+  .v2 .mp-badges__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
 /* ---------- one badge ---------- */
-/* Same sheet as a mission row: white, hairline, one soft lift. The tier
-   colour drives the medallion ring, the state glyph and the tint behind
-   the emoji, all off one custom property. */
+/* Same sheet as a mission row: white, hairline, one soft lift. The medallion
+   is drawn (its frame carries the tier colour); the tier custom property
+   still colours the state glyph. */
 .v2 .mp-badge {
   --tier: var(--mp-common);
   --tier-tint: var(--mp-common-tint);
@@ -1171,21 +1181,27 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.v2 .mp-badge__medal {
-  position: relative;
-  width: 58px; height: 58px;
-  justify-self: center;
+/* The medallion sits on the same soft tile as a species thumbnail in a
+   mission row, so its white die-cut edge has something to stand out from. */
+.v2 .mp-badge__stage {
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  background: var(--tier-tint);
-  box-shadow: 0 0 0 2px var(--tier), 0 0 0 5px color-mix(in srgb, var(--tier) 18%, transparent);
+  padding: 10px 0;
+  border-radius: 14px;
+  background: linear-gradient(145deg, var(--mp-soft), var(--mp-surface-2));
+  box-shadow: inset 0 0 0 1px rgba(22,36,28,.05);
 }
-.v2 .mp-badge__emoji {
-  font-size: 1.75rem;
-  line-height: 1;
-  transform: translateY(1px);
+.v2 .mp-badge__medal {
+  position: relative;
+  width: 88px; height: 88px;
 }
+.v2 .mp-badge__art { display: block; width: 100%; height: 100%; }
+.v2 .mp-badge__art .badge-art {
+  display: block;
+  width: 100%; height: 100%;
+  transition: transform 220ms var(--mp-ease);
+}
+.v2 .mp-badge.is-unlocked:hover .mp-badge__art .badge-art { transform: rotate(-6deg) scale(1.05); }
 /* The tick / padlock sits on the ring's lower edge, as a coin on the map's
    rare rows does. */
 .v2 .mp-badge__state {
@@ -1252,16 +1268,10 @@
 }
 .v2 .mp-badge.is-unlocked .mp-badge__date { font-weight: 600; color: var(--mp-brand-text); }
 
-/* Locked: the emoji goes grey and the ring is a dashed outline rather than
-   a solid one, so an empty slot reads as a slot, not as a dimmer copy of a
-   won badge. The tile itself stays fully opaque — the name and the count
-   are what tell you how to win it, and those should be readable. */
-.v2 .mp-badge.is-locked .mp-badge__medal {
-  background: var(--mp-surface-2);
-  box-shadow: none;
-  border: 2px dashed color-mix(in srgb, var(--tier) 45%, var(--mp-line));
-}
-.v2 .mp-badge.is-locked .mp-badge__emoji { filter: grayscale(1); opacity: .55; }
+/* Locked: the medallion goes grey and faint, like a pencil sketch of the
+   badge still to win. The tile itself stays fully opaque — the name and
+   the count are what tell you how to win it, and those should be readable. */
+.v2 .mp-badge.is-locked .mp-badge__art .badge-art { filter: grayscale(1); opacity: .42; }
 .v2 .mp-badge.is-locked .mp-badge__state {
   color: var(--mp-ink-2);
   background: var(--mp-surface);
@@ -5492,6 +5502,7 @@
   animation: mp-quiz-rise 320ms var(--mp-ease) both;
 }
 
+.map-page .mp-chal__badge .badge-art { display: block; width: 22px; height: 22px; }
 .map-page .mp-chal__section { display: grid; gap: 8px; }
 .map-page .mp-chal__section[hidden] { display: none; }
 .map-page .mp-chal__label {

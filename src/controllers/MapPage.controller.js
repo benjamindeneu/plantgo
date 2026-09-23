@@ -347,7 +347,7 @@ export function MapPage() {
           newBadges = ids
             .map((id) => BADGE_DEFINITIONS.find((b) => b.id === id))
             .filter(Boolean)
-            .map((b) => ({ emoji: b.emoji, label: t(b.nameKey) }));
+            .map((b) => ({ id: b.id, emoji: b.emoji, label: t(b.nameKey) }));
         } catch (e) {
           console.error("[MapPage] challenge badges failed:", e);
         }

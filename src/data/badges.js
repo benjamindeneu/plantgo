@@ -20,19 +20,25 @@ import {
  * countKey           → key in the counts object passed to the view  (null = binary/no bar)
  * threshold          → unlock threshold for that counter
  * group              → i18n key suffix the badges page files it under (badges.group.*)
- * tier               → ring colour on the badges page: the same common → legendary
- *                      scale the map grades species on, so the top of each
- *                      series reads as the prize it is
+ * tier               → the medallion's colour: green (common), blue (rare), purple
+ *                      (epic), gold (legendary), the same scale the map grades
+ *                      species on. Every series climbs all four, one badge each,
+ *                      except rare finds and daily quests, which are one-offs.
+ * emoji              → a stand-in where a badge is named in plain text; the
+ *                      badge itself is drawn by BadgeArt.view.js
  */
 export const BADGE_DEFINITIONS = [
-  // Observations
-  { id: "obs_1",       emoji: "🌱", nameKey: "badges.obs1.name",       descKey: "badges.obs1.desc",       countKey: "obs",         threshold: 1,    group: "observations", tier: "common" },
-  { id: "obs_100",     emoji: "🌿", nameKey: "badges.obs100.name",     descKey: "badges.obs100.desc",     countKey: "obs",         threshold: 100,  group: "observations", tier: "rare" },
-  { id: "obs_1000",    emoji: "🌳", nameKey: "badges.obs1000.name",    descKey: "badges.obs1000.desc",    countKey: "obs",         threshold: 1000, group: "observations", tier: "epic" },
+  // Observations, told as the kit of field work: boot, hand lens, field
+  // sheet, plant press.
+  { id: "obs_1",       emoji: "🥾", nameKey: "badges.obs1.name",       descKey: "badges.obs1.desc",       countKey: "obs",         threshold: 1,    group: "observations", tier: "common" },
+  { id: "obs_100",     emoji: "🔍", nameKey: "badges.obs100.name",     descKey: "badges.obs100.desc",     countKey: "obs",         threshold: 100,  group: "observations", tier: "rare" },
+  { id: "obs_500",     emoji: "📋", nameKey: "badges.obs500.name",     descKey: "badges.obs500.desc",     countKey: "obs",         threshold: 500,  group: "observations", tier: "epic" },
+  { id: "obs_1000",    emoji: "🌿", nameKey: "badges.obs1000.name",    descKey: "badges.obs1000.desc",    countKey: "obs",         threshold: 1000, group: "observations", tier: "legendary" },
   // Missions
   { id: "mission_1",   emoji: "🎯", nameKey: "badges.mission1.name",   descKey: "badges.mission1.desc",   countKey: "mission",     threshold: 1,    group: "missions", tier: "common" },
   { id: "mission_10",  emoji: "🏹", nameKey: "badges.mission10.name",  descKey: "badges.mission10.desc",  countKey: "mission",     threshold: 10,   group: "missions", tier: "rare" },
-  { id: "mission_100", emoji: "🏆", nameKey: "badges.mission100.name", descKey: "badges.mission100.desc", countKey: "mission",     threshold: 100,  group: "missions", tier: "epic" },
+  { id: "mission_100", emoji: "🧭", nameKey: "badges.mission100.name", descKey: "badges.mission100.desc", countKey: "mission",     threshold: 100,  group: "missions", tier: "epic" },
+  { id: "mission_500", emoji: "⛰️", nameKey: "badges.mission500.name", descKey: "badges.mission500.desc", countKey: "mission",     threshold: 500,  group: "missions", tier: "legendary" },
   // Species diversity
   { id: "disc_10",     emoji: "🌺", nameKey: "badges.disc10.name",     descKey: "badges.disc10.desc",     countKey: "discoveries", threshold: 10,   group: "discoveries", tier: "common" },
   { id: "disc_50",     emoji: "🌸", nameKey: "badges.disc50.name",     descKey: "badges.disc50.desc",     countKey: "discoveries", threshold: 50,   group: "discoveries", tier: "rare" },
@@ -44,15 +50,17 @@ export const BADGE_DEFINITIONS = [
   // Rarity
   { id: "epic_obs",       emoji: "💜", nameKey: "badges.epicObs.name",       descKey: "badges.epicObs.desc",       countKey: null, threshold: null, group: "rarity", tier: "epic" },
   { id: "legendary_obs",  emoji: "🥇", nameKey: "badges.legendaryObs.name",  descKey: "badges.legendaryObs.desc",  countKey: null, threshold: null, group: "rarity", tier: "legendary" },
-  // Challenges: played and won
+  // Challenges: played and won. A first win comes before ten played, so it
+  // sits one step lower.
   { id: "chal_1",      emoji: "🏁", nameKey: "badges.chal1.name",      descKey: "badges.chal1.desc",      countKey: "challenges",    threshold: 1,  group: "challenges", tier: "common" },
-  { id: "chal_10",     emoji: "🧭", nameKey: "badges.chal10.name",     descKey: "badges.chal10.desc",     countKey: "challenges",    threshold: 10, group: "challenges", tier: "rare" },
   { id: "chal_win_1",  emoji: "🥇", nameKey: "badges.chalWin1.name",   descKey: "badges.chalWin1.desc",   countKey: "challengeWins", threshold: 1,  group: "challenges", tier: "rare" },
-  { id: "chal_win_10", emoji: "👑", nameKey: "badges.chalWin10.name",  descKey: "badges.chalWin10.desc",  countKey: "challengeWins", threshold: 10, group: "challenges", tier: "legendary" },
-  // Level milestones
-  { id: "level_5",  emoji: "⭐", nameKey: "badges.level5.name",  descKey: "badges.level5.desc",  countKey: "level", threshold: 5,  group: "level", tier: "common" },
-  { id: "level_10", emoji: "🌟", nameKey: "badges.level10.name", descKey: "badges.level10.desc", countKey: "level", threshold: 10, group: "level", tier: "rare" },
-  { id: "level_20", emoji: "💫", nameKey: "badges.level20.name", descKey: "badges.level20.desc", countKey: "level", threshold: 20, group: "level", tier: "legendary" },
+  { id: "chal_10",     emoji: "⏳", nameKey: "badges.chal10.name",     descKey: "badges.chal10.desc",     countKey: "challenges",    threshold: 10, group: "challenges", tier: "epic" },
+  { id: "chal_win_10", emoji: "🏆", nameKey: "badges.chalWin10.name",  descKey: "badges.chalWin10.desc",  countKey: "challengeWins", threshold: 10, group: "challenges", tier: "legendary" },
+  // Level milestones, told as an oak growing up: acorn, sprout, tree, old oak.
+  { id: "level_5",  emoji: "🌰", nameKey: "badges.level5.name",  descKey: "badges.level5.desc",  countKey: "level", threshold: 5,  group: "level", tier: "common" },
+  { id: "level_10", emoji: "🌱", nameKey: "badges.level10.name", descKey: "badges.level10.desc", countKey: "level", threshold: 10, group: "level", tier: "rare" },
+  { id: "level_20", emoji: "🌳", nameKey: "badges.level20.name", descKey: "badges.level20.desc", countKey: "level", threshold: 20, group: "level", tier: "epic" },
+  { id: "level_50", emoji: "🌳", nameKey: "badges.level50.name", descKey: "badges.level50.desc", countKey: "level", threshold: 50, group: "level", tier: "legendary" },
 ];
 
 /** Display order of the groups on the badges page. */
@@ -78,11 +86,13 @@ export async function checkAndUnlockBadges(userId, {
 
   if (obsCount >= 1)    triggered.push("obs_1");
   if (obsCount >= 100)  triggered.push("obs_100");
+  if (obsCount >= 500)  triggered.push("obs_500");
   if (obsCount >= 1000) triggered.push("obs_1000");
 
   if (missionObsCount >= 1)   triggered.push("mission_1");
   if (missionObsCount >= 10)  triggered.push("mission_10");
   if (missionObsCount >= 100) triggered.push("mission_100");
+  if (missionObsCount >= 500) triggered.push("mission_500");
 
   if (hasReleve)    triggered.push("releve_1");
 
@@ -103,6 +113,7 @@ export async function checkAndUnlockBadges(userId, {
   if (level >= 5)  triggered.push("level_5");
   if (level >= 10) triggered.push("level_10");
   if (level >= 20) triggered.push("level_20");
+  if (level >= 50) triggered.push("level_50");
 
   if (!triggered.length) return [];
 
@@ -127,8 +138,8 @@ export async function checkAndUnlockBadges(userId, {
  * Guarded by `badgesRetroChecked` — runs only once per account.
  */
 export async function checkRetroactiveBadges(userId) {
-  // Bump this whenever new badge categories are added so existing accounts re-scan.
-  const RETRO_VERSION = 2;
+  // Bump this whenever badges are added so existing accounts re-scan.
+  const RETRO_VERSION = 3;
 
   const userRef = doc(db, "users", userId);
   const userSnap = await getDoc(userRef);

@@ -187,7 +187,7 @@ export function ResultModal() {
         const desc = gear.length
           ? `${t(def.descKey)} · ${t("avatar.unlockNote", { item: gear.join(", ") })}`
           : t(def.descKey);
-        badges.push({ kind: "achievement", emoji: def.emoji, label: t(def.nameKey), desc });
+        badges.push({ kind: "achievement", badgeId: def.id, emoji: def.emoji, label: t(def.nameKey), desc });
       }
 
       if (isNearbyDuplicate) {

@@ -3,6 +3,7 @@ import { t } from "../../language/i18n.js";
 import { isSpeciesFound } from "../../data/activeChallenge.js";
 import { standings, MIN_PLAYERS_FOR_POINTS } from "../../data/challenges.js";
 import { avatarImg } from "./Avatar.view.js";
+import { badgeImg } from "./BadgeArt.view.js";
 import { fireLevelUpConfetti } from "../levelProgress.js";
 
 /**
@@ -385,7 +386,8 @@ export function createChallengeScreenView({ onClose } = {}) {
       const chip = document.createElement("span");
       chip.className = "mp-chal__badge";
       chip.innerHTML = `<span aria-hidden="true"></span><span></span>`;
-      chip.firstElementChild.textContent = b.emoji;
+      if (b.id) chip.firstElementChild.innerHTML = badgeImg(b.id, { small: true });
+      else chip.firstElementChild.textContent = b.emoji;
       chip.lastElementChild.textContent = b.label;
       resultBadges.appendChild(chip);
     }
