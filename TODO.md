@@ -15,6 +15,8 @@
 - [ ] **CSS Variables**: Audit `styles.css` to replace remaining hardcoded hex codes with the established CSS tokens (e.g., `--green-600`).
 
 ## ✨ Planned Features
+- [ ] **More events**: the pass system is in place (`events.js`); add Evergreen (Dec), First Bloom (Feb–Mar), City Nature Challenge (Apr). Re-tune the Hallows tier thresholds against real XP data before reusing them.
+- [ ] **Event themes**: the page paper, motif and header follow the event; the map pins and the hero gradient could too.
 - [ ] **Observation Sharing**: Add a "Share" button to `ResultModal` to export observation summaries as images or social links.
 - [ ] **Improve visuals**: clean css file and improve visuals overhaul.
 

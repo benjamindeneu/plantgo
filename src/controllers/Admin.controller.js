@@ -4,6 +4,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/fi
 
 import { t } from "../language/i18n.js";
 import { isAdmin, resetQuiz } from "../data/user.repo.js";
+import { EVENTS, eventSim } from "../data/events.js";
 import { renderChecking, renderAdmin } from "../ui/components/Admin.view.js";
 
 /**
@@ -27,6 +28,14 @@ export function AdminController(container) {
 
     renderAdmin(container, {
       onResetQuiz: () => resetQuiz(userId),
+      eventOptions: EVENTS.map((e) => ({ value: e.id, label: `${e.emoji} ${t(e.nameKey)}` })),
+      eventValue: eventSim.get(),
+      onEventChange: (id) => {
+        eventSim.set(id);
+        // Straight to the map: the point of the switch is to see the app
+        // dressed for the event, and that is where the pass card lives.
+        location.href = "./index.html";
+      },
     });
   }
 

@@ -1,8 +1,8 @@
-// src/pages/badges.app.js
+// src/pages/avatar.app.js
 import { initI18n } from "../language/i18n.js";
 import { applyEventTheme } from "../data/events.js";
 import { Header } from "../controllers/Header.controller.js";
-import { BadgesPanel } from "../controllers/Badges.controller.js";
+import { AvatarEditorPanel } from "../controllers/AvatarEditor.controller.js";
 import { listenUserLevel } from "../user/level.js";
 
 import { auth } from "../../firebase-config.js";
@@ -21,11 +21,10 @@ function App() {
     level: 1,
     menuVariant: "herbarium", // shows "🏠 Main" as primary nav
     onBackHome: () => { location.href = "./index.html"; },
-    onBadges: () => { location.href = "./badges.html"; },
-    onQuiz: () => { location.href = "./quiz.html"; },
     onLogout: async () => {
       try {
         stopLevel();
+        editor.stop();
         await signOut(auth);
         location.replace("./login.html");
       } catch (e) {
@@ -35,8 +34,8 @@ function App() {
   });
   headerMount.replaceWith(header);
 
-  const badgesMount = document.getElementById("badgesRoot");
-  badgesMount.replaceWith(BadgesPanel());
+  const editor = AvatarEditorPanel();
+  document.getElementById("avatarRoot").replaceWith(editor);
 
   onAuthStateChanged(auth, (user) => {
     if (!user) {

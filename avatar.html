@@ -6,19 +6,14 @@
   <meta name="color-scheme" content="light" />
   <meta name="theme-color" content="#ffffff" />
 
-  <title data-i18n="map.pageTitle">PlantGo</title>
+  <title data-i18n="avatar.pageTitle">PlantGo • Avatar</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
-
-  <!-- v1 still supplies a few components (the identify panel, the result
-       modal's internals). v2 is the design system and loads second so its
-       rules win. See assets/styles.v2.css. -->
   <link rel="stylesheet" href="./assets/styles.css?v=20260909-1" />
   <link rel="stylesheet" href="./assets/styles.v2.css?v=20260922-2" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
   <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
 
   <link rel="manifest" href="./manifest.json" />
@@ -29,11 +24,15 @@
   <meta name="apple-mobile-web-app-title" content="PlantGo" />
 </head>
 
-<body class="v2 map-page">
+<body class="v2">
   <header id="appHeader" class="nav"></header>
 
-  <main class="map-shell">
-    <div id="mapRoot" class="map-root"></div>
+  <!-- Built like the badges page: a hero with the avatar itself, then one
+       section per slot. The view replaces this placeholder wholesale. -->
+  <main class="app-shell mp-wardrobe-page">
+    <section id="avatarRoot" class="mp-wardrobe" aria-live="polite">
+      <div class="mp-badges__status" data-i18n="avatar.loading">Loading…</div>
+    </section>
   </main>
 
   <!-- Root Firebase config + libs -->
@@ -41,7 +40,7 @@
   <script type="module" src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js"></script>
   <script type="module" src="https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js"></script>
 
-  <!-- Mission map bootstrap + logic -->
-  <script type="module" src="./src/pages/map.app.js?v=20260918-4"></script>
+  <!-- Avatar editor bootstrap -->
+  <script type="module" src="./src/pages/avatar.app.js"></script>
 </body>
 </html>

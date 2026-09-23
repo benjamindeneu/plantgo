@@ -19,6 +19,11 @@ export function createMapPageView() {
   const root = document.createElement("div");
   root.className = "mp-shell";
   root.innerHTML = `
+    <!-- The running event's pass, the first band under the header: it
+         belongs to the whole app, not to one tab or one list. Empty and
+         invisible when no event is on. -->
+    <div id="eventSlot" class="mp-event-slot"></div>
+
     <div id="mapSlot" class="mp-map"></div>
 
     <!-- Daily quests, top-left over the map. -->
@@ -96,6 +101,7 @@ export function createMapPageView() {
   const tabChallenge = q("#tabChallenge");
   const tabsWrap = q(".mp-tabs");
   const questsSlot = q("#questsSlot");
+  const eventSlot = q("#eventSlot");
   const mapSlot = q("#mapSlot");
   const sheet = q(".mp-sheet");
   const sheetGrab = q("#sheetGrab");
@@ -407,6 +413,7 @@ export function createMapPageView() {
     mapSlot,
     observeSlot,
     questsSlot,
+    eventSlot,
 
     getActiveTab: () => activeTab,
     setActiveTab,

@@ -10,7 +10,7 @@ export function renderChecking(container, msg) {
  * One section per tool. Each is a heading, a line saying what the button
  * will do, the button, and a status line that reports how it went.
  */
-export function renderAdmin(container, { onResetQuiz }) {
+export function renderAdmin(container, { onResetQuiz, eventOptions = [], eventValue = "", onEventChange }) {
   container.innerHTML = "";
   container.appendChild(section({
     title: t("admin.quiz.title"),
@@ -20,6 +20,43 @@ export function renderAdmin(container, { onResetQuiz }) {
     error: t("admin.quiz.error"),
     run: onResetQuiz,
   }));
+  container.appendChild(choiceSection({
+    title: t("admin.event.title"),
+    desc: t("admin.event.desc"),
+    options: [{ value: "", label: t("admin.event.off") }, ...eventOptions],
+    value: eventValue,
+    onChange: onEventChange,
+  }));
+}
+
+/**
+ * A tool that picks rather than fires: the event simulator.
+ *
+ * Choosing reloads the page, because the override is read once per page by
+ * the pass card, the wardrobe and the theme — a reload is both the honest
+ * way to show what a player would see and the simplest.
+ */
+function choiceSection({ title, desc, options, value, onChange }) {
+  const el = document.createElement("section");
+  el.className = "mp-admin__section";
+  el.innerHTML = `
+    <h2></h2>
+    <p class="mp-admin__desc"></p>
+    <select class="mp-admin__select"></select>
+  `;
+  el.querySelector("h2").textContent = title;
+  el.querySelector(".mp-admin__desc").textContent = desc;
+
+  const select = el.querySelector("select");
+  for (const opt of options) {
+    const o = document.createElement("option");
+    o.value = opt.value;
+    o.textContent = opt.label;
+    select.appendChild(o);
+  }
+  select.value = value;
+  select.addEventListener("change", () => onChange?.(select.value));
+  return el;
 }
 
 function section({ title, desc, action, done, error, run }) {

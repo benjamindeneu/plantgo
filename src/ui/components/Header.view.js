@@ -8,6 +8,7 @@
  */
 
 import { t } from "../../language/i18n.js";
+import { avatarSvg } from "./Avatar.view.js";
 
 export function createHeaderView({
   user,
@@ -25,6 +26,7 @@ export function createHeaderView({
     </div>
     <div class="user-area">
       <div class="user-info">
+        <a class="user-avatar" id="userAvatar" href="./avatar.html"></a>
         <span class="user-name">${user?.displayName ?? "User"}</span>
         <span class="level-badge">
           <span id="levelLabel">Lv.</span> <span id="levelNumber">${level}</span>
@@ -52,6 +54,7 @@ export function createHeaderView({
           <button class="menu-item" role="menuitem" id="menuHerbarium">📗 Herbarium</button>
           <button class="menu-item" role="menuitem" id="menuObservations">📋 Observations</button>
           <button class="menu-item" role="menuitem" id="menuBadges">🏅 Badges</button>
+          <button class="menu-item" role="menuitem" id="menuAvatar">🧑 Avatar</button>
           <button class="menu-item" role="menuitem" id="menuChallenge">🏁 Challenge</button>
           <button class="menu-item" role="menuitem" id="menuQuiz">🌿 Quiz</button>
           <div class="menu-divider"></div>
@@ -86,6 +89,8 @@ export function createHeaderView({
   const langSelect = root.querySelector("#langSelect");
   const challengeMenuBtn = root.querySelector("#menuChallenge");
   const badgesMenuBtn = root.querySelector("#menuBadges");
+  const avatarMenuBtn = root.querySelector("#menuAvatar");
+  const avatarEl = root.querySelector("#userAvatar");
   const quizMenuBtn = root.querySelector("#menuQuiz");
   const settingsMenuBtn = root.querySelector("#menuSettings");
   const observationsMenuBtn = root.querySelector("#menuObservations");
@@ -98,6 +103,7 @@ export function createHeaderView({
   let onLanguageChange = null;
   let onChallenge = null;
   let onBadges = null;
+  let onAvatar = null;
   let onQuiz = null;
   let onSettings = null;
   let onObservations = null;
@@ -132,6 +138,8 @@ export function createHeaderView({
 
     if (challengeMenuBtn) { challengeMenuBtn.textContent = `🏁 ${t("header.challenge")}`; }
     if (badgesMenuBtn) { badgesMenuBtn.textContent = `🏅 ${t("header.badges")}`; }
+    if (avatarMenuBtn) { avatarMenuBtn.textContent = `🧑 ${t("header.avatar")}`; }
+    if (avatarEl) avatarEl.setAttribute("aria-label", t("header.avatar"));
     if (quizMenuBtn) { quizMenuBtn.textContent = `🌿 ${t("header.quiz")}`; }
     if (observationsMenuBtn) { observationsMenuBtn.textContent = `📋 ${t("header.observations")}`; }
     if (adminMenuBtn) { adminMenuBtn.textContent = `🛡 ${t("header.admin")}`; }
@@ -172,6 +180,11 @@ export function createHeaderView({
     if (onBadges) onBadges();
   });
 
+  avatarMenuBtn?.addEventListener("click", () => {
+    toggleMenu(false);
+    if (onAvatar) onAvatar();
+  });
+
   quizMenuBtn?.addEventListener("click", () => {
     toggleMenu(false);
     if (onQuiz) onQuiz();
@@ -206,6 +219,11 @@ export function createHeaderView({
     setLevel(lvl) {
       levelEl.textContent = String(lvl ?? 1);
     },
+    // The chip stays empty until the avatar is known, so a page never
+    // flashes the default outfit before the player's own.
+    setAvatar(avatar) {
+      if (avatarEl) avatarEl.innerHTML = avatar ? avatarSvg(avatar, { className: "av user-avatar__svg" }) : "";
+    },
     // The admin tab is there only for an admin; everyone else never sees it.
     setAdmin(isAdmin) {
       if (adminMenuBtn) adminMenuBtn.hidden = !isAdmin;
@@ -225,6 +243,7 @@ export function createHeaderView({
     setOnLanguageChange(cb) { onLanguageChange = cb; },
     setOnChallenge(cb) { onChallenge = cb; },
     setOnBadges(cb) { onBadges = cb; },
+    setOnAvatar(cb) { onAvatar = cb; },
     setOnQuiz(cb) { onQuiz = cb; },
     setOnSettings(cb) { onSettings = cb; },
     setOnObservations(cb) { onObservations = cb; },

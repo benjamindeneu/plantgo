@@ -3,6 +3,7 @@
 // The mission map is the app's main screen: it owns the full header menu and
 // the modals that used to hang off the old home page.
 import { initI18n } from "../language/i18n.js";
+import { applyEventTheme } from "../data/events.js";
 import { Header } from "../controllers/Header.controller.js";
 import { MapPage } from "../controllers/MapPage.controller.js";
 import { ChallengeModal } from "../controllers/ChallengeModal.controller.js";
@@ -16,6 +17,8 @@ import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 await initI18n();
+// Dress the page for the running event, if any.
+applyEventTheme();
 debugMode.init();
 
 function App() {
@@ -30,6 +33,7 @@ function App() {
     user: null,
     level: 1,
     onBadges: () => { location.href = "./badges.html"; },
+    onAvatar: () => { location.href = "./avatar.html"; },
     onQuiz: () => { location.href = "./quiz.html"; },
     onHerbarium: () => { location.href = "./plantdex.html"; },
     onObservations: () => { location.href = "./observations.html"; },

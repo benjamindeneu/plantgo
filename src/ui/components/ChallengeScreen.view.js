@@ -2,6 +2,7 @@
 import { t } from "../../language/i18n.js";
 import { isSpeciesFound } from "../../data/activeChallenge.js";
 import { standings, MIN_PLAYERS_FOR_POINTS } from "../../data/challenges.js";
+import { avatarSvg } from "./Avatar.view.js";
 import { fireLevelUpConfetti } from "../levelProgress.js";
 
 /**
@@ -33,11 +34,14 @@ function hueOf(uid) {
   for (const ch of String(uid || "")) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   return AVATAR_HUES[h % AVATAR_HUES.length];
 }
+// A player's avatar on their coloured disc; a row from before avatars
+// existed shows the initial instead.
 function avatar(row, className = "mp-avatar") {
   const el = document.createElement("span");
   el.className = className;
   el.style.setProperty("--hue", hueOf(row.uid));
-  el.textContent = (row.username || "?").trim().charAt(0).toUpperCase() || "?";
+  if (row.avatar) el.innerHTML = avatarSvg(row.avatar);
+  else el.textContent = (row.username || "?").trim().charAt(0).toUpperCase() || "?";
   el.title = row.username || "";
   return el;
 }

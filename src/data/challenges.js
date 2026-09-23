@@ -18,6 +18,7 @@ import {
   onSnapshot,
   increment,
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { normalizeAvatar } from "./avatar.js";
 
 function makeCode(len = 5) {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -28,23 +29,27 @@ function makeCode(len = 5) {
   return s;
 }
 
-async function getMyDisplayName() {
+/**
+ * How the player appears to the others in a challenge: a name and their
+ * avatar, copied onto the member doc so a leaderboard needs no lookup per
+ * row. One read of the user doc serves both.
+ */
+async function getMyIdentity() {
   const u = auth.currentUser;
-  if (!u) return "Player";
+  if (!u) return { username: "Player", avatar: normalizeAvatar(null) };
 
-  // try users/{uid}.username
+  let data = null;
   try {
     const snap = await getDoc(doc(db, "users", u.uid));
-    const data = snap.exists() ? snap.data() : null;
-    if (data?.username && String(data.username).trim()) return String(data.username).trim();
+    data = snap.exists() ? snap.data() : null;
   } catch {}
 
-  if (u.displayName) return u.displayName;
+  let username = "Player";
+  if (data?.username && String(data.username).trim()) username = String(data.username).trim();
+  else if (u.displayName) username = u.displayName;
+  else if ((u.email || "").includes("@")) username = u.email.split("@")[0];
 
-  const email = u.email || "";
-  if (email.includes("@")) return email.split("@")[0];
-
-  return "Player";
+  return { username, avatar: normalizeAvatar(data?.avatar) };
 }
 
 export async function findChallengeByCode(code) {
@@ -143,12 +148,13 @@ export async function createChallenge({ durationSec, type = "points", speciesLis
     speciesList: normalizedSpeciesList,
   });
 
-  const username = await getMyDisplayName();
+  const { username, avatar } = await getMyIdentity();
 
   // member doc with score
   await setDoc(doc(db, "challenges", ref.id, "members", u.uid), {
     uid: u.uid,
     username,
+    avatar,
     joinedAt: serverTimestamp(),
     score: 0,
     foundSpecies: [],
@@ -182,25 +188,26 @@ export async function joinChallengeByCode(code) {
   const endAtMs = challenge?.endAt?.toMillis ? challenge.endAt.toMillis() : null;
   if (endAtMs && Date.now() > endAtMs) throw new Error("This challenge has already ended.");
 
-  const username = await getMyDisplayName();
+  const { username, avatar } = await getMyIdentity();
   const challengeType = challenge.type || "points";
   const speciesList = Array.isArray(challenge.speciesList) ? challenge.speciesList : [];
   const speciesNames = speciesList.map(s => s.name).filter(Boolean);
   const speciesGbifIds = speciesList.map(s => Number(s.gbif_id)).filter(Boolean);
 
-  // First join: create member doc. Re-join: only update username to preserve progress.
+  // First join: create member doc. Re-join: only refresh name and avatar to preserve progress.
   const memberRef = doc(db, "challenges", challenge.id, "members", u.uid);
   const memberSnap = await getDoc(memberRef);
   if (!memberSnap.exists()) {
     await setDoc(memberRef, {
       uid: u.uid,
       username,
+      avatar,
       joinedAt: serverTimestamp(),
       score: 0,
       foundSpecies: [],
     });
   } else {
-    await updateDoc(memberRef, { username });
+    await updateDoc(memberRef, { username, avatar });
   }
 
   // set active pointer
@@ -338,13 +345,13 @@ export async function applySpeciesHuntScore({
  */
 export const PODIUM_POINTS = [1000, 600, 300];
 /** A podium needs a field: fewer players than this and no place pays. */
-export const MIN_PLAYERS_FOR_POINTS = 3;
+export const MIN_PLAYERS_FOR_POINTS = 2;
 
 /**
  * Standings from leaderboard rows (already sorted by score, descending).
  * Equal scores share a place and the next place is skipped — two players
  * on 7 are both 1st and the next is 3rd — so a tie never robs anyone.
- * Returns [{ uid, username, score, rank }].
+ * Returns [{ uid, username, avatar, score, rank }].
  */
 export function standings(rows = []) {
   const sorted = [...rows].sort((a, b) => (b.score || 0) - (a.score || 0));
@@ -353,7 +360,7 @@ export function standings(rows = []) {
   return sorted.map((r, i) => {
     const score = r.score || 0;
     if (score !== prevScore) { rank = i + 1; prevScore = score; }
-    return { uid: r.uid, username: r.username || "—", score, rank };
+    return { uid: r.uid, username: r.username || "—", avatar: r.avatar ?? null, score, rank };
   });
 }
 
@@ -365,7 +372,9 @@ export function standings(rows = []) {
  *
  * Podium points need company: fewer than MIN_PLAYERS_FOR_POINTS players,
  * or a place earned with nothing on the list found, pays nothing —
- * whatever the place.
+ * whatever the place. The same company requirement gates the "played"
+ * count that challenge badges (chal_1, chal_10, …) unlock on: a
+ * single-player run is recorded but doesn't count toward them.
  *
  * Returns { rank, players, score, found, total, points, challengesPlayed,
  *           challengesWon, settledNow }.
@@ -416,12 +425,12 @@ export async function settleChallenge({ challengeId, code, type, rows, found = 0
     txn.set(histRef, record);
     txn.update(userRef, {
       total_points: increment(paid),
-      total_challenges: increment(1),
+      total_challenges: increment(eligible ? 1 : 0),
       total_challenge_wins: increment(record.won ? 1 : 0),
     });
     return {
       ...record,
-      challengesPlayed: Number(user.total_challenges || 0) + 1,
+      challengesPlayed: Number(user.total_challenges || 0) + (eligible ? 1 : 0),
       challengesWon: Number(user.total_challenge_wins || 0) + (record.won ? 1 : 0),
       settledNow: true,
     };

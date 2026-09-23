@@ -5,10 +5,42 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-
 import { addObservationAndDiscovery } from "../data/observations.js";
 import { checkAndAwardQuestCompletions, QUEST_BONUS } from "../data/dailyQuests.js";
 import { checkAndUnlockBadges, BADGE_DEFINITIONS } from "../data/badges.js";
+import { itemsUnlockedBy, itemNameKey, slotItems, AVATAR_SLOTS } from "../data/avatar.js";
+import { addEventXp, activeEvent, tierToken } from "../data/events.js";
 import { fetchDescription, fetchTrivia } from "../api/plantgo.js";
 import { missionBonusFor } from "../data/missions.repo.js";
 import { getMissionsDoneToday, markMissionDone } from "../data/missionsDone.js";
 import { t } from "../language/i18n.js";
+
+/**
+ * Add this observation's points to the running event pass and turn any tier
+ * it crossed into a card for the result modal, naming what the tier gave.
+ * Cosmetics only: the pass never pays points, so the total shown is
+ * unaffected by this and levels cannot be inflated by an event.
+ */
+async function awardEventPass(uid, points) {
+  const event = activeEvent();
+  if (!uid || !event) return [];
+  let reached = [];
+  try {
+    reached = await addEventXp(uid, points);
+  } catch (e) {
+    console.error("[ResultModal] event XP failed:", e);
+    return [];
+  }
+  return reached.map(({ tier }) => {
+    const token = tierToken(event.id, tier);
+    const items = AVATAR_SLOTS.flatMap((slot) =>
+      slotItems(slot).filter((it) => it.requires === token).map((it) => t(itemNameKey(slot, it.id)))
+    );
+    return {
+      kind: "achievement",
+      emoji: event.emoji,
+      label: t("events.pass.tierReached", { n: tier }),
+      desc: items.length ? t("avatar.unlockNote", { item: items.join(", ") }) : t(event.nameKey),
+    };
+  });
+}
 
 export function ResultModal() {
   const view = createResultModalView();
@@ -148,13 +180,21 @@ export function ResultModal() {
       const allNewBadgeIds = [...new Set([...achievementBadgeIds, ...questBadges])];
       for (const id of allNewBadgeIds) {
         const def = BADGE_DEFINITIONS.find((b) => b.id === id);
-        if (def) badges.push({ kind: "achievement", emoji: def.emoji, label: t(def.nameKey), desc: t(def.descKey) });
+        if (!def) continue;
+        // A badge that also opens an outfit item says so on its card — the
+        // one moment the player learns the wardrobe exists.
+        const gear = itemsUnlockedBy(id).map(({ slot, item }) => t(itemNameKey(slot, item.id)));
+        const desc = gear.length
+          ? `${t(def.descKey)} · ${t("avatar.unlockNote", { item: gear.join(", ") })}`
+          : t(def.descKey);
+        badges.push({ kind: "achievement", emoji: def.emoji, label: t(def.nameKey), desc });
       }
 
       if (isNearbyDuplicate) {
         // No discovery badge — nearby duplicates cannot be new discoveries
         const badgeBonus = badges.reduce((s, b) => s + (b.bonus || 0), 0);
         const finalTotal = nearbyPoints + badgeBonus;
+        badges.push(...await awardEventPass(user?.uid, finalTotal));
         await view.showResultUI({
           speciesName,
           speciesVernacularName,
@@ -177,6 +217,7 @@ export function ResultModal() {
       if (discoveryBonus > 0) badges.push({ kind: "new", emoji: "🆕", label: t("result.badge.newSpecies"), bonus: 500 });
 
       const finalTotal = baseTotal + badges.reduce((s, b) => s + (b.bonus || 0), 0);
+      badges.push(...await awardEventPass(user?.uid, finalTotal));
 
       await view.showResultUI({
         speciesName,
@@ -224,7 +265,9 @@ export function ResultModal() {
   }
 
   async function pollTrivia({ gbif_id, name, lang }) {
-    const delays = [3000, 5000, 8000, 12000]; // ~28 s total
+    // Leading 0 like pollDescription — lets already-cached trivia (the
+    // common case) come back on the next tick instead of after a fixed 3s.
+    const delays = [0, 3000, 5000, 8000, 12000]; // ~28 s total
     for (const delay of delays) {
       await new Promise((r) => setTimeout(r, delay));
       try {

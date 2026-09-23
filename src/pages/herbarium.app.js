@@ -1,6 +1,7 @@
 // src/pages/herbarium.app.js
 
 import { initI18n } from "../language/i18n.js";
+import { applyEventTheme } from "../data/events.js";
 import { Header } from "../controllers/Header.controller.js";
 import { HerbariumPanel } from "../controllers/Herbarium.controller.js";
 import { listenUserLevel } from "../user/level.js";
@@ -10,6 +11,8 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 
 // ensure dict is loaded + html lang set BEFORE any views render
 await initI18n();
+// Dress the page for the running event, if any.
+applyEventTheme();
 
 function App() {
   // must exist before Header so logout can call it safely

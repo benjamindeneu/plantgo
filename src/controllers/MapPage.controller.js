@@ -14,6 +14,7 @@ import { watchActiveChallenge, isEnded, isSpeciesFound } from "../data/activeCha
 import { persistMissionsHere } from "../data/missions.repo.js";
 import { watchMissionsDoneToday } from "../data/missionsDone.js";
 import { QuestsChip } from "./QuestsChip.controller.js";
+import { EventPassCard } from "./EventPass.controller.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 import { auth } from "../../firebase-config.js";
 import { clearMyActiveChallenge, settleChallenge } from "../data/challenges.js";
@@ -234,6 +235,9 @@ export function MapPage() {
   // header is shared with every other page.
   const quests = QuestsChip();
   view.questsSlot.appendChild(quests);
+
+  const eventCard = EventPassCard();
+  view.eventSlot.appendChild(eventCard);
 
   // --- missions accomplished today ----------------------------------------
 
@@ -461,6 +465,7 @@ export function MapPage() {
       if (challengeTimer) { clearInterval(challengeTimer); challengeTimer = null; }
       stopChallengeWatch();
       quests.stop();
+      eventCard.stop();
       stopDoneAuth();
       stopMissionsDone();
       map.stop();

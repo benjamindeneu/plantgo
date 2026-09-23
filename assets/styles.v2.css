@@ -45,6 +45,12 @@
   --mp-soft:       #e3f9ed;
   --mp-grad: linear-gradient(168deg, var(--mp-brand-hi) 0%, var(--mp-brand) 26%, var(--mp-brand-lo) 100%);
   --mp-on-brand-shadow: 0 1px 2px rgba(3,58,33,.34);
+  /* The brand's glow, as its own token: every coloured shadow under a
+     brand-painted control reads from this, so overriding --mp-brand in an
+     event palette recolours the halos too rather than leaving green ones
+     under orange buttons. `--mp-glow-rgb` is the raw triplet, for the
+     handful of places that need their own alpha. */
+  --mp-glow-rgb: 18,185,110;
 
   /* --- grades --- */
   --mp-common:         #55917a;
@@ -190,6 +196,24 @@
 
 .v2 .user-area { margin-left: auto; }
 .v2 .user-info { display: flex; align-items: center; gap: 8px; }
+/* The player's avatar, cropped to a coin beside the name. It is a link to
+   the editor, and empty until the avatar is known. 28px is the most the
+   pill holds without growing: the header's height is measured once for the
+   sticky strips under it, and the coin lands after that measurement. */
+.v2 .user-avatar {
+  flex: none;
+  width: 28px; height: 28px;
+  margin-left: -6px;
+  display: block;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--mp-soft);
+  box-shadow: 0 0 0 2px var(--mp-surface), 0 0 0 3px var(--mp-line);
+  transition: transform 160ms var(--mp-ease), box-shadow 160ms var(--mp-ease);
+}
+.v2 .user-avatar:hover { transform: translateY(-1px); box-shadow: 0 0 0 2px var(--mp-surface), 0 0 0 3px var(--mp-brand); }
+.v2 .user-avatar:empty { display: none; }
+.v2 .user-avatar__svg { display: block; width: 100%; height: 100%; }
 .v2 .user-name {
   font-family: var(--mp-ui);
   font-size: .88rem;
@@ -211,14 +235,17 @@
   letter-spacing: .02em;
   white-space: nowrap;
   text-shadow: var(--mp-on-brand-shadow);
-  box-shadow: 0 2px 8px rgba(18,185,110,.34);
+  box-shadow: 0 2px 8px rgba(var(--mp-glow-rgb),.34);
 }
 
 /* ---------- daily quests chip ---------- */
 /* Top-left over the map, opposite its controls. */
 .map-page .mp-quests-slot {
   position: absolute;
-  top: 12px;
+  /* `--ev-band` is the height of the event capsule above; 0 when no event
+     is on, so everything floating at the top of the map moves down as one
+     rather than each carrying its own magic number. */
+  top: calc(12px + var(--ev-band, 0px));
   left: 12px;
   z-index: 645;
 }
@@ -254,7 +281,7 @@
   background: var(--mp-grad);
   color: #fff;
   text-shadow: var(--mp-on-brand-shadow);
-  box-shadow: 0 2px 8px rgba(18,185,110,.34);
+  box-shadow: 0 2px 8px rgba(var(--mp-glow-rgb),.34);
 }
 
 .v2 .mp-quests__panel {
@@ -458,7 +485,7 @@
   background: var(--mp-grad);
   border: 0;
   border-radius: 999px;
-  box-shadow: 0 4px 14px rgba(18,185,110,.34), inset 0 1px 0 rgba(255,255,255,.42);
+  box-shadow: 0 4px 14px rgba(var(--mp-glow-rgb),.34), inset 0 1px 0 rgba(255,255,255,.42);
   font-family: var(--mp-ui);
   font-size: .95rem;
   font-weight: 600;
@@ -472,7 +499,7 @@
                .dq-nav, .dq-dot, .close, .menu-item, .menu-btn):hover {
   transform: none;
   filter: none;
-  box-shadow: 0 6px 20px rgba(18,185,110,.44), inset 0 1px 0 rgba(255,255,255,.42);
+  box-shadow: 0 6px 20px rgba(var(--mp-glow-rgb),.44), inset 0 1px 0 rgba(255,255,255,.42);
 }
 .v2 button:not([class^="mp-"], [class*=" mp-"],
                .common-points, .rare-points, .epic-points, .legendary-points,
@@ -615,7 +642,7 @@
   color: #fff;
   font-weight: 600;
   text-shadow: var(--mp-on-brand-shadow);
-  box-shadow: 0 3px 12px rgba(18,185,110,.36);
+  box-shadow: 0 3px 12px rgba(var(--mp-glow-rgb),.36);
 }
 .v2 .tab-desc {
   margin: 0 0 12px;
@@ -1265,6 +1292,978 @@
 }
 
 /* ============================================================
+   WARDROBE — the avatar editor page
+   ------------------------------------------------------------
+   The wardrobe. Same bones as the badges page — hero, then
+   sections with the badges page's own group heads — with the
+   avatar itself standing in the hero and every tile a portrait
+   of the avatar wearing that item.
+   ============================================================ */
+.v2 .mp-wardrobe-page { padding-top: 12px; }
+.v2 .mp-wardrobe { display: grid; gap: 22px; }
+
+.v2 .mp-wardrobe__hero {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 16px;
+}
+.v2 .mp-wardrobe__hero-body { position: relative; min-width: 0; display: grid; gap: 10px; }
+/* The avatar on a paper coin, so the gradient stays behind the type and
+   the outfit's own colours have something quiet to sit on. */
+.v2 .mp-wardrobe__portrait {
+  position: relative;
+  width: 108px; height: 108px;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--mp-surface);
+  box-shadow: 0 0 0 3px rgba(255,255,255,.55), 0 8px 22px rgba(3,58,33,.28);
+}
+.v2 .mp-wardrobe__portrait .av { display: block; width: 100%; height: 100%; }
+
+.v2 .mp-wardrobe__group { display: grid; gap: 10px; }
+.v2 .mp-wardrobe__group.is-complete .mp-badges__group-title,
+.v2 .mp-wardrobe__group.is-complete .mp-badges__group-count { color: var(--mp-brand-text); }
+
+/* ---------- colour swatches (skin, hair, eyes) ---------- */
+/* A swatch is a dot with the tile's own tick or padlock on its edge; a
+   locked one also carries the badge to earn beneath it. */
+.v2 .mp-wardrobe__swatches { display: flex; flex-wrap: wrap; gap: 10px 12px; padding: 0 2px; }
+/* Both the swatch and the tile are buttons, and v1's global button rule
+   (full width, a margin, a shadow, a hover filter) reaches them; the v2
+   rule leaves `mp-` classes alone, so these reset only what v1 set. */
+.v2 .mp-wardrobe__swatch,
+.v2 .mp-wardrobe__tile {
+  width: auto;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  letter-spacing: normal;
+  text-shadow: none;
+}
+.v2 .mp-wardrobe__swatch:hover,
+.v2 .mp-wardrobe__tile:hover { filter: none; }
+.v2 .mp-wardrobe__swatch:active,
+.v2 .mp-wardrobe__tile:active { transform: none; }
+.v2 .mp-wardrobe__tile { width: 100%; }
+
+.v2 .mp-wardrobe__swatch {
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+  max-width: 76px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  cursor: pointer;
+}
+.v2 .mp-wardrobe__swatch-dot {
+  position: relative;
+  display: block;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow: 0 0 0 2px var(--mp-surface), 0 0 0 3px var(--mp-line), 0 1px 2px rgba(22,36,28,.08);
+  transition: transform 160ms var(--mp-ease), box-shadow 160ms var(--mp-ease);
+}
+.v2 .mp-wardrobe__swatch:hover .mp-wardrobe__swatch-dot { transform: translateY(-2px); }
+.v2 .mp-wardrobe__swatch.is-selected .mp-wardrobe__swatch-dot { box-shadow: 0 0 0 2px var(--mp-surface), 0 0 0 4px var(--mp-brand), 0 4px 12px rgba(var(--mp-glow-rgb),.3); }
+.v2 .mp-wardrobe__swatch-state {
+  position: absolute;
+  right: -3px; bottom: -3px;
+  width: 18px; height: 18px;
+  display: none;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--mp-brand);
+  box-shadow: 0 0 0 2px var(--mp-surface);
+}
+.v2 .mp-wardrobe__swatch.is-selected .mp-wardrobe__swatch-state { display: grid; }
+.v2 .mp-wardrobe__swatch-cap {
+  font-size: .62rem;
+  line-height: 1.3;
+  text-align: center;
+  color: var(--mp-ink-2);
+}
+.v2 .mp-wardrobe__swatch.is-locked { cursor: default; }
+.v2 .mp-wardrobe__swatch.is-locked:hover .mp-wardrobe__swatch-dot { transform: none; }
+/* color-mix cannot take a gradient, so a gradient swatch greys out flat. */
+.v2 .mp-wardrobe__swatch.is-gradient.is-locked .mp-wardrobe__swatch-dot { background: var(--mp-surface-2); }
+.v2 .mp-wardrobe__swatch.is-locked .mp-wardrobe__swatch-dot {
+  background: color-mix(in srgb, var(--swatch) 45%, var(--mp-surface-2));
+  box-shadow: none;
+  border: 2px dashed var(--mp-line);
+}
+.v2 .mp-wardrobe__swatch.is-locked .mp-wardrobe__swatch-state {
+  display: grid;
+  color: var(--mp-ink-2);
+  background: var(--mp-surface);
+  box-shadow: 0 0 0 1px var(--mp-line);
+}
+
+/* ---------- item tiles ---------- */
+.v2 .mp-wardrobe__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 10px;
+}
+/* A tile is a badge medallion turned into a button: the tier colour of the
+   badge that opens it rings the portrait, and the selected one takes the
+   brand ring instead. */
+.v2 .mp-wardrobe__tile {
+  --tier: var(--mp-common);
+  --tier-tint: var(--mp-common-tint);
+  position: relative;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  padding: 12px 8px 10px;
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r-md);
+  background: var(--mp-surface);
+  box-shadow: 0 1px 2px rgba(22,36,28,.04);
+  font: inherit;
+  color: inherit;
+  text-align: center;
+  cursor: pointer;
+  animation: mp-badge-in 320ms var(--mp-ease) both;
+  transition: transform 180ms var(--mp-ease), box-shadow 180ms var(--mp-ease), border-color 180ms var(--mp-ease);
+}
+.v2 .mp-wardrobe__tile:hover { transform: translateY(-2px); box-shadow: var(--mp-lift); }
+.v2 .mp-wardrobe__tile--rare      { --tier: var(--mp-rare);      --tier-tint: var(--mp-rare-tint); }
+.v2 .mp-wardrobe__tile--epic      { --tier: var(--mp-epic);      --tier-tint: var(--mp-epic-tint); }
+.v2 .mp-wardrobe__tile--legendary { --tier: var(--mp-legendary); --tier-tint: var(--mp-legendary-tint); }
+
+.v2 .mp-wardrobe__preview {
+  position: relative;
+  width: 64px; height: 64px;
+  display: block;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--tier-tint);
+  box-shadow: 0 0 0 2px var(--tier), 0 0 0 5px color-mix(in srgb, var(--tier) 18%, transparent);
+}
+.v2 .mp-wardrobe__preview .av { display: block; width: 100%; height: 100%; }
+.v2 .mp-wardrobe__state {
+  position: absolute;
+  top: 60px; left: calc(50% + 20px);
+  width: 20px; height: 20px;
+  display: none;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--tier);
+  box-shadow: 0 0 0 2px var(--mp-surface), 0 2px 6px rgba(22,36,28,.16);
+}
+.v2 .mp-wardrobe__kind {
+  font-size: .56rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--mp-ink-2);
+}
+.v2 .mp-wardrobe__name {
+  font-family: var(--mp-ui);
+  font-size: .82rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -.01em;
+  color: var(--mp-ink);
+}
+.v2 .mp-wardrobe__lock {
+  font-size: .68rem;
+  line-height: 1.35;
+  color: var(--mp-ink-2);
+}
+
+/* Selected: brand ring, tick on the coin, a wash of the brand's own tint. */
+.v2 .mp-wardrobe__tile.is-selected {
+  border-color: color-mix(in srgb, var(--mp-brand) 40%, var(--mp-line));
+  background: linear-gradient(160deg, var(--mp-soft), var(--mp-surface) 70%);
+}
+.v2 .mp-wardrobe__tile.is-selected .mp-wardrobe__preview {
+  background: var(--mp-soft);
+  box-shadow: 0 0 0 2px var(--mp-brand), 0 0 0 5px rgba(var(--mp-glow-rgb),.2);
+}
+.v2 .mp-wardrobe__tile.is-selected .mp-wardrobe__state { display: grid; background: var(--mp-brand); }
+.v2 .mp-wardrobe__tile.is-selected .mp-wardrobe__name { color: var(--mp-brand-text); }
+
+/* Locked: the portrait goes grey behind a dashed ring, the padlock shows,
+   and the caption names the badge to win. The tile stays readable — it is
+   the ask, not a dimmer copy of an open one. */
+.v2 .mp-wardrobe__tile.is-locked { cursor: default; }
+.v2 .mp-wardrobe__tile.is-locked:hover { transform: none; box-shadow: 0 1px 2px rgba(22,36,28,.04); }
+.v2 .mp-wardrobe__tile.is-locked .mp-wardrobe__preview {
+  background: var(--mp-surface-2);
+  box-shadow: none;
+  border: 2px dashed color-mix(in srgb, var(--tier) 45%, var(--mp-line));
+}
+.v2 .mp-wardrobe__tile.is-locked .mp-wardrobe__preview .av { filter: grayscale(1); opacity: .5; }
+.v2 .mp-wardrobe__tile.is-locked .mp-wardrobe__state {
+  display: grid;
+  color: var(--mp-ink-2);
+  background: var(--mp-surface);
+  box-shadow: 0 0 0 1px var(--mp-line), 0 2px 6px rgba(22,36,28,.1);
+}
+.v2 .mp-wardrobe__tile.is-locked .mp-wardrobe__name { color: var(--mp-ink-2); }
+
+@media (max-width: 360px) {
+  .v2 .mp-wardrobe__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .v2 .mp-wardrobe__tile { padding: 10px 6px 8px; }
+  .v2 .mp-wardrobe__portrait { width: 88px; height: 88px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v2 .mp-wardrobe__tile { animation: none; }
+}
+
+/* ============================================================
+   EVENTS — the seasonal pass
+   ------------------------------------------------------------
+   A card above the map sheet's lists, and the full tier track
+   behind it. Each event supplies its own two colours through
+   `is-<theme>` on the root; everything else is shared, so a
+   new event is a palette and a word, not a stylesheet.
+   ============================================================ */
+.v2 .mp-event,
+.v2 .mp-pass {
+  --ev-1: #ef7a1a;          /* the event's own accent */
+  --ev-2: #2a2235;          /* the dark it sits on */
+  --ev-ink: #fff5e9;
+}
+/* A pass rendered outside a themed page still needs its colours; a themed
+   page's `.ev-<theme>` block wins over these by being on the body. */
+.v2 .mp-event.is-hallows,
+.v2 .mp-pass.is-hallows {
+  --ev-1: #ef7a1a;
+  --ev-2: #2a2235;
+  --ev-ink: #fff5e9;
+}
+.v2 .mp-event.is-harvest,
+.v2 .mp-pass.is-harvest {
+  --ev-1: #f2a51c;
+  --ev-2: #6b2414;
+  --ev-ink: #fff4e3;
+}
+.v2 .mp-event[hidden] { display: none; }
+
+/* On the map page the pass is the first band under the header, above the
+   floating tabs. The band is a flex child with a fixed height, and the
+   tabs — absolutely placed inside `.mp-shell` — are pushed down by exactly
+   that much whenever the body carries an event class. Keeping the height
+   a constant is what lets the two agree without measuring. */
+/* The capsule floats over the map, like the tabs and the quest chip — it
+   is out of the flex flow entirely, so with no event running it occupies
+   no space and pushes nothing down, whether or not the slot element is
+   there. `--ev-band` is 0 unless an event sets it. */
+.map-page .mp-event-slot {
+  position: absolute;
+  top: 12px; left: 12px; right: 12px;
+  z-index: 650;
+  pointer-events: none;
+}
+.map-page .mp-event-slot > * { pointer-events: auto; }
+.map-page .mp-event { margin: 0; }
+.map-page .mp-event__card {
+  padding: 8px 11px;
+  /* Over a map, not over paper: darker and heavier than the in-sheet card
+     so the type stays readable on whatever tile is underneath. */
+  background: var(--ev-card, linear-gradient(135deg, rgba(26,20,34,.96), rgba(58,34,20,.94)));
+  box-shadow: 0 2px 8px rgba(12,8,18,.34), 0 12px 28px rgba(12,8,18,.3);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+}
+.map-page.is-event { --ev-band: 94px; }
+
+/* ============================================================
+   EVENT THEMING — the contract
+   ------------------------------------------------------------
+   An event dresses the whole app, and adding one must not mean
+   writing new CSS. So this is split in two:
+
+   1. A PALETTE BLOCK per event — `.ev-<theme>` — which sets
+      custom properties and nothing else. That is the only thing
+      a new event writes.
+   2. The STRUCTURAL RULES below — all scoped to `.v2.is-event`,
+      which `applyEventTheme()` adds alongside `ev-<theme>`.
+      They never name an event, and never set position, z-index,
+      display or size (an earlier version did, and collapsed the
+      map — see the note further down).
+
+   The tokens an event fills in:
+
+     --ev-1        the accent: bars, active tab, tier nodes
+     --ev-2        the dark the accent sits on
+     --ev-ink      ink on top of --ev-2
+     --ev-dark     translucent dark for floating chrome
+     --ev-paper    the body background stack (image + gradients)
+     --ev-paper-bg its flat fallback colour
+     --ev-header   the header background
+     --ev-sheet    the map sheet's background
+     --ev-sheet-top  that background's colour at its top edge
+     --ev-night    the wash over the top of the map
+     --ev-flock    a decoration tiled across the header
+     --ev-web      a decoration for the sheet's top corners
+     --ev-tiles    a filter for the map's tile pane
+     --ev-card     the pass capsule floating over the map
+     --ev-fab-fade the fade behind the camera button
+     --ev-header-line  the header's bottom hairline (default: none)
+     --ev-grab / --ev-grab-hover  the sheet's drag handle
+     --ev-modal    the pass modal's paper
+     --ev-modal-line / --ev-modal-ink  its border and title
+
+   An event may also override the app's own brand tokens
+   (--mp-brand*, --mp-grad, --mp-soft): everything painted with
+   the brand — buttons, the level chip, progress fills, the
+   camera button — then follows the event without another rule.
+   Surfaces and ink are deliberately NOT overridden, so every
+   card keeps its contrast whatever the event.
+   ============================================================ */
+
+/* ---------- palette: Harvest & Hallows ---------- */
+.ev-hallows {
+  --ev-1: #ef7a1a;
+  --ev-2: #2a2235;
+  --ev-ink: #fff5e9;
+  --ev-dark: rgba(26,20,34,.86);
+  --ev-paper-bg: #f1e8ea;
+  --ev-paper:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='%232a2235' fill-opacity='0.07'%3E%3Cg transform='translate(30 26) scale(0.9)'%3E%3Cpath d='M0 4c-4-7-11-10-18-8 3 3 3 6 1 9 4-2 8-1 10 3 2-4 5-5 7-4zm0 0c4-7 11-10 18-8-3 3-3 6-1 9-4-2-8-1-10 3-2-4-5-5-7-4z'/%3E%3Cellipse cx='0' cy='5' rx='3' ry='2.4'/%3E%3C/g%3E%3Cg transform='translate(92 86) scale(0.9)'%3E%3Cpath d='M0 4c-4-7-11-10-18-8 3 3 3 6 1 9 4-2 8-1 10 3 2-4 5-5 7-4zm0 0c4-7 11-10 18-8-3 3-3 6-1 9-4-2-8-1-10 3-2-4-5-5-7-4z'/%3E%3Cellipse cx='0' cy='5' rx='3' ry='2.4'/%3E%3C/g%3E%3C/g%3E%3Cg fill='none' stroke='%232a2235' stroke-opacity='0.07' stroke-width='1.4'%3E%3Cpath d='M0 0 L0 22 M0 0 L22 0 M0 0 L16 16'/%3E%3Cpath d='M0 8 Q6 9 8 0 M0 16 Q12 18 16 0'/%3E%3Cpath d='M120 60 L120 82 M120 60 L98 60 M120 60 L104 76'/%3E%3Cpath d='M120 68 Q114 69 112 60 M120 76 Q108 78 104 60'/%3E%3C/g%3E%3Cg fill='%23ef7a1a' fill-opacity='0.11'%3E%3Cpath d='M62 52c4 0 7 3 7 7s-3 7-7 7-7-3-7-7 3-7 7-7z'/%3E%3Cpath d='M62 51c0-2 1-3 3-3-1 1-1 2-1 3z'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(1200px 520px at 50% -10%, #fdf3e6 0%, transparent 70%),
+    linear-gradient(180deg, #f7ece0 0%, #f1e8ea 58%, #eae2ef 100%);
+  --ev-header: linear-gradient(120deg, #241c2e 0%, #3a2740 52%, #4a2e22 100%);
+  --ev-sheet: linear-gradient(180deg, #2b2233 0%, #35262f 40%, #3b2a26 100%);
+  --ev-sheet-top: #2b2233;
+  --ev-night: linear-gradient(180deg, rgba(26,20,34,.52) 0%, rgba(42,34,53,.2) 55%, transparent 100%);
+  --ev-flock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='56' viewBox='0 0 260 56'%3E%3Cg fill='%23ffffff' fill-opacity='0.30'%3E%3Cg transform='translate(24 16) scale(0.62)'%3E%3Cpath d='M0 4c-4-7-11-10-18-8 3 3 3 6 1 9 4-2 8-1 10 3 2-4 5-5 7-4zm0 0c4-7 11-10 18-8-3 3-3 6-1 9-4-2-8-1-10 3-2-4-5-5-7-4z'/%3E%3Cellipse cx='0' cy='5' rx='3' ry='2.4'/%3E%3C/g%3E%3Cg transform='translate(86 34) scale(0.44)'%3E%3Cpath d='M0 4c-4-7-11-10-18-8 3 3 3 6 1 9 4-2 8-1 10 3 2-4 5-5 7-4zm0 0c4-7 11-10 18-8-3 3-3 6-1 9-4-2-8-1-10 3-2-4-5-5-7-4z'/%3E%3Cellipse cx='0' cy='5' rx='3' ry='2.4'/%3E%3C/g%3E%3Cg transform='translate(146 13) scale(0.75)'%3E%3Cpath d='M0 4c-4-7-11-10-18-8 3 3 3 6 1 9 4-2 8-1 10 3 2-4 5-5 7-4zm0 0c4-7 11-10 18-8-3 3-3 6-1 9-4-2-8-1-10 3-2-4-5-5-7-4z'/%3E%3Cellipse cx='0' cy='5' rx='3' ry='2.4'/%3E%3C/g%3E%3Cg transform='translate(212 30) scale(0.5)'%3E%3Cpath d='M0 4c-4-7-11-10-18-8 3 3 3 6 1 9 4-2 8-1 10 3 2-4 5-5 7-4zm0 0c4-7 11-10 18-8-3 3-3 6-1 9-4-2-8-1-10 3-2-4-5-5-7-4z'/%3E%3Cellipse cx='0' cy='5' rx='3' ry='2.4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  --ev-web: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='104' height='104' viewBox='0 0 104 104'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.16' stroke-width='1.5' stroke-linecap='round'%3E%3Cpath d='M2 2 L2 100 M2 2 L100 2 M2 2 L74 74 M2 2 L40 96 M2 2 L96 40'/%3E%3Cpath d='M2 20 Q13 19 20 2 M2 38 Q26 35 38 2 M2 58 Q40 53 58 2 M2 80 Q56 72 80 2'/%3E%3C/g%3E%3C/svg%3E");
+  --ev-tiles: sepia(.42) saturate(1.18) hue-rotate(-14deg) brightness(.93) contrast(1.04);
+  --ev-card: linear-gradient(135deg, rgba(36,28,46,.96), rgba(74,46,34,.94));
+  --ev-fab-fade: #3b2a26;
+  --ev-modal:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='%232a2235' fill-opacity='0.07'%3E%3Cg transform='translate(30 26) scale(0.9)'%3E%3Cpath d='M0 4c-4-7-11-10-18-8 3 3 3 6 1 9 4-2 8-1 10 3 2-4 5-5 7-4zm0 0c4-7 11-10 18-8-3 3-3 6-1 9-4-2-8-1-10 3-2-4-5-5-7-4z'/%3E%3Cellipse cx='0' cy='5' rx='3' ry='2.4'/%3E%3C/g%3E%3Cg transform='translate(92 86) scale(0.9)'%3E%3Cpath d='M0 4c-4-7-11-10-18-8 3 3 3 6 1 9 4-2 8-1 10 3 2-4 5-5 7-4zm0 0c4-7 11-10 18-8-3 3-3 6-1 9-4-2-8-1-10 3-2-4-5-5-7-4z'/%3E%3Cellipse cx='0' cy='5' rx='3' ry='2.4'/%3E%3C/g%3E%3C/g%3E%3Cg fill='none' stroke='%232a2235' stroke-opacity='0.07' stroke-width='1.4'%3E%3Cpath d='M0 0 L0 22 M0 0 L22 0 M0 0 L16 16'/%3E%3Cpath d='M0 8 Q6 9 8 0 M0 16 Q12 18 16 0'/%3E%3Cpath d='M120 60 L120 82 M120 60 L98 60 M120 60 L104 76'/%3E%3Cpath d='M120 68 Q114 69 112 60 M120 76 Q108 78 104 60'/%3E%3C/g%3E%3Cg fill='%23ef7a1a' fill-opacity='0.11'%3E%3Cpath d='M62 52c4 0 7 3 7 7s-3 7-7 7-7-3-7-7 3-7 7-7z'/%3E%3Cpath d='M62 51c0-2 1-3 3-3-1 1-1 2-1 3z'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(520px 260px at 50% 0%, #fff6ea 0%, transparent 72%),
+    linear-gradient(180deg, #fdf4e9 0%, #f6ecea 55%, #efe5f0 100%);
+  --ev-modal-line: #e6d5c6;
+  --ev-modal-ink: #3a2a3f;
+
+  /* The app's own brand, borrowed for a month. */
+  --mp-brand-hi: #ffc061;
+  --mp-brand: #ef7a1a;
+  --mp-brand-lo: #b03f08;
+  --mp-brand-text: #a8480c;
+  --mp-soft: #fdeede;
+  --mp-grad: linear-gradient(168deg, var(--mp-brand-hi) 0%, var(--mp-brand) 30%, var(--mp-brand-lo) 100%);
+  --mp-on-brand-shadow: 0 1px 2px rgba(58,22,3,.36);
+  --mp-glow-rgb: 239,122,26;
+}
+
+/* ---------- palette: Golden Harvest ---------- */
+/* The same contract as `.ev-hallows` above: custom properties and nothing
+   else. Autumn read as a season rather than as Halloween — gold and russet
+   over a warm woodland brown, where Hallows is orange over purple-black.
+   The motifs change with it: drifting leaves and a bough in place of bats
+   and cobwebs. No structural rule below knows either event exists. */
+.ev-harvest {
+  /* Colour is the whole brief here: leaf-turn is many colours at once, so the
+     motifs carry a different one per leaf and the surfaces stay saturated
+     rather than going brown. What the surfaces may NOT do is go light — the
+     sheet carries `--ev-ink` and 72%-white muted text, and the active tab
+     paints `#2a1a07` on `--ev-1`. Everything below is picked against those
+     two constraints: the deep stops clear 4.5:1 for muted text, and the
+     accent is bright enough to take dark text (8.1:1). */
+  --ev-1: #f2a51c;
+  --ev-2: #6b2414;
+  --ev-ink: #fff4e3;
+  --ev-dark: rgba(84,30,17,.84);
+  --ev-paper-bg: #fdf4e2;
+  --ev-paper:
+    url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='120'%20height='120'%20viewBox='0%200%20120%20120'%3E%3Cg%20transform='translate(18%2022)%20rotate(-22)%20scale(0.95)'%20fill='%23c1372a'%20opacity='0.26'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23c1372a'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(88%2086)%20rotate(150)%20scale(0.9)'%20fill='%23f2a51c'%20opacity='0.24'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23f2a51c'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(96%2026)%20rotate(58)%20scale(0.62)'%20fill='%2393a437'%20opacity='0.22'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%2393a437'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(16%2096)%20rotate(-142)%20scale(0.7)'%20fill='%23e0541c'%20opacity='0.22'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23e0541c'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(58%2060)%20rotate(14)%20scale(0.8)'%20fill='%23e0bb30'%20opacity='0.2'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23e0bb30'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(46%2010)%20rotate(100)%20scale(0.55)'%20fill='%23ef7f1a'%20opacity='0.2'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23ef7f1a'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(110%2058)%20rotate(-70)%20scale(0.52)'%20fill='%23c1372a'%20opacity='0.18'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23c1372a'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(70%20116)%20rotate(34)%20scale(0.58)'%20fill='%2393a437'%20opacity='0.18'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%2393a437'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20fill='none'%20stroke='%23b8791f'%20opacity='0.16'%20stroke-width='1.2'%20stroke-linecap='round'%3E%3Cpath%20d='M30%2078%20L30%20100%20M30%2082%20L24%2076%20M30%2088%20L36%2082%20M30%2094%20L24%2088'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(1200px 520px at 50% -10%, #fff9ec 0%, transparent 70%),
+    linear-gradient(180deg, #fff6e6 0%, #fdf4e2 52%, #fbe9cf 100%);
+  /* Crimson into rust into amber, deepest where the brand title sits. */
+  --ev-header: linear-gradient(115deg, #5c1f12 0%, #8f3316 48%, #b8541a 100%);
+  --ev-sheet: linear-gradient(180deg, #6b2414 0%, #7d3417 44%, #82421a 100%);
+  --ev-sheet-top: #6b2414;
+  --ev-night: linear-gradient(180deg, rgba(92,31,18,.44) 0%, rgba(143,51,22,.16) 55%, transparent 100%);
+  --ev-flock: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='260'%20height='56'%20viewBox='0%200%20260%2056'%3E%3Cg%20transform='translate(18%2014)%20rotate(-26)%20scale(0.74)'%20fill='%23e0bb30'%20opacity='0.8'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23e0bb30'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(60%2038)%20rotate(150)%20scale(0.5)'%20fill='%23c1372a'%20opacity='0.7'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23c1372a'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(104%2012)%20rotate(40)%20scale(0.62)'%20fill='%23ef7f1a'%20opacity='0.78'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23ef7f1a'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(146%2034)%20rotate(-160)%20scale(0.8)'%20fill='%23f2a51c'%20opacity='0.72'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23f2a51c'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(196%2016)%20rotate(18)%20scale(0.56)'%20fill='%23e0541c'%20opacity='0.76'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23e0541c'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(232%2038)%20rotate(120)%20scale(0.46)'%20fill='%2393a437'%20opacity='0.62'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%2393a437'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3C/svg%3E");
+  --ev-web: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='104'%20height='104'%20viewBox='0%200%20104%20104'%3E%3Cg%20fill='none'%20stroke='%23ffffff'%20opacity='0.16'%20stroke-width='1.6'%20stroke-linecap='round'%3E%3Cpath%20d='M2%202%20C22%2016%2040%2034%2054%2058%20M54%2058%20C58%2066%2060%2076%2060%2088'/%3E%3Cpath%20d='M16%2012%20C26%208%2036%2010%2042%2018%20M30%2026%20C40%2020%2052%2022%2058%2030%20M44%2042%20C54%2036%2066%2038%2072%2046'/%3E%3C/g%3E%3Cg%20transform='translate(26%2010)%20rotate(-30)%20scale(0.62)'%20fill='%23e0bb30'%20opacity='0.6'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23e0bb30'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(40%2024)%20rotate(-14)%20scale(0.58)'%20fill='%23e0541c'%20opacity='0.55'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23e0541c'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(54%2040)%20rotate(-2)%20scale(0.52)'%20fill='%23f2a51c'%20opacity='0.55'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23f2a51c'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(68%2064)%20rotate(74)%20scale(0.46)'%20fill='%23c1372a'%20opacity='0.5'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23c1372a'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(46%2070)%20rotate(150)%20scale(0.44)'%20fill='%2393a437'%20opacity='0.45'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%2393a437'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3C/svg%3E");
+  /* Autumn light, not dusk: warmth from saturation rather than from the heavy
+     sepia the first pass used, which turned the map to mud. */
+  --ev-tiles: sepia(.2) saturate(1.34) hue-rotate(-8deg) brightness(1.05) contrast(1.02);
+  --ev-card: linear-gradient(135deg, rgba(107,36,20,.95), rgba(184,84,26,.93));
+  --ev-fab-fade: #82421a;
+  --ev-modal:
+    url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='120'%20height='120'%20viewBox='0%200%20120%20120'%3E%3Cg%20transform='translate(18%2022)%20rotate(-22)%20scale(0.95)'%20fill='%23c1372a'%20opacity='0.26'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23c1372a'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(88%2086)%20rotate(150)%20scale(0.9)'%20fill='%23f2a51c'%20opacity='0.24'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23f2a51c'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(96%2026)%20rotate(58)%20scale(0.62)'%20fill='%2393a437'%20opacity='0.22'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%2393a437'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(16%2096)%20rotate(-142)%20scale(0.7)'%20fill='%23e0541c'%20opacity='0.22'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23e0541c'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(58%2060)%20rotate(14)%20scale(0.8)'%20fill='%23e0bb30'%20opacity='0.2'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23e0bb30'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(46%2010)%20rotate(100)%20scale(0.55)'%20fill='%23ef7f1a'%20opacity='0.2'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23ef7f1a'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(110%2058)%20rotate(-70)%20scale(0.52)'%20fill='%23c1372a'%20opacity='0.18'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%23c1372a'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20transform='translate(70%20116)%20rotate(34)%20scale(0.58)'%20fill='%2393a437'%20opacity='0.18'%3E%3Cpath%20d='M0%200%20C4%20-11%2015%20-13%2021%20-6%20C15%201%204%205%200%200Z'/%3E%3Cpath%20d='M-6%204%20L1%20-1'%20stroke='%2393a437'%20stroke-width='1.8'%20stroke-linecap='round'%20fill='none'/%3E%3C/g%3E%3Cg%20fill='none'%20stroke='%23b8791f'%20opacity='0.16'%20stroke-width='1.2'%20stroke-linecap='round'%3E%3Cpath%20d='M30%2078%20L30%20100%20M30%2082%20L24%2076%20M30%2088%20L36%2082%20M30%2094%20L24%2088'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(520px 260px at 50% 0%, #fffaef 0%, transparent 72%),
+    linear-gradient(180deg, #fff8ea 0%, #fdf3e0 55%, #f9e8cd 100%);
+  --ev-modal-line: #edd6ab;
+  --ev-modal-ink: #7d3417;
+
+  /* The app's own brand, borrowed for a month. */
+  --mp-brand-hi: #ffd15e;
+  --mp-brand: #ea8f16;
+  --mp-brand-lo: #b8441a;
+  --mp-brand-text: #a5430f;
+  --mp-soft: #fef1d9;
+  --mp-grad: linear-gradient(168deg, var(--mp-brand-hi) 0%, var(--mp-brand) 34%, var(--mp-brand-lo) 100%);
+  --mp-on-brand-shadow: 0 1px 2px rgba(74,20,6,.38);
+  --mp-glow-rgb: 242,165,28;
+}
+
+/* ---------- structure: every event, no event named ---------- */
+/* Everything here paints. An earlier version pinned a motif in a
+   `::before` and gave the header and `.mp-shell` a position/z-index to sit
+   above it — which beat `.map-page`'s `position: absolute; inset: 0` on the
+   shell (the map's only source of height) and the header's sticky
+   z-index: 1000, so the map vanished and the menu fell behind the sheet.
+   No event rule may set position, z-index, display or size. */
+.v2.is-event {
+  --mp-bg: var(--ev-paper-bg);
+  background-color: var(--ev-paper-bg);
+  background-image: var(--ev-paper);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 190px 190px, 100% 620px, 100% 100%;
+  background-position: 0 0, 50% 0, 0 0;
+  background-attachment: fixed, fixed, fixed;
+}
+
+/* The header goes dark, and the flock crosses it. The wordmark is a dark
+   PNG, so it is inverted to white rather than left to disappear. */
+.v2.is-event > header,
+.v2.is-event > .nav {
+  /* The flock is a background layer, not an overlay: decoration can never
+     end up on top of the wordmark, the level chip or the menu button. */
+  background: var(--ev-flock), var(--ev-header);
+  background-repeat: repeat-x, no-repeat;
+  background-position: center, 0 0;
+  background-size: 260px 56px, auto;
+  /* A gradient fills the padding box by default, so the 1px border row let
+     the page's paper show through as a pale line across the screen. The
+     origin covers it, and the colour underneath is the belt to that brace. */
+  background-origin: border-box;
+  background-color: var(--ev-2);
+  /* Transparent, not tinted: the header's own background paints under its
+     border box, so this leaves no seam between header and map. A pale
+     hairline here read as a white line across the screen. */
+  border-bottom-color: var(--ev-header-line, transparent);
+}
+.v2.is-event .brand-title { filter: brightness(0) invert(1); }
+.v2.is-event .brand-logo { filter: drop-shadow(0 1px 3px rgba(0,0,0,.4)); }
+
+/* ---------- the front page ---------- */
+/* Dusk over the map. The filter is on the tile pane alone, so markers,
+   zones and the player dot keep their real colours and stay legible. */
+.map-page.is-event .mp-map { background: #ded5e2; }
+.map-page.is-event .leaflet-tile-pane { filter: var(--ev-tiles); }
+.map-page.is-event .mp-map::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 160px;
+  z-index: 500;
+  pointer-events: none;
+  background: var(--ev-night);
+}
+
+/* The sheet is night too, with a web strung in each top corner. The rows
+   inside keep `--mp-surface`, so they lift off it as lit cards. */
+.map-page.is-event .mp-sheet {
+  background: var(--ev-web) no-repeat top left / 104px 104px, var(--ev-sheet);
+  box-shadow: 0 -2px 4px rgba(20,12,28,.16), 0 -16px 38px rgba(20,12,28,.4);
+}
+.map-page.is-event .mp-sheet__head { position: relative; }
+.map-page.is-event .mp-sheet__head::before {
+  content: "";
+  position: absolute;
+  top: -14px; right: -4px;
+  width: 104px; height: 104px;
+  pointer-events: none;
+  transform: scaleX(-1);
+  background: var(--ev-web) no-repeat top left / 104px 104px;
+}
+.map-page.is-event .mp-sheet__title { color: var(--ev-ink); }
+/* The handle keeps its shape; only its colour flips, since --mp-line is a
+   hairline for pale paper and the event sheet is night. */
+.map-page.is-event .mp-sheet__grab::after { background: var(--ev-grab, rgba(255,255,255,.34)); }
+.map-page.is-event .mp-sheet__grab:hover::after { background: var(--ev-grab-hover, rgba(255,255,255,.6)); }
+/* The fade behind the camera button is the sheet's own colour rising; on
+   a dark sheet a white fade is a seam. */
+.map-page.is-event .mp-fab-wrap {
+  background: linear-gradient(to top, var(--ev-fab-fade, #3b2a26) 58%, transparent);
+}
+/* Anything quiet inside the sheet was quiet against paper; on night it has
+   to be quiet against dark instead. */
+.map-page.is-event .mp-sheet__info { color: var(--ev-ink); background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.18); }
+.map-page.is-event .mp-empty p,
+.map-page.is-event .mp-sheet__scroll > .muted { color: rgba(255,255,255,.72); }
+
+/* ---------- the species screen, the sheet's other half ---------- */
+/* The list above was dressed for night and this was not. It kept everything
+   it was given for a pale sheet — the ink, a paper-white sticky bar, a photo
+   strip fading to white at its end — so on an event the whole write-up read
+   dark on dark under a white band across the sheet.
+
+   Same treatment as the list, then: the sheet is night, so what was quiet
+   against paper is made quiet against dark instead, and nothing structural
+   moves. Scoped to the map's copy on purpose — the herbarium and the
+   observations page open this same .mp-detail inside .mp-species-sheet,
+   whose panel stays paper whatever the event is, and there the ink is right
+   exactly as it stands. */
+/* Every <p> in the app carries --mp-ink of its own (see `.v2 p`), so the
+   write-up's paragraphs are named here rather than left to inherit — the
+   container's colour never reaches them. Naming them costs a type selector,
+   which is why the quiet lines further down are reached through
+   .mp-detail__prose: they are paragraphs too, and have to out-specify this. */
+.map-page.is-event .mp-detail__name,
+.map-page.is-event .mp-detail__prose,
+.map-page.is-event .mp-detail__prose p { color: var(--ev-ink); }
+/* The rule between Wikipedia's summary and the backend's write-up: --mp-line
+   is a hairline for paper and vanishes here. */
+.map-page.is-event .mp-detail__backend:not(:empty) {
+  color: var(--ev-ink);
+  border-top-color: rgba(255,255,255,.18);
+}
+.map-page.is-event .mp-detail__sci,
+.map-page.is-event .mp-detail__gallery-credit,
+.map-page.is-event .mp-detail__prose .mp-detail__muted,
+.map-page.is-event .mp-detail__prose .mp-detail__habitat,
+.map-page.is-event .mp-detail__prose .mp-detail__habitat .mp-detail__icon { color: rgba(255,255,255,.72); }
+/* --mp-brand-text is chosen to be legible *on* paper — a deep orange under
+   both events, which on night is barely there. The accent is the event's own
+   answer for ink on dark. */
+.map-page.is-event .mp-detail__icon { color: var(--ev-1); }
+/* The loading line carries its own ink; on night it takes the muted line's. */
+.map-page.is-event .mp-detail__muted .fetch-loading { color: inherit; }
+/* Hover on the back pill was a hardcoded mint — the one colour in this
+   screen that no event token reaches. */
+.map-page.is-event .mp-detail__back:hover { background: var(--mp-soft); }
+
+/* The bar is sticky, so it has to be opaque — it is what the prose
+   disappears under — and it has to be the sheet's own colour or it is a band
+   laid across it. It sits pinned to the top of the scroller, where the
+   sheet's gradient is still on its first stop: --ev-sheet-top is that stop,
+   the twin of --ev-fab-fade, which is the last one. */
+.map-page.is-event .mp-detail__bar { background: var(--ev-sheet-top); }
+.map-page.is-event .mp-detail__bar::after { background: linear-gradient(var(--ev-sheet-top), transparent); }
+
+/* "There is more to the right" was a fade to paper painted over the tiles.
+   The strip sits partway down a sheet whose background is a gradient and
+   which scrolls, so there is no single colour to fade to — a fade to any one
+   of the stops smudges at the others, and again as the sheet is dragged
+   taller. So the tiles are masked out instead and the sheet's real
+   background shows through, whatever it is at that moment. */
+.map-page.is-event .mp-detail__gallery-fade { background: none; }
+.map-page.is-event .mp-detail__gallery.has-more .mp-detail__gallery-scroll {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 44px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 44px), transparent);
+}
+
+/* A tag is its tier's colour over a wash of itself, and both were mixed
+   against white. The ink goes light and the wash heavier, so the tier still
+   reads as its own colour rather than going to plain white. Only the
+   detail's tags: a row's sit on a paper card and are already right. */
+.map-page.is-event .mp-detail__tags .mp-tag {
+  color: color-mix(in srgb, var(--tone) 55%, #fff);
+  background: color-mix(in srgb, var(--tone) 26%, transparent);
+}
+
+/* Floating chrome over the map, dressed to match the card above it. */
+.map-page.is-event .mp-tabs {
+  background: var(--ev-dark);
+  box-shadow: 0 2px 10px rgba(12,8,18,.3);
+}
+.map-page.is-event .mp-tab { color: var(--ev-ink); }
+.map-page.is-event .mp-tab.is-active { background: var(--ev-1); color: #2a1a07; text-shadow: none; }
+.map-page.is-event .mp-quests__btn {
+  background: var(--ev-dark);
+  color: var(--ev-ink);
+  border-color: rgba(255,255,255,.14);
+}
+
+/* ---------- the card ---------- */
+.v2 .mp-event { margin: 0 0 10px; }
+.v2 .mp-event__card {
+  width: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 11px;
+  border: 0;
+  border-radius: var(--mp-r-md);
+  background: linear-gradient(135deg, var(--ev-2), color-mix(in srgb, var(--ev-2) 62%, var(--ev-1)));
+  box-shadow: 0 2px 6px rgba(22,36,28,.14), 0 10px 24px rgba(42,34,53,.22);
+  color: var(--ev-ink);
+  font: inherit;
+  text-align: left;
+  text-shadow: none;
+  letter-spacing: normal;
+  cursor: pointer;
+  transition: transform 180ms var(--mp-ease), box-shadow 180ms var(--mp-ease);
+}
+.v2 .mp-event__card:hover { transform: translateY(-1px); filter: none; box-shadow: 0 4px 10px rgba(22,36,28,.18), 0 14px 30px rgba(42,34,53,.28); }
+.v2 .mp-event__card:active { transform: scale(.995); }
+.v2 .mp-event__emoji {
+  width: 34px; height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ev-1) 26%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ev-1) 50%, transparent);
+  font-size: 1.15rem;
+  line-height: 1;
+}
+.v2 .mp-event__body { min-width: 0; display: grid; gap: 5px; }
+.v2 .mp-event__top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.v2 .mp-event__name {
+  font-family: var(--mp-ui);
+  font-size: .9rem;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.v2 .mp-event__days {
+  flex: none;
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ev-1) 72%, #fff);
+}
+.v2 .mp-event__rail {
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.34);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.3);
+  overflow: hidden;
+}
+.v2 .mp-event__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--ev-1) 70%, #ffd166), var(--ev-1));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--ev-1) 60%, transparent);
+  transition: width 520ms var(--mp-ease);
+}
+.v2 .mp-event__next {
+  font-size: .72rem;
+  line-height: 1.3;
+  color: color-mix(in srgb, var(--ev-ink) 78%, transparent);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.v2 .mp-event__tier {
+  flex: none;
+  width: 34px; height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ev-1);
+  color: #2a1a07;
+  font-family: var(--mp-ui);
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--ev-1) 50%, transparent);
+}
+
+/* ---------- the track, inside a modal ---------- */
+/* The modal is sized to the screen and the ladder is the only thing that
+   scrolls: the summary at the top and the OK button below it stay put,
+   however many tiers an event has. */
+.v2 .mp-pass-modal .modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: min(88dvh, 780px);
+  overflow: hidden;
+  background: var(--ev-modal, var(--mp-surface));
+  border-color: var(--ev-modal-line, var(--mp-line));
+}
+.v2 .mp-pass-modal .modal-content {
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 190px 190px, 100% 260px, 100% 100%;
+  background-position: 0 0, 50% 0, 0 0;
+}
+.v2 .mp-pass-modal .modal-content > h2 { flex: none; color: var(--ev-modal-ink, var(--mp-ink)); }
+.v2 .mp-pass-modal .body { flex: 1 1 auto; min-height: 0; display: flex; }
+.v2 .mp-pass-modal .result-actions { flex: none; }
+
+.v2 .mp-pass {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+.v2 .mp-pass__head { flex: none; }
+.v2 .mp-pass__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding-right: 2px;
+}
+.v2 .mp-pass__head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 12px 14px;
+  border-radius: var(--mp-r-md);
+  background: linear-gradient(135deg, var(--ev-2), color-mix(in srgb, var(--ev-2) 62%, var(--ev-1)));
+  color: var(--ev-ink);
+}
+/* The fitting room: the player's own avatar wearing whichever tier was
+   last tapped, locked or not. */
+.v2 .mp-pass__try { display: grid; gap: 5px; justify-items: center; width: 86px; }
+.v2 .mp-pass__portrait {
+  width: 78px; height: 78px;
+  display: block;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--mp-surface);
+  box-shadow: 0 0 0 3px rgba(255,255,255,.5), 0 6px 16px rgba(20,12,28,.3);
+}
+.v2 .mp-pass__portrait .av { display: block; width: 100%; height: 100%; }
+.v2 .mp-pass__trying {
+  font-size: .64rem;
+  line-height: 1.25;
+  font-weight: 600;
+  text-align: center;
+  color: color-mix(in srgb, var(--ev-ink) 80%, transparent);
+}
+.v2 .mp-pass__headbody { min-width: 0; display: grid; gap: 8px; }
+.v2 .mp-pass__tagline { margin: 0; font-size: .84rem; line-height: 1.4; color: color-mix(in srgb, var(--ev-ink) 84%, transparent); }
+.v2 .mp-pass__stat { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.v2 .mp-pass__xp {
+  font-family: var(--mp-ui);
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.v2 .mp-pass__days {
+  font-size: .66rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--ev-1) 72%, #fff);
+}
+.v2 .mp-pass__rail {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.34);
+  overflow: hidden;
+}
+.v2 .mp-pass__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--ev-1) 70%, #ffd166), var(--ev-1));
+}
+
+/* A ladder, not a list: every tier is a node on one continuous spine, and
+   the rung between two nodes fills with the progress between those two
+   thresholds — so "halfway to the witch hat" is a thing you can see. */
+.v2 .mp-pass__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 0; }
+.v2 .mp-pass__spine {
+  position: relative;
+  width: 34px;
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+}
+/* Two half-rungs per row: the one above this node carries the segment
+   arriving from the tier before, the one below the segment leaving for
+   the tier after. Both fill downwards, the way the ladder is read. */
+.v2 .mp-pass__rung {
+  position: absolute;
+  left: 50%;
+  width: 5px;
+  height: 50%;
+  transform: translateX(-50%);
+  background: color-mix(in srgb, var(--mp-ink) 10%, transparent);
+  overflow: hidden;
+}
+.v2 .mp-pass__rung--up { top: 0; border-radius: 999px 999px 0 0; }
+.v2 .mp-pass__rung--down { bottom: 0; border-radius: 0 0 999px 999px; }
+/* The first node has nothing above it and the last nothing below. */
+.v2 .mp-pass__tier:first-child .mp-pass__rung--up,
+.v2 .mp-pass__tier:last-child .mp-pass__rung--down { display: none; }
+.v2 .mp-pass__rung-fill {
+  display: block;
+  width: 100%;
+  border-radius: 999px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ev-1) 72%, #ffd166), var(--ev-1));
+  box-shadow: 0 0 8px color-mix(in srgb, var(--ev-1) 55%, transparent);
+}
+/* The track starts at 0, so the first segment is a real one: a small node
+   with no reward, and the rung below it running to tier 1. */
+.v2 .mp-pass__zero { min-height: 34px; align-items: center; }
+.v2 .mp-pass__node--zero {
+  width: 18px; height: 18px;
+  background: var(--mp-surface);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mp-ink) 16%, transparent);
+}
+.v2 .mp-pass__zero-label {
+  align-self: center;
+  font-family: var(--mp-ui);
+  font-size: .64rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--mp-ink-2);
+}
+.v2 .mp-pass__node {
+  position: relative;
+  z-index: 1;
+  width: 26px; height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--mp-surface);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--mp-ink) 12%, transparent);
+  color: var(--mp-ink-2);
+  font-family: var(--mp-ui);
+  font-size: .74rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.v2 .mp-pass__tier.is-owned .mp-pass__node {
+  background: var(--ev-1);
+  color: #2a1a07;
+  box-shadow: 0 0 0 2px var(--mp-surface), 0 2px 8px color-mix(in srgb, var(--ev-1) 55%, transparent);
+}
+/* Where the player actually stands: the node just above the filling rung. */
+.v2 .mp-pass__tier.is-partial .mp-pass__node {
+  background: var(--mp-surface);
+  color: var(--ev-1);
+  box-shadow: 0 0 0 2px var(--ev-1), 0 0 0 6px color-mix(in srgb, var(--ev-1) 22%, transparent);
+}
+/* One tier: its number, the avatar already wearing it, what it is, its
+   cost. An owned tier takes the event's accent; the next one up is ringed
+   so the ladder has an obvious "you are here". */
+.v2 .mp-pass__tier {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: stretch;
+  gap: 8px;
+  padding: 4px 0;
+}
+/* The whole row is the button — tapping it tries the tier on. */
+.v2 .mp-pass__pick {
+  width: 100%;
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r-md);
+  background: var(--mp-surface);
+  box-shadow: 0 1px 2px rgba(22,36,28,.04);
+  font: inherit;
+  color: inherit;
+  letter-spacing: normal;
+  text-align: left;
+  text-shadow: none;
+  cursor: pointer;
+}
+.v2 .mp-pass__pick:hover { filter: none; background: color-mix(in srgb, var(--ev-1) 7%, transparent); }
+.v2 .mp-pass__pick:active { transform: none; }
+.v2 .mp-pass__tier.is-trying .mp-pass__pick { box-shadow: 0 0 0 2px var(--ev-1); }
+.v2 .mp-pass__no {
+  width: 22px; height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--mp-surface-2);
+  color: var(--mp-ink-2);
+  font-family: var(--mp-ui);
+  font-size: .72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.v2 .mp-pass__art {
+  width: 44px; height: 44px;
+  display: block;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--mp-surface-2);
+  box-shadow: 0 0 0 2px var(--mp-line);
+}
+.v2 .mp-pass__art .av { display: block; width: 100%; height: 100%; }
+.v2 .mp-pass__meta { min-width: 0; display: grid; gap: 1px; }
+.v2 .mp-pass__reward {
+  font-family: var(--mp-ui);
+  font-size: .85rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--mp-ink);
+}
+.v2 .mp-pass__cost {
+  font-size: .72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mp-ink-2);
+}
+.v2 .mp-pass__state {
+  width: 20px; height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--mp-ink-2);
+  background: var(--mp-surface);
+  box-shadow: 0 0 0 1px var(--mp-line);
+}
+
+.v2 .mp-pass__tier.is-owned .mp-pass__pick {
+  border-color: color-mix(in srgb, var(--ev-1) 42%, var(--mp-line));
+  background: linear-gradient(140deg, color-mix(in srgb, var(--ev-1) 12%, var(--mp-surface)), var(--mp-surface) 72%);
+}
+.v2 .mp-pass__tier.is-owned .mp-pass__art { box-shadow: 0 0 0 2px var(--ev-1); background: color-mix(in srgb, var(--ev-1) 14%, var(--mp-surface)); }
+.v2 .mp-pass__kind {
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--mp-ink-2);
+}
+.v2 .mp-pass__tier.is-owned .mp-pass__state { color: #fff; background: var(--ev-1); box-shadow: none; }
+.v2 .mp-pass__tier.is-owned .mp-pass__cost { color: color-mix(in srgb, var(--ev-1) 74%, var(--mp-ink)); }
+
+.v2 .mp-pass__tier.is-next .mp-pass__pick { border-color: color-mix(in srgb, var(--ev-1) 55%, transparent); }
+.v2 .mp-pass__tier:not(.is-owned) .mp-pass__art .av { filter: grayscale(1); opacity: .55; }
+
+.v2 .mp-pass__sim {
+  margin: 0;
+  padding: 7px 10px;
+  border-radius: var(--mp-r-sm);
+  background: var(--mp-legendary-tint);
+  border: 1px solid color-mix(in srgb, var(--mp-legendary) 40%, transparent);
+  font-size: .74rem;
+  font-weight: 600;
+  color: #7a5205;
+}
+
+.v2 .mp-pass__note {
+  margin: 0;
+  font-size: .74rem;
+  line-height: 1.45;
+  color: var(--mp-ink-2);
+}
+
+/* ============================================================
    HERBARIUM PAGE
    ------------------------------------------------------------
    A hero, a search-and-sort strip that rides under the page
@@ -1842,7 +2841,7 @@
   border-radius: 999px;
   color: #fff;
   background: var(--mp-grad);
-  box-shadow: 0 4px 14px rgba(18,185,110,.34), inset 0 1px 0 rgba(255,255,255,.42);
+  box-shadow: 0 4px 14px rgba(var(--mp-glow-rgb),.34), inset 0 1px 0 rgba(255,255,255,.42);
   font-family: var(--mp-ui);
   font-size: .98rem;
   font-weight: 600;
@@ -1850,7 +2849,7 @@
   cursor: pointer;
   transition: transform 180ms var(--mp-ease), box-shadow 180ms var(--mp-ease);
 }
-.v2 .mp-quiz-cta:hover { box-shadow: 0 6px 20px rgba(18,185,110,.44), inset 0 1px 0 rgba(255,255,255,.42); }
+.v2 .mp-quiz-cta:hover { box-shadow: 0 6px 20px rgba(var(--mp-glow-rgb),.44), inset 0 1px 0 rgba(255,255,255,.42); }
 .v2 .mp-quiz-cta:active { transform: scale(.98); }
 .v2 .mp-quiz-cta__arrow { transition: transform 180ms var(--mp-ease); }
 .v2 .mp-quiz-cta:hover .mp-quiz-cta__arrow { transform: translateX(3px); }
@@ -2296,6 +3295,18 @@
 .v2 .mp-admin__section button { margin-top: 4px; }
 .v2 .mp-admin__status[hidden] { display: none; }
 
+.v2 .mp-admin__select {
+  width: 100%;
+  margin-top: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r-sm);
+  background: var(--mp-surface);
+  font-family: var(--mp-ui);
+  font-size: .9rem;
+  color: var(--mp-ink);
+}
+
 /* ============================================================
    DAILY QUESTS  (old home)
    ============================================================ */
@@ -2561,7 +3572,7 @@
 /* ---------- floating tabs ---------- */
 .map-page .mp-tabs {
   position: absolute;
-  top: 12px;
+  top: calc(12px + var(--ev-band, 0px));
   left: 50%;
   transform: translateX(-50%);
   z-index: 640;
@@ -2608,13 +3619,13 @@
   color: #fff;
   font-weight: 600;
   text-shadow: var(--mp-on-brand-shadow);
-  box-shadow: 0 3px 12px rgba(18,185,110,.42), inset 0 1px 0 rgba(255,255,255,.45);
+  box-shadow: 0 3px 12px rgba(var(--mp-glow-rgb),.42), inset 0 1px 0 rgba(255,255,255,.45);
 }
 
 /* ---------- map chrome ---------- */
 .map-page .mp-map-status-wrap {
   position: absolute;
-  top: 62px; left: 50%;
+  top: calc(62px + var(--ev-band, 0px)); left: 50%;
   transform: translateX(-50%);
   z-index: 620;
   max-width: min(90%, 340px);
@@ -2651,7 +3662,7 @@
 .map-page .mp-map-controls {
   position: absolute;
   right: 12px;
-  top: 12px;
+  top: calc(12px + var(--ev-band, 0px));
   z-index: 620;
   display: flex;
   flex-direction: column;
@@ -3247,7 +4258,7 @@
   font-weight: 600;
   text-align: center;
   text-shadow: var(--mp-on-brand-shadow);
-  box-shadow: 0 2px 8px rgba(18,185,110,.34);
+  box-shadow: 0 2px 8px rgba(var(--mp-glow-rgb),.34);
 }
 .map-page .mp-sheet__count[hidden] { display: none; }
 
@@ -4060,7 +5071,7 @@
   border: 0;
   border-radius: 999px;
   background: var(--mp-grad);
-  box-shadow: 0 8px 24px rgba(18,185,110,.42), 0 2px 6px rgba(4,136,78,.28),
+  box-shadow: 0 8px 24px rgba(var(--mp-glow-rgb),.42), 0 2px 6px rgba(4,136,78,.28),
               inset 0 1px 0 rgba(255,255,255,.5);
   font-family: var(--mp-ui);
   font-size: 1rem;
@@ -4070,7 +5081,7 @@
   cursor: pointer;
   transition: transform 200ms var(--mp-ease), box-shadow 200ms var(--mp-ease);
 }
-.map-page .mp-fab:hover { transform: none; filter: none; box-shadow: 0 10px 30px rgba(18,185,110,.5), inset 0 1px 0 rgba(255,255,255,.5); }
+.map-page .mp-fab:hover { transform: none; filter: none; box-shadow: 0 10px 30px rgba(var(--mp-glow-rgb),.5), inset 0 1px 0 rgba(255,255,255,.5); }
 .map-page .mp-fab:active { transform: scale(.97); }
 
 /* ---------- observation sheet ---------- */
@@ -4141,7 +5152,7 @@
 }
 .map-page .mp-observe__body #actions button.primary {
   background: var(--mp-grad);
-  box-shadow: 0 4px 14px rgba(18,185,110,.36);
+  box-shadow: 0 4px 14px rgba(var(--mp-glow-rgb),.36);
   text-shadow: var(--mp-on-brand-shadow);
 }
 .map-page .mp-observe__body #actions button.secondary {
@@ -4323,6 +5334,10 @@
   flex: none;
 }
 .map-page .mp-avatar.is-me { box-shadow: 0 0 0 2px var(--mp-brand); }
+/* The drawn avatar fills the disc, cropped to it, with the player's colour
+   left showing behind the figure. */
+.map-page .mp-avatar { overflow: hidden; }
+.map-page .mp-avatar .av { display: block; width: 100%; height: 100%; }
 .map-page .mp-avatar--sm { width: 24px; height: 24px; font-size: .7rem; margin-left: -6px; }
 .map-page .mp-avatar--sm:first-child { margin-left: 0; }
 .map-page .mp-avatar--more { background: var(--mp-surface); color: var(--mp-ink-2); border-color: var(--mp-line); font-size: .62rem; }

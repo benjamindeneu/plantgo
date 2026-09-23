@@ -18,6 +18,8 @@ import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 await initI18n();
+// Dress the page for the running event, if any.
+applyEventTheme();
 debugMode.init();
 
 function App() {

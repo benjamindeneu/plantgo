@@ -393,7 +393,11 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
   async function pollTrivia(id, name) {
     triviaEl.hidden = false;
     triviaTextEl.innerHTML = `<span class="fetch-loading"><span class="loading-spinner"></span>${escapeHtml(t("result.trivia.loading"))}</span>`;
-    for (const delay of [3000, 5000, 8000, 12000]) {
+    // Leading 0 for the same reason as pollDescription above: this can run
+    // before `el` is attached to the page, so the first isConnected check
+    // needs one real tick — and it lets an already-cached trivia (the
+    // common case) return on the next tick instead of after a needless 3s.
+    for (const delay of [0, 3000, 5000, 8000, 12000]) {
       await new Promise((r) => setTimeout(r, delay));
       if (!el.isConnected || triviaSettled) return;
       try {

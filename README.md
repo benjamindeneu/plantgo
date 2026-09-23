@@ -73,6 +73,28 @@ Paginated history of every observation (20 per page, infinite scroll) with its s
 
 17 achievement badges across six groups (observations, missions, discoveries, quests, rarity, level), each with a tier ring and progress bar. Older accounts are scanned once (`badgesRetroVersion`) so badges earned before the system existed are awarded retroactively.
 
+### 🧑 Avatar (`avatar.html`)
+
+A small character — skin tone, hair style and colour, eye colour, hat, outfit — shown as a coin beside the player's name in the header on every page. The editor lists 12 hats, 13 outfits, 8 hair colours and a **props** slot for things worn on the back (drawn behind the body); about half are starters, the rest are each tied to one badge and stay locked (greyed, naming the badge) until it is earned. Every tile is the avatar itself wearing that item, and a tap applies it at once. The art is inline SVG built from parts (`Avatar.view.js`), so the same drawing serves at 30 px and at 100 px. When a badge that carries an item is unlocked, the result modal's badge card says which. In a challenge, each player's avatar stands on their coloured disc in the podium, the rows and the "n playing" stack.
+
+### 🎃 Seasonal events
+
+A time-limited **event pass**, defined in `events.js`. The pass fills with the points of *any* observation made inside the event's window — there is no species checklist, so it plays the same in any country or hemisphere and missions keep doing the steering. Crossing a tier unlocks an avatar item and nothing else: events never pay points, so levels cannot be inflated by them. The card floats over the map, above the tabs and the quest chip; everything else pinned to the top of the map is offset by `--ev-band`, which is 0 when no event runs, so an eventless app is laid out exactly as before. Tapping it opens the tier ladder in a modal of its own — sized to the screen, with the summary and the OK button pinned and only the ladder scrolling, on the event's own paper — one spine from a zero node at the start through every tier, each rung filling with the progress *between* two thresholds (a segment straddles two rows, so it fills the lower half of one and then the upper half of the next, never restarting mid-gap) — where **tapping any tier, locked or not, tries it on** over the player's own avatar. Unlocked items are kept for good.
+
+Locked *event* items are hidden from the wardrobe rather than shown with a padlock: the pass is the only place to get them, and a wall of unobtainable padlocks is worse than nothing. Locked *badge* items stay visible, since that lock is the point.
+
+Cosmetics ask for an unlock **token** in their `requires` field — either a badge id or `"<eventId>:<tier>"` — so the wardrobe has one notion of ownership for both. The first event is *Harvest & Hallows* (1 Oct – 2 Nov 2026): 9 tiers from 1,000 to 50,000 XP, handing out a witch hat, a pumpkin lantern, bat wings, a skeleton suit, a vampire cape, a cobweb tee and three colours.
+
+**Theming is a token contract, so a new event writes no CSS.** `applyEventTheme()` puts *two* classes on the body: `is-event`, which every themed rule in `styles.v2.css` hangs off and which never names an event, and `ev-<theme>`, which is a palette block setting custom properties and nothing else. Adding an event means adding one `.ev-<theme> { … }` block; the stylesheet has exactly one such block today (`.ev-hallows`) and the structural rules never mention it.
+
+The tokens an event fills in — `--ev-1`, `--ev-2`, `--ev-ink`, `--ev-dark`, `--ev-paper`, `--ev-header`, `--ev-sheet`, `--ev-night`, `--ev-card`, `--ev-fab-fade`, `--ev-flock`, `--ev-web`, `--ev-tiles` — are documented at the top of the event section. A palette may also override the app's own brand tokens (`--mp-brand*`, `--mp-grad`, `--mp-soft`, `--mp-glow-rgb`), and then every brand-painted control follows the event automatically: buttons, the camera button, the level chip, progress fills and their coloured halos. Surfaces and ink are deliberately never overridden, so cards keep their contrast whatever the event.
+
+For Hallows that means a dark purple-brown header with a white wordmark and bats drifting across it, dusk-tinted map tiles (tiles only, so markers and zones keep their real colours), a night-dark sheet with cobwebbed corners that the white species rows lift off, dark tabs with a pumpkin-orange active one, and pumpkin-orange buttons throughout.
+
+Event colours can be gradients: a `stops` array paints the hair with a real SVG gradient and the wardrobe swatch with the matching CSS one, so an event colour looks like the prize it is.
+
+**Simulating one:** the admin page has an event selector that forces an event on for this device regardless of the date (`plantgo_event_sim` in localStorage, beside the debug flag). It only ever adds an event, never hides a real one, and the pass says plainly when it is simulated. XP earned under it is written to the real event document.
+
 ### 🧠 Daily quiz (`quiz.html`)
 
 Once per day, after observing **10 distinct species that day**, the player can take a 10-question quiz generated by the backend about those species. Each correct answer is worth 200 points. Questions are fetched in parallel after the first one lands.
@@ -159,6 +181,7 @@ plantgo-v2/
 ├── plantdex.html           Herbarium
 ├── observations.html       Observation history
 ├── badges.html             Badges
+├── avatar.html             Avatar editor
 ├── quiz.html               Daily quiz
 ├── login.html / login.js   Email + password sign-in
 ├── signup.html / signup.js Account creation (creates users/{uid})
@@ -191,6 +214,8 @@ Key data modules:
 | `extent.geo.js` | Point-in-polygon test for mission zones |
 | `dailyQuests.js` | Quest progress + completion awards |
 | `badges.js` | Badge definitions, unlock logic, retroactive scan |
+| `events.js` | Event calendar, pass tiers, event XP, unlock tokens |
+| `avatar.js` | Avatar catalogue (which items exist, which badge unlocks each), read/save |
 | `challenges.js` / `activeChallenge.js` | Create/join challenges, leaderboard, live active-challenge state |
 | `geo.service.js` | `getCurrentPosition`, `watchPosition` (drops fixes < 8 m), permission watcher |
 | `wiki.service.js` / `vernacular.service.js` | Wikipedia thumbnails & summaries, GBIF common names |
@@ -208,6 +233,9 @@ users/{uid}
   activeChallenge        { id, code, type, endAt } | null
   quiz_last_date         "YYYY-MM-DD"
   badgesRetroVersion
+  avatar                 { skin, hair, hairColor, eyes, hat, torso }  item ids from avatar.js; absent = defaults
+
+users/{uid}/events/{eventId}                   xp, updatedAt   (tier is derived from xp)
 
 users/{uid}/observations/{autoId}
   speciesName, gbif_id, vernacularName, observedAt, location (GeoPoint),
@@ -224,7 +252,7 @@ users/{uid}/missionCompletions/{YYYY-MM-DD}    missionIds[]
 challenges/{id}
   code, type ("points" | "species_hunt"), createdBy, endAt, speciesList[]
 challenges/{id}/members/{uid}
-  username, score, foundSpecies[], foundGbifIds[]
+  username, avatar, score, foundSpecies[], foundGbifIds[]   avatar copied on join, refreshed by the editor
 ```
 
 ------------------------------------------------------------------------

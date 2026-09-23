@@ -1,5 +1,6 @@
 // src/pages/admin.app.js
 import { initI18n } from "../language/i18n.js";
+import { applyEventTheme } from "../data/events.js";
 import { Header } from "../controllers/Header.controller.js";
 import { AdminController } from "../controllers/Admin.controller.js";
 import { listenUserLevel } from "../user/level.js";
@@ -8,6 +9,8 @@ import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 await initI18n();
+// Dress the page for the running event, if any.
+applyEventTheme();
 
 function App() {
   let stopLevel = () => {};

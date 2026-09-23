@@ -1,6 +1,7 @@
 // src/controllers/Header.controller.js
 import { createHeaderView } from "../ui/components/Header.view.js";
 import { setLanguage } from "../language/i18n.js";
+import { subscribeAvatar } from "../data/avatar.js";
 
 export function Header({
   user,
@@ -12,6 +13,7 @@ export function Header({
   onBackHome,
   onChallenge,
   onBadges,
+  onAvatar,
   onQuiz,
   onSettings,
   onObservations,
@@ -26,11 +28,21 @@ export function Header({
     else (onHerbarium || (() => {}))();
   });
 
-  view.setOnLogout(() => { (onLogout || (() => {}))(); });
+  // The header watches the avatar itself, from `setUser` on, so every page
+  // shows it without each one wiring a subscription; logout stops it before
+  // the page's own handler signs out.
+  let stopAvatar = () => {};
+  function watchAvatar(uid) {
+    stopAvatar();
+    stopAvatar = uid ? subscribeAvatar(uid, (avatar) => view.setAvatar(avatar)) : () => {};
+  }
+
+  view.setOnLogout(() => { watchAvatar(null); (onLogout || (() => {}))(); });
 
   view.setOnChallenge(() => { (onChallenge || (() => {}))(); });
 
   view.setOnBadges(() => { (onBadges || (() => {}))(); });
+  view.setOnAvatar(() => { (onAvatar || (() => {}))(); });
 
   view.setOnQuiz(() => { (onQuiz || (() => {}))(); });
   view.setOnSettings(() => { (onSettings || (() => {}))(); });
@@ -56,7 +68,7 @@ export function Header({
   });
 
   const el = view.element;
-  el.setUser = (u) => view.setUser(u);
+  el.setUser = (u) => { view.setUser(u); watchAvatar(u?.uid ?? null); };
   el.setLevel = (lvl) => view.setLevel(lvl);
   el.setAdmin = (isAdmin) => view.setAdmin(isAdmin);
   return el;
