@@ -139,7 +139,7 @@ export async function checkAndUnlockBadges(userId, {
  */
 export async function checkRetroactiveBadges(userId) {
   // Bump this whenever badges are added so existing accounts re-scan.
-  const RETRO_VERSION = 3;
+  const RETRO_VERSION = 4;
 
   const userRef = doc(db, "users", userId);
   const userSnap = await getDoc(userRef);
@@ -183,6 +183,14 @@ export async function checkRetroactiveBadges(userId) {
   // Current level from total_points
   const level = Math.floor(1 + (Number(userData.total_points) || 0) / 11000);
 
+  // Grant the badges first, and only mark retro as done once that actually
+  // succeeds — otherwise a write hiccup here would flip the guard above
+  // forever without ever having unlocked anything.
+  const newlyUnlocked = await checkAndUnlockBadges(userId, {
+    obsCount, missionObsCount, hasReleve,
+    discoveriesCount, hasPerfectDay, hasEpicObs, hasLegendaryObs, level,
+  });
+
   // Persist real counters so future increments are accurate; mark retro as done
   await updateDoc(userRef, {
     total_observations: obsCount,
@@ -191,10 +199,7 @@ export async function checkRetroactiveBadges(userId) {
     badgesRetroVersion: RETRO_VERSION,
   });
 
-  return checkAndUnlockBadges(userId, {
-    obsCount, missionObsCount, hasReleve,
-    discoveriesCount, hasPerfectDay, hasEpicObs, hasLegendaryObs, level,
-  });
+  return newlyUnlocked;
 }
 
 /**
