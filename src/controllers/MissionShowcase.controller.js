@@ -63,7 +63,13 @@ export function MissionShowcase({ missionId }) {
       mission = await fetchMissionById({ id: missionId, lang: uiLang() });
     } catch (e) {
       console.error("[MissionShowcase] mission load failed:", e);
-      view.showMissing();
+      // Only the backend's own verdict means the mission is gone. Anything
+      // else — the server down, or an old one without this route (whose 404
+      // is an HTML page, not our JSON) — is worth another try, not a goodbye.
+      const gone = /^\[(400|404)\]/.test(e?.message || "")
+        && /"error":\s*"(unknown mission|invalid mission id)"/.test(e.message);
+      if (gone) view.showMissing();
+      else view.showLoadFailed(load);
       return;
     }
     render();

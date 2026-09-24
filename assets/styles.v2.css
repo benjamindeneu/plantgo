@@ -5704,26 +5704,29 @@
 .v2 .mp-detail__back[hidden] { display: none; }
 
 .showcase-page .sc-head {
-  flex: none;
   display: grid;
+  justify-items: center;
   gap: 2px;
-  padding: 10px 20px 8px;
+  padding: 2px 8px 4px;
+  text-align: center;
 }
-.showcase-page .sc-head[hidden] { display: none; }
-.showcase-page .sc-head__kicker {
+.showcase-page .sc-head__title {
+  margin: 0;
   font-family: var(--mp-ui);
-  font-size: .7rem;
+  font-size: 1.45rem;
   font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
+  line-height: 1.2;
+  letter-spacing: -.02em;
+  text-align: center;
   color: var(--mp-brand-text);
 }
 .showcase-page .sc-head__intro {
   margin: 0;
+  max-width: 34ch;
   font-family: var(--mp-ui);
   font-size: .9rem;
-  line-height: 1.35;
-  color: var(--mp-ink);
+  line-height: 1.4;
+  color: var(--mp-ink-2);
 }
 
 /* The camera, in two lines: what to do, and why it matters. */
@@ -5760,6 +5763,7 @@
   text-shadow: var(--mp-on-brand-shadow);
   box-shadow: 0 8px 22px rgba(var(--mp-glow-rgb),.38), inset 0 1px 0 rgba(255,255,255,.45);
 }
+.v2 button.sc-cta { border: 0; cursor: pointer; }
 .v2 .sc-cta:active { transform: scale(.98); }
 
 .showcase-page .sc-missing .sc-missing__title {

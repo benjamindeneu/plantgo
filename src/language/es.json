@@ -512,10 +512,10 @@
   "grade.localRarity": "Sin registros cerca",
   "showcase.pageTitle": "PlantGo • Una misión botánica cerca de ti",
   "showcase.nav.more": "Más misiones en PlantGo",
-  "showcase.kicker": "🎯 Tu misión botánica",
+  "showcase.kicker": "Tu misión",
   "showcase.intro": "Encuentra esta planta dentro de la zona punteada del mapa.",
   "showcase.observe.title": "¿La encontraste? Hazle una foto",
-  "showcase.observe.sub": "Tu foto ayuda a los científicos a cartografiar dónde crece",
+  "showcase.observe.sub": "Tu observación ayuda a los científicos a cartografiar dónde crece",
   "showcase.status.inside": "📍 Estás dentro de la zona de la misión",
   "showcase.status.away": "La zona de la misión está a {distance}",
   "showcase.missing.title": "Esta misión ya no está disponible",
@@ -531,5 +531,8 @@
   "showcase.result.join.ctaSave": "Unirme a PlantGo y guardar mi observación",
   "showcase.result.login": "Ya tengo una cuenta",
   "showcase.claimed.title": "Observación guardada 🌿",
-  "showcase.claimed.body": "Tu observación de {species} desde la página de la misión ya está en tu cuenta: +{points} puntos."
+  "showcase.claimed.body": "Tu observación de {species} desde la página de la misión ya está en tu cuenta: +{points} puntos.",
+  "showcase.failed.title": "No se pudo cargar esta misión",
+  "showcase.failed.body": "Comprueba tu conexión y vuelve a intentarlo en un momento.",
+  "showcase.failed.retry": "Reintentar"
 }

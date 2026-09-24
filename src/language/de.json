@@ -512,10 +512,10 @@
   "grade.localRarity": "In der Nähe nicht erfasst",
   "showcase.pageTitle": "PlantGo • Eine Pflanzenmission in deiner Nähe",
   "showcase.nav.more": "Mehr Missionen auf PlantGo",
-  "showcase.kicker": "🎯 Deine Pflanzenmission",
+  "showcase.kicker": "Deine Mission",
   "showcase.intro": "Finde diese Pflanze in der gestrichelten Zone auf der Karte.",
   "showcase.observe.title": "Gefunden? Mach ein Foto",
-  "showcase.observe.sub": "Dein Foto hilft der Wissenschaft zu kartieren, wo sie wächst",
+  "showcase.observe.sub": "Deine Beobachtung hilft der Wissenschaft zu kartieren, wo sie wächst",
   "showcase.status.inside": "📍 Du bist in der Missionszone",
   "showcase.status.away": "Die Missionszone ist {distance} entfernt",
   "showcase.missing.title": "Diese Mission ist nicht mehr verfügbar",
@@ -531,5 +531,8 @@
   "showcase.result.join.ctaSave": "PlantGo beitreten und Beobachtung speichern",
   "showcase.result.login": "Ich habe schon ein Konto",
   "showcase.claimed.title": "Beobachtung gespeichert 🌿",
-  "showcase.claimed.body": "Deine Beobachtung von {species} auf der Missionsseite ist jetzt in deinem Konto: +{points} Punkte."
+  "showcase.claimed.body": "Deine Beobachtung von {species} auf der Missionsseite ist jetzt in deinem Konto: +{points} Punkte.",
+  "showcase.failed.title": "Diese Mission konnte nicht geladen werden",
+  "showcase.failed.body": "Prüfe deine Verbindung und versuche es gleich noch einmal.",
+  "showcase.failed.retry": "Erneut versuchen"
 }

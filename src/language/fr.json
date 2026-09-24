@@ -512,10 +512,10 @@
   "grade.localRarity": "Jamais signalée à proximité",
   "showcase.pageTitle": "PlantGo • Une mission plante près de chez vous",
   "showcase.nav.more": "Plus de missions sur PlantGo",
-  "showcase.kicker": "🎯 Votre mission plante",
+  "showcase.kicker": "Votre mission",
   "showcase.intro": "Trouvez cette plante dans la zone en pointillés sur la carte.",
   "showcase.observe.title": "Trouvée ? Prenez-la en photo",
-  "showcase.observe.sub": "Votre photo aide les scientifiques à cartographier où elle pousse",
+  "showcase.observe.sub": "Votre observation aide les scientifiques à cartographier où elle pousse",
   "showcase.status.inside": "📍 Vous êtes dans la zone de la mission",
   "showcase.status.away": "La zone de la mission est à {distance}",
   "showcase.missing.title": "Cette mission n'est plus disponible",
@@ -531,5 +531,8 @@
   "showcase.result.join.ctaSave": "Rejoindre PlantGo et garder mon observation",
   "showcase.result.login": "J'ai déjà un compte",
   "showcase.claimed.title": "Observation enregistrée 🌿",
-  "showcase.claimed.body": "Votre observation de {species} faite depuis la page mission est maintenant dans votre compte : +{points} points."
+  "showcase.claimed.body": "Votre observation de {species} faite depuis la page mission est maintenant dans votre compte : +{points} points.",
+  "showcase.failed.title": "Impossible de charger cette mission",
+  "showcase.failed.body": "Vérifiez votre connexion et réessayez dans un instant.",
+  "showcase.failed.retry": "Réessayer"
 }

@@ -512,10 +512,10 @@
   "grade.localRarity": "Unrecorded nearby",
   "showcase.pageTitle": "PlantGo • A plant mission near you",
   "showcase.nav.more": "More missions on PlantGo",
-  "showcase.kicker": "🎯 Your plant mission",
+  "showcase.kicker": "Your mission",
   "showcase.intro": "Find this plant inside the dashed zone on the map.",
   "showcase.observe.title": "Found it? Take a picture",
-  "showcase.observe.sub": "Your photo helps scientists map where it grows",
+  "showcase.observe.sub": "Your observation helps scientists map where it grows",
   "showcase.status.inside": "📍 You're inside the mission zone",
   "showcase.status.away": "The mission zone is {distance} away",
   "showcase.missing.title": "This mission isn't available anymore",
@@ -531,5 +531,8 @@
   "showcase.result.join.ctaSave": "Join PlantGo and save my observation",
   "showcase.result.login": "I already have an account",
   "showcase.claimed.title": "Observation saved 🌿",
-  "showcase.claimed.body": "Your observation of {species} from the mission page is now in your account: +{points} points."
+  "showcase.claimed.body": "Your observation of {species} from the mission page is now in your account: +{points} points.",
+  "showcase.failed.title": "We couldn't load this mission",
+  "showcase.failed.body": "Check your connection and try again in a moment.",
+  "showcase.failed.retry": "Try again"
 }

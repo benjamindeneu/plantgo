@@ -19,11 +19,6 @@ export function createMissionShowcaseView() {
     <div class="mp-sheet">
       <button type="button" class="mp-sheet__grab" id="sheetGrab" data-sheet-grab aria-label=""></button>
 
-      <div class="sc-head" id="scHead" hidden>
-        <span class="sc-head__kicker" id="scKicker"></span>
-        <p class="sc-head__intro" id="scIntro"></p>
-      </div>
-
       <div class="mp-screen mp-screen--detail">
         <div class="mp-sheet__scroll" id="detailSlot">
           <div class="mp-spinner" id="scSpinner" aria-hidden="true"></div>
@@ -54,9 +49,13 @@ export function createMissionShowcaseView() {
   const mapSlot = q("#mapSlot");
   const sheet = q(".mp-sheet");
   const sheetGrab = q("#sheetGrab");
-  const head = q("#scHead");
-  const kicker = q("#scKicker");
-  const intro = q("#scIntro");
+  // The mission's heading rides inside the species screen, under its bar
+  // (see showMission), so it is built on its own rather than in the sheet.
+  const head = document.createElement("div");
+  head.className = "sc-head";
+  head.innerHTML = `<h2 class="sc-head__title"></h2><p class="sc-head__intro"></p>`;
+  const kicker = head.querySelector(".sc-head__title");
+  const intro = head.querySelector(".sc-head__intro");
   const detailSlot = q("#detailSlot");
   const observeWrap = q("#observeWrap");
   const observeBtn = q("#observeBtn");
@@ -148,6 +147,29 @@ export function createMissionShowcaseView() {
     resizeCb?.();
   });
 
+  const spinner = q("#scSpinner");
+
+  function showNotice({ icon, title, body, cta, href = null, onClick = null }) {
+    observeWrap.hidden = true;
+    const box = document.createElement("div");
+    box.className = "mp-empty sc-missing";
+    box.innerHTML = `
+      <span class="mp-empty__icon" aria-hidden="true"></span>
+      <p class="sc-missing__title"></p>
+      <p></p>
+      ${href ? `<a class="sc-cta"></a>` : `<button class="sc-cta" type="button"></button>`}
+    `;
+    box.querySelector(".mp-empty__icon").textContent = icon;
+    const [titleEl, bodyEl] = box.querySelectorAll("p");
+    titleEl.textContent = title;
+    bodyEl.textContent = body;
+    const ctaEl = box.querySelector(".sc-cta");
+    ctaEl.textContent = cta;
+    if (href) ctaEl.href = href;
+    if (onClick) ctaEl.addEventListener("click", onClick);
+    detailSlot.replaceChildren(box);
+  }
+
   function refreshI18n() {
     kicker.textContent = t("showcase.kicker");
     intro.textContent = t("showcase.intro");
@@ -165,7 +187,10 @@ export function createMissionShowcaseView() {
 
     /** The mission's species screen, and the camera that goes with it. */
     showMission(detailEl) {
-      head.hidden = false;
+      // Under the bar that holds the raster switch, above the species name.
+      const bar = detailEl.querySelector(".mp-detail__bar");
+      if (bar) bar.after(head);
+      else detailEl.prepend(head);
       detailSlot.replaceChildren(detailEl);
       detailSlot.scrollTop = 0;
       observeWrap.hidden = false;
@@ -173,21 +198,27 @@ export function createMissionShowcaseView() {
 
     /** No mission to show: an explanation and a way into the app instead. */
     showMissing() {
-      head.hidden = true;
-      observeWrap.hidden = true;
-      const box = document.createElement("div");
-      box.className = "mp-empty sc-missing";
-      box.innerHTML = `
-        <span class="mp-empty__icon" aria-hidden="true">🌱</span>
-        <p class="sc-missing__title"></p>
-        <p></p>
-        <a class="sc-cta" href="./index.html"></a>
-      `;
-      const [titleEl, bodyEl] = box.querySelectorAll("p");
-      titleEl.textContent = t("showcase.missing.title");
-      bodyEl.textContent = t("showcase.missing.body");
-      box.querySelector("a").textContent = t("showcase.missing.cta");
-      detailSlot.replaceChildren(box);
+      showNotice({
+        icon: "🌱",
+        title: t("showcase.missing.title"),
+        body: t("showcase.missing.body"),
+        cta: t("showcase.missing.cta"),
+        href: "./index.html",
+      });
+    },
+
+    /** The mission could not be fetched — a hiccup, not a verdict. */
+    showLoadFailed(retry) {
+      showNotice({
+        icon: "📡",
+        title: t("showcase.failed.title"),
+        body: t("showcase.failed.body"),
+        cta: t("showcase.failed.retry"),
+        onClick: () => {
+          detailSlot.replaceChildren(spinner);
+          retry();
+        },
+      });
     },
 
     onObserve(cb) { observeCb = cb; },
