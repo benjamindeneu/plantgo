@@ -15,7 +15,12 @@ const BASE_KEY = "points.baseObs";
 const reducedMotion = () =>
   !!window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
-export function createResultModalView() {
+/**
+ * @param {object} [opts]
+ * @param {boolean} [opts.showLevel] the level bar across the top. The public
+ *   mission page has no player, so no level to fill.
+ */
+export function createResultModalView({ showLevel = true } = {}) {
   const overlay = document.createElement("div");
   overlay.className = "modal show result-modal";
   overlay.setAttribute("role", "dialog");
@@ -87,6 +92,8 @@ export function createResultModalView() {
       </div>
     </div>
   `;
+
+  if (!showLevel) overlay.querySelector(".level-wrap").remove();
 
   translateDom(overlay);
 
@@ -367,11 +374,13 @@ export function createResultModalView() {
     refreshI18n,
 
     async initLoading({ photos, currentTotalPoints }) {
-      const { fromLevel, fromPct, nextLevel } = calcFromLevel(currentTotalPoints || 0);
-      qs("#levelFrom").textContent = fromLevel;
-      qs("#levelTo").textContent = nextLevel;
-      qs("#levelToLabel").style.opacity = 0.9;
-      qs("#levelProgress").style.width = `${fromPct}%`;
+      if (showLevel) {
+        const { fromLevel, fromPct, nextLevel } = calcFromLevel(currentTotalPoints || 0);
+        qs("#levelFrom").textContent = fromLevel;
+        qs("#levelTo").textContent = nextLevel;
+        qs("#levelToLabel").style.opacity = 0.9;
+        qs("#levelProgress").style.width = `${fromPct}%`;
+      }
 
       const photosEl = qs("#userPhotos");
       photosEl.innerHTML = (photos || [])
@@ -407,8 +416,17 @@ export function createResultModalView() {
     },
 
     async showLowConfidenceUI({ speciesName, speciesVernacularName, speciesScore }) {
+      await this.showNoPointsUI({
+        speciesName, speciesVernacularName, speciesScore,
+        title: t("result.lowConfidence.title"),
+        message: t("result.lowConfidence.message"),
+      });
+    },
+
+    /** A species named, no points shown, and a line saying why. */
+    async showNoPointsUI({ speciesName, speciesVernacularName, speciesScore, title, message }) {
       qs("#loadingTrack").style.display = "none";
-      qs("#resultTitle").textContent = t("result.lowConfidence.title");
+      qs("#resultTitle").textContent = title;
 
       qs("#speciesNameLine").innerHTML = speciesName ? `<em>${escapeHtml(speciesName)}</em>` : escapeHtml(t("result.unknownSpecies"));
       qs("#speciesVernacularNameLine").innerHTML = speciesVernacularName ? `<strong>${escapeHtml(speciesVernacularName)}</strong>` : escapeHtml(t("result.noCommonName"));
@@ -420,8 +438,13 @@ export function createResultModalView() {
 
       const msg = document.createElement("div");
       msg.className = "low-confidence-msg";
-      msg.textContent = t("result.lowConfidence.message");
+      msg.textContent = message;
       qs("#speciesNameDiv").appendChild(msg);
+    },
+
+    /** A closing block under everything else — the mission page's invitation. */
+    appendOutro(node) {
+      qs(".result-body").appendChild(node);
     },
 
     async showResultUI({ speciesName, speciesVernacularName, speciesScore, baseTotal, detail, badges, currentTotalBefore, finalTotal, isNearbyDuplicate = false, trivia = null, debugData = null }) {
@@ -572,6 +595,11 @@ export function createResultModalView() {
       if (trivia) {
         qs("#triviaText").appendChild(document.createTextNode(trivia));
         qs("#triviaWrap").style.display = "block";
+      }
+
+      if (!showLevel) {
+        refreshI18n();
+        return;
       }
 
       const { fromLevel, fromPct } = calcFromLevel(currentTotalBefore);

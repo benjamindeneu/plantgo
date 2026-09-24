@@ -12,6 +12,9 @@ import { LocationGate } from "../ui/components/LocationGate.js";
 import { listenUserLevel } from "../user/level.js";
 import { isAdmin } from "../data/user.repo.js";
 import { debugMode } from "../data/debugMode.js";
+import { claimPendingObservation } from "../data/pendingObservation.js";
+import { Modal } from "../ui/components/Modal.js";
+import { t } from "../language/i18n.js";
 
 import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
@@ -77,6 +80,8 @@ function App() {
     if (booted) return;
     booted = true;
 
+    claimVisitorObservation(user.uid);
+
     panel = MapPage();
     mount.replaceChildren(panel.element);
     // Leaflet measures its container on init, so size it before starting.
@@ -87,6 +92,27 @@ function App() {
   });
 
   window.addEventListener("resize", () => panel?.invalidate());
+}
+
+/**
+ * File the observation a visitor made on the public mission page before they
+ * had an account, now that they have one, and tell them it landed.
+ */
+async function claimVisitorObservation(uid) {
+  let saved = null;
+  try {
+    saved = await claimPendingObservation(uid);
+  } catch (e) {
+    console.error("[map] saving the mission page observation failed:", e);
+    return;
+  }
+  if (!saved) return;
+  const body = document.createElement("p");
+  body.textContent = t("showcase.claimed.body", {
+    species: saved.vernacularName || saved.speciesName,
+    points: saved.points,
+  });
+  document.body.appendChild(Modal({ title: t("showcase.claimed.title"), content: body }));
 }
 
 App();

@@ -5657,3 +5657,149 @@
   .v2 .mp-icon-btn.is-busy svg,
   .v2 .mp-spinner { animation: none; }
 }
+
+/* ============================================================
+   PUBLIC MISSION PAGE (mission.html)
+   ------------------------------------------------------------
+   One mission for someone without an account: the front page's
+   map and species screen, a header that only points into the
+   app, and a result that ends on an invitation. `sc-` = showcase.
+   ============================================================ */
+
+.showcase-page .sc-nav { justify-content: space-between; }
+.showcase-page .sc-nav .brandmark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.showcase-page .sc-nav__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 10px 7px 14px;
+  border-radius: 999px;
+  background: var(--mp-grad);
+  color: #fff;
+  font-family: var(--mp-ui);
+  font-size: .8rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  text-shadow: var(--mp-on-brand-shadow);
+  box-shadow: 0 2px 8px rgba(var(--mp-glow-rgb),.34);
+  white-space: nowrap;
+}
+.showcase-page .sc-nav__cta:hover { box-shadow: 0 4px 14px rgba(var(--mp-glow-rgb),.46); }
+@media (max-width: 380px) {
+  .showcase-page .sc-nav .brand-title { display: none; }
+}
+
+/* One mission, nothing to refetch — and no tab capsule for the status to
+   clear, so it sits at the top of the map. */
+.showcase-page #mapRefresh { display: none; }
+.showcase-page .mp-map-status-wrap { top: 12px; }
+
+/* No list to go back to: the bar keeps only the raster switch. */
+.v2 .mp-detail__back[hidden] { display: none; }
+
+.showcase-page .sc-head {
+  flex: none;
+  display: grid;
+  gap: 2px;
+  padding: 10px 20px 8px;
+}
+.showcase-page .sc-head[hidden] { display: none; }
+.showcase-page .sc-head__kicker {
+  font-family: var(--mp-ui);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--mp-brand-text);
+}
+.showcase-page .sc-head__intro {
+  margin: 0;
+  font-family: var(--mp-ui);
+  font-size: .9rem;
+  line-height: 1.35;
+  color: var(--mp-ink);
+}
+
+/* The camera, in two lines: what to do, and why it matters. */
+.showcase-page .mp-fab-wrap[hidden] { display: none; }
+.showcase-page .sc-fab { min-height: 62px; max-width: 380px; padding: 8px 22px; }
+.showcase-page .sc-fab svg { flex: none; }
+.showcase-page .sc-fab__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  line-height: 1.2;
+  text-align: left;
+}
+.showcase-page .sc-fab__sub { font-size: .76rem; font-weight: 500; opacity: .94; }
+
+/* The way in: a full-width pill, used both by the "mission gone" state and
+   by the result's closing block. */
+.v2 .sc-cta {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin: 4px auto 0;
+  padding: 13px 20px;
+  border-radius: 999px;
+  background: var(--mp-grad);
+  color: #fff;
+  font-family: var(--mp-ui);
+  font-size: .98rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+  text-shadow: var(--mp-on-brand-shadow);
+  box-shadow: 0 8px 22px rgba(var(--mp-glow-rgb),.38), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.v2 .sc-cta:active { transform: scale(.98); }
+
+.showcase-page .sc-missing .sc-missing__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--mp-ink);
+}
+
+/* The result's last word. */
+.v2 .sc-outro {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 4px;
+  padding: 18px 18px 16px;
+  border-radius: var(--mp-r-md);
+  background: var(--mp-surface-2);
+  text-align: center;
+}
+.v2 .sc-outro--found {
+  background: linear-gradient(180deg, var(--mp-soft), var(--mp-surface));
+  box-shadow: inset 0 0 0 1px rgba(var(--mp-glow-rgb),.22);
+}
+.v2 .sc-outro p { margin: 0; }
+.v2 .sc-outro__title {
+  font-family: var(--mp-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--mp-brand-text);
+}
+.v2 .sc-outro__text {
+  font-family: var(--mp-ui);
+  font-size: .9rem;
+  line-height: 1.5;
+  color: var(--mp-ink);
+}
+.v2 .sc-outro__join { color: var(--mp-ink-2); }
+.v2 .sc-outro__alt {
+  font-family: var(--mp-ui);
+  font-size: .84rem;
+  font-weight: 500;
+  color: var(--mp-brand-text);
+}

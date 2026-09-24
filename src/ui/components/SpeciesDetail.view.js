@@ -93,7 +93,9 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
   if (commonName === sciName) sciEl.hidden = true;
 
   const backBtn = el.querySelector(".mp-detail__back");
+  // The public mission page shows one species and no list to go back to.
   if (onBack) backBtn.addEventListener("click", onBack);
+  else backBtn.hidden = true;
 
   // --- tags -----------------------------------------------------------------
   const tags = el.querySelector(".mp-detail__tags");

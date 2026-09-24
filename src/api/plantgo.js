@@ -1,5 +1,5 @@
 // src/api/plantgo.js
-import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE, TRIVIA_PROXY_BASE, SPECIES_IMAGES_BASE, SDM_MODELS_URL, MAP_MISSIONS_URL, MISSION_DETAIL_BASE, GPN_TILE_BASE } from "./config.js";
+import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE, TRIVIA_PROXY_BASE, SPECIES_IMAGES_BASE, SDM_MODELS_URL, MAP_MISSIONS_URL, MISSION_DETAIL_BASE, MISSION_ONE_BASE, GPN_TILE_BASE } from "./config.js";
 
 async function http(url, opts = {}) {
   const res = await fetch(url, opts);
@@ -134,6 +134,17 @@ export async function fetchMapMissions({ lat, lon, radius_m = 2000, limit = 20, 
 export async function fetchMissionDetail({ id, lang = "en", model = "best" }) {
   const qs = new URLSearchParams({ lang, model });
   return httpWithTimeout(`${MISSION_DETAIL_BASE}/${encodeURIComponent(id)}?${qs}`, {}, 60_000);
+}
+
+/**
+ * One mission by id, in the shape `fetchMapMissions` gives each pin — grade,
+ * zone and phenology included. For the public mission page, which is opened
+ * from a link or a QR code and so has an id to show but no viewport.
+ * Rejects with a `[404]` error when the mission is not in the catalogue.
+ */
+export async function fetchMissionById({ id, lang = "en" }) {
+  const qs = new URLSearchParams({ lang });
+  return httpWithTimeout(`${MISSION_ONE_BASE}/${encodeURIComponent(id)}?${qs}`, {}, 60_000);
 }
 
 /**

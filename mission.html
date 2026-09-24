@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="color-scheme" content="light" />
+  <meta name="theme-color" content="#ffffff" />
+
+  <!-- The public mission page: one mission, opened from a shared link or a
+       QR code as mission.html?id=<mission id>. No account needed. -->
+  <title data-i18n="showcase.pageTitle">PlantGo mission</title>
+  <meta name="description" content="A plant to find nearby. Photograph it to help scientists map where it grows." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./assets/styles.css?v=20260909-1" />
+  <link rel="stylesheet" href="./assets/styles.v2.css?v=20260924-1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png" />
+</head>
+
+<body class="v2 map-page showcase-page">
+  <header class="nav sc-nav">
+    <a class="brandmark" href="./index.html" aria-label="PlantGo">
+      <img src="./assets/plantgo_logo2.png" alt="" class="brand-logo">
+      <img src="./assets/plantgo_titleimage_1.png" alt="PlantGo" class="brand-title">
+    </a>
+    <a class="sc-nav__cta" href="./index.html">
+      <span data-i18n="showcase.nav.more">More missions on PlantGo</span>
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M9.3 17.7 10.6 19l5.7-5.7v-2.6L10.6 5 9.3 6.3l4.4 4.4v2.6z"/></svg>
+    </a>
+  </header>
+
+  <main class="map-shell">
+    <div id="mapRoot" class="map-root"></div>
+  </main>
+
+  <script type="module" src="./src/pages/mission.app.js?v=20260924-1"></script>
+</body>
+</html>

@@ -16,6 +16,7 @@ export const SDM_MODELS_URL = `${API_BASE_URL}sdm/available_models`;
 export const API_V2_BASE_URL = API_BASE_URL.replace(/api\/$/, "api/v2/");
 export const MAP_MISSIONS_URL = `${API_V2_BASE_URL}missions/map`;   // /api/v2/missions/map
 export const MISSION_DETAIL_BASE = `${API_BASE_URL}missions`;       // /api/missions/<mission_id>
+export const MISSION_ONE_BASE = `${API_V2_BASE_URL}missions/one`;   // /api/v2/missions/one/<mission_id>
 
 // GeoPl@ntNet species probability tiles, used as a Leaflet overlay behind a
 // selected mission. Same host the backend reads mission extents from.
