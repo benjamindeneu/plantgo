@@ -5703,13 +5703,21 @@
 /* No list to go back to: the bar keeps only the raster switch. */
 .v2 .mp-detail__back[hidden] { display: none; }
 
+/* The mission's heading: a band of its own at the top of the page, over the
+   map, rather than a line inside the sheet. */
 .showcase-page .sc-head {
+  position: relative;
+  z-index: 670;
+  flex: none;
   display: grid;
   justify-items: center;
   gap: 2px;
-  padding: 2px 8px 4px;
+  padding: 12px 16px 12px;
   text-align: center;
+  background: var(--mp-surface);
+  border-bottom: 1px solid var(--mp-line);
 }
+.showcase-page .sc-head[hidden] { display: none; }
 .showcase-page .sc-head__title {
   margin: 0;
   font-family: var(--mp-ui);

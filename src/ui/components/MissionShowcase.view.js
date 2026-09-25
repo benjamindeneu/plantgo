@@ -14,6 +14,11 @@ export function createMissionShowcaseView() {
   const root = document.createElement("div");
   root.className = "mp-shell";
   root.innerHTML = `
+    <div class="sc-head" id="scHead" hidden>
+      <h2 class="sc-head__title"></h2>
+      <p class="sc-head__intro"></p>
+    </div>
+
     <div id="mapSlot" class="mp-map"></div>
 
     <div class="mp-sheet">
@@ -49,11 +54,9 @@ export function createMissionShowcaseView() {
   const mapSlot = q("#mapSlot");
   const sheet = q(".mp-sheet");
   const sheetGrab = q("#sheetGrab");
-  // The mission's heading rides inside the species screen, under its bar
-  // (see showMission), so it is built on its own rather than in the sheet.
-  const head = document.createElement("div");
-  head.className = "sc-head";
-  head.innerHTML = `<h2 class="sc-head__title"></h2><p class="sc-head__intro"></p>`;
+  // The mission's heading tops the page, over the map; it waits for a
+  // mission to name, so the missing and failed notices go without it.
+  const head = q("#scHead");
   const kicker = head.querySelector(".sc-head__title");
   const intro = head.querySelector(".sc-head__intro");
   const detailSlot = q("#detailSlot");
@@ -94,7 +97,7 @@ export function createMissionShowcaseView() {
   let dragRaf = null;
 
   function clampSheetHeight(px) {
-    const max = Math.max(SHEET_MIN_H, root.getBoundingClientRect().height - MAP_MIN_H);
+    const max = Math.max(SHEET_MIN_H, root.getBoundingClientRect().height - head.offsetHeight - MAP_MIN_H);
     return Math.min(max, Math.max(SHEET_MIN_H, px));
   }
 
@@ -151,6 +154,7 @@ export function createMissionShowcaseView() {
 
   function showNotice({ icon, title, body, cta, href = null, onClick = null }) {
     observeWrap.hidden = true;
+    head.hidden = true;
     const box = document.createElement("div");
     box.className = "mp-empty sc-missing";
     box.innerHTML = `
@@ -187,10 +191,7 @@ export function createMissionShowcaseView() {
 
     /** The mission's species screen, and the camera that goes with it. */
     showMission(detailEl) {
-      // Under the bar that holds the raster switch, above the species name.
-      const bar = detailEl.querySelector(".mp-detail__bar");
-      if (bar) bar.after(head);
-      else detailEl.prepend(head);
+      head.hidden = false;
       detailSlot.replaceChildren(detailEl);
       detailSlot.scrollTop = 0;
       observeWrap.hidden = false;
