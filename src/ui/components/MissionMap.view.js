@@ -55,7 +55,7 @@ const BLANK_TILE =
  * mission is shown in the page's own sheet now, so this draws the ground, the
  * pins and the selected species' zone, and reports taps upward.
  */
-export function createMissionMapView() {
+export function createMissionMapView({ topInset = () => 0 } = {}) {
   const root = document.createElement("div");
   root.className = "mission-map-root";
   root.innerHTML = `
@@ -433,11 +433,16 @@ export function createMissionMapView() {
     if (rasterLayer) rasterLayer.setOpacity(value01);
   }
 
-  /** Keep a fitted zone comfortably inside the visible map band. */
+  /** Keep a fitted zone comfortably inside the visible map band — and clear
+   *  of anything the page floats over its top edge (`topInset`, in px). */
   function fitToExtent(bounds) {
     if (!bounds?.isValid?.()) return;
     programmaticMove = true;
-    map.fitBounds(bounds, { padding: [34, 34], maxZoom: 17 });
+    map.fitBounds(bounds, {
+      paddingTopLeft: [34, 34 + topInset()],
+      paddingBottomRight: [34, 34],
+      maxZoom: 17,
+    });
   }
 
   // Blink and WebKit have no ::-moz-range-progress, so the filled part of the

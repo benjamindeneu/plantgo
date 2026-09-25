@@ -47,7 +47,8 @@ function formatDistance(m) {
  */
 export function MissionShowcase({ missionId }) {
   const view = createMissionShowcaseView();
-  const map = createMissionMapView();
+  // The zone is framed below the mission's heading, which floats over the map.
+  const map = createMissionMapView({ topInset: () => view.headInset() });
   view.mapSlot.appendChild(map.element);
   map.refreshI18n();
 

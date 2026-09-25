@@ -5696,44 +5696,65 @@
 }
 
 /* One mission, nothing to refetch — and no tab capsule for the status to
-   clear, so it sits at the top of the map. */
+   clear, only the mission's heading card. */
 .showcase-page #mapRefresh { display: none; }
-.showcase-page .mp-map-status-wrap { top: 12px; }
+.showcase-page .mp-map-status-wrap { top: calc(22px + var(--sc-head-h, 0px)); }
 
 /* No list to go back to: the bar keeps only the raster switch. */
 .v2 .mp-detail__back[hidden] { display: none; }
 
-/* The mission's heading: a band of its own at the top of the page, over the
-   map, rather than a line inside the sheet. */
+/* The mission's heading: a frosted card floating over the top of the map,
+   in the same glass as the legend and the map buttons, with the brand's
+   gradient on a pin badge. It stops short of the locate button on the
+   right, and the map frames the zone below it (see headInset). */
 .showcase-page .sc-head {
-  position: relative;
-  z-index: 670;
-  flex: none;
-  display: grid;
-  justify-items: center;
-  gap: 2px;
-  padding: 12px 16px 12px;
-  text-align: center;
-  background: var(--mp-surface);
-  border-bottom: 1px solid var(--mp-line);
+  position: absolute;
+  top: 12px; left: 12px; right: 68px;
+  z-index: 640;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  max-width: 420px;
+  padding: 9px 14px 9px 9px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.93);
+  border: 1px solid rgba(255,255,255,.8);
+  box-shadow: var(--mp-lift);
+  backdrop-filter: blur(14px) saturate(170%);
+  -webkit-backdrop-filter: blur(14px) saturate(170%);
+  pointer-events: none;
 }
 .showcase-page .sc-head[hidden] { display: none; }
+.showcase-page .sc-head__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  background: var(--mp-grad);
+  color: #fff;
+  filter: drop-shadow(var(--mp-on-brand-shadow));
+  box-shadow: 0 3px 10px rgba(var(--mp-glow-rgb),.38), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.showcase-page .sc-head__text {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
 .showcase-page .sc-head__title {
   margin: 0;
   font-family: var(--mp-ui);
-  font-size: 1.45rem;
+  font-size: 1.08rem;
   font-weight: 700;
   line-height: 1.2;
-  letter-spacing: -.02em;
-  text-align: center;
+  letter-spacing: -.01em;
   color: var(--mp-brand-text);
 }
 .showcase-page .sc-head__intro {
   margin: 0;
-  max-width: 34ch;
   font-family: var(--mp-ui);
-  font-size: .9rem;
-  line-height: 1.4;
+  font-size: .8rem;
+  line-height: 1.35;
   color: var(--mp-ink-2);
 }
 

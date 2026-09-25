@@ -14,12 +14,17 @@ export function createMissionShowcaseView() {
   const root = document.createElement("div");
   root.className = "mp-shell";
   root.innerHTML = `
-    <div class="sc-head" id="scHead" hidden>
-      <h2 class="sc-head__title"></h2>
-      <p class="sc-head__intro"></p>
+    <div id="mapSlot" class="mp-map">
+      <div class="sc-head" id="scHead" hidden>
+        <span class="sc-head__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
+        </span>
+        <div class="sc-head__text">
+          <h2 class="sc-head__title"></h2>
+          <p class="sc-head__intro"></p>
+        </div>
+      </div>
     </div>
-
-    <div id="mapSlot" class="mp-map"></div>
 
     <div class="mp-sheet">
       <button type="button" class="mp-sheet__grab" id="sheetGrab" data-sheet-grab aria-label=""></button>
@@ -54,9 +59,13 @@ export function createMissionShowcaseView() {
   const mapSlot = q("#mapSlot");
   const sheet = q(".mp-sheet");
   const sheetGrab = q("#sheetGrab");
-  // The mission's heading tops the page, over the map; it waits for a
-  // mission to name, so the missing and failed notices go without it.
+  // The mission's heading floats over the top of the map; it waits for a
+  // mission to name, so the missing and failed notices go without it. Its
+  // height is handed to CSS so the map's status pill can sit below it.
   const head = q("#scHead");
+  new ResizeObserver(() => {
+    root.style.setProperty("--sc-head-h", `${head.offsetHeight}px`);
+  }).observe(head);
   const kicker = head.querySelector(".sc-head__title");
   const intro = head.querySelector(".sc-head__intro");
   const detailSlot = q("#detailSlot");
@@ -97,7 +106,7 @@ export function createMissionShowcaseView() {
   let dragRaf = null;
 
   function clampSheetHeight(px) {
-    const max = Math.max(SHEET_MIN_H, root.getBoundingClientRect().height - head.offsetHeight - MAP_MIN_H);
+    const max = Math.max(SHEET_MIN_H, root.getBoundingClientRect().height - MAP_MIN_H);
     return Math.min(max, Math.max(SHEET_MIN_H, px));
   }
 
@@ -187,6 +196,11 @@ export function createMissionShowcaseView() {
   return {
     element: root,
     mapSlot,
+
+    /** How far down the map the heading reaches, for framing the zone. */
+    headInset() {
+      return head.hidden ? 0 : head.offsetTop + head.offsetHeight;
+    },
     observeSlot,
 
     /** The mission's species screen, and the camera that goes with it. */
