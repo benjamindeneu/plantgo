@@ -21,6 +21,14 @@ import { doc, getDoc, setDoc, increment, serverTimestamp, onSnapshot } from "htt
  */
 
 /**
+ * Kill switch for the calendar. While false no event runs for players —
+ * no theme, no pass card, no XP — whatever the dates below say. Everything
+ * else stays in place: already-won wardrobe items stay unlocked, and the
+ * admin override (`eventSim`) still forces an event on for testing.
+ */
+const EVENTS_ENABLED = false;
+
+/**
  * Thresholds for tiers 1…9. Front-loaded — the gaps widen from 1k to 11k —
  * so the first reward lands on day one and the last is a month's work.
  */
@@ -133,6 +141,7 @@ export function activeEvent(now = new Date()) {
   // choose between them during the overlap. `simulated` still marks only the
   // case the UI has to be honest about: an event shown outside its window.
   if (forced) return isEventLive(forced, now) ? forced : { ...forced, simulated: true };
+  if (!EVENTS_ENABLED) return null;
   return EVENTS.find((e) => isEventLive(e, now)) ?? null;
 }
 
