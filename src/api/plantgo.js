@@ -1,5 +1,5 @@
 // src/api/plantgo.js
-import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE, TRIVIA_PROXY_BASE, SPECIES_IMAGES_BASE, SDM_MODELS_URL, MAP_MISSIONS_URL, MISSION_DETAIL_BASE, MISSION_ONE_BASE, GPN_TILE_BASE } from "./config.js";
+import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE, TRIVIA_PROXY_BASE, SPECIES_IMAGES_BASE, SDM_MODELS_URL, IDENTIFIER_MODELS_URL, MAP_MISSIONS_URL, MISSION_DETAIL_BASE, MISSION_ONE_BASE, GPN_TILE_BASE } from "./config.js";
 
 async function http(url, opts = {}) {
   const res = await fetch(url, opts);
@@ -60,22 +60,49 @@ export async function resizeImage(file, maxDim = 1280) {
   });
 }
 
+/** Photos per identification: what Pl@ntNet and FlorID both take at most. */
+export const MAX_IDENTIFY_PHOTOS = 5;
+
+/**
+ * Resize the photos that go to identification (the first MAX_IDENTIFY_PHOTOS),
+ * in parallel. `debugInfo` adds the sizes up across all of them, for the
+ * debug timings.
+ */
+export async function resizeImages(files) {
+  const done = await Promise.all(files.slice(0, MAX_IDENTIFY_PHOTOS).map((f) => resizeImage(f)));
+  const infos = done.map((d) => d.debugInfo).filter(Boolean);
+  const more = infos.length > 1 ? ` +${infos.length - 1}` : "";
+  const originalSize = infos.reduce((s, d) => s + d.originalSize, 0);
+  const newSize = infos.reduce((s, d) => s + d.newSize, 0);
+  return {
+    files: done.map((d) => d.file),
+    debugInfo: infos.length ? {
+      originalSize,
+      newSize,
+      originalDims: infos[0].originalDims + more,
+      newDims: infos[0].newDims + more,
+      reduction: Math.round((1 - newSize / originalSize) * 100),
+    } : null,
+  };
+}
+
 /**
  * Identify a plant with the backend contract you shared:
- * - multipart form with *single* file field named "image"
- * - form fields: lat, lon, model
+ * - multipart form, one file field named "image" per photo (at most MAX_IDENTIFY_PHOTOS)
+ * - form fields: lat, lon, identifier (who names the plant; "auto" = the
+ *   default where the player is), model (the SDM the points are scored with)
  */
-export async function identifyPlant({ file, lat, lon, model = "best", lang = "en", skipResize = false, debug = false }) {
-  if (!file) throw new Error("No image file provided.");
+export async function identifyPlant({ files, lat, lon, identifier = "auto", model = "best", lang = "en", skipResize = false, debug = false }) {
+  if (!files?.length) throw new Error("No image file provided.");
   if (lat == null || lon == null) throw new Error("Missing lat/lon for identify.");
 
-  const resized = skipResize ? file : (await resizeImage(file)).file;
+  const photos = skipResize ? files.slice(0, MAX_IDENTIFY_PHOTOS) : (await resizeImages(files)).files;
 
   const formData = new FormData();
-  // IMPORTANT: single file under the exact field name "image"
-  formData.append("image", resized, resized.name || "photo.jpg");
+  for (const photo of photos) formData.append("image", photo, photo.name || "photo.jpg");
   formData.append("lat", String(lat));
   formData.append("lon", String(lon));
+  formData.append("identifier", identifier);
   formData.append("model", model);
   formData.append("lang", lang);
   if (debug) formData.append("debug", "true");
@@ -204,6 +231,14 @@ export async function fetchQuizQuestion({ item, lang = "en" }) {
  */
 export async function fetchAvailableModels({ lat, lon }) {
   return http(`${SDM_MODELS_URL}?lat=${lat}&lon=${lon}`);
+}
+
+/**
+ * Fetch the image identifiers available at a location, and the default one.
+ * Same shape as fetchAvailableModels: { location, models, default_model }.
+ */
+export async function fetchAvailableIdentifiers({ lat, lon }) {
+  return http(`${IDENTIFIER_MODELS_URL}?lat=${lat}&lon=${lon}`);
 }
 
 /**

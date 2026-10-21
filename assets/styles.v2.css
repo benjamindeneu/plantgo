@@ -5482,6 +5482,55 @@
   color: var(--mp-ink-2);
   text-align: center;
 }
+/* The identifier picker: a gear beside Identify / Clear that opens a short
+   radio list under them, dressed like the settings toggles. */
+.map-page .mp-observe__body #actions button.identifier-btn {
+  width: 46px !important; /* over button.btn-icon's 36px !important */
+  min-width: 0;
+  height: auto;
+  align-self: stretch;
+  padding: 0;
+  color: var(--mp-ink-2);
+}
+.map-page .mp-observe__body #actions button.identifier-btn[aria-expanded="true"] {
+  color: var(--mp-brand-text);
+  border-color: var(--mp-brand);
+}
+.map-page .mp-observe__body .identifier-panel {
+  display: grid;
+  gap: 6px;
+  max-width: 320px;
+  margin: 12px auto 0;
+  font-family: var(--mp-ui);
+}
+.map-page .mp-observe__body .identifier-panel[hidden] { display: none; }
+.map-page .mp-observe__body .identifier-panel__title {
+  margin: 0 0 2px;
+  font-size: .76rem;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--mp-ink-2);
+}
+.map-page .mp-observe__body .identifier-panel__list { display: grid; gap: 6px; }
+.map-page .mp-observe__body .identifier-panel__loading { margin: 0; font-size: .85rem; color: var(--mp-ink-2); }
+.map-page .mp-observe__body .identifier-option {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--mp-line);
+  border-radius: var(--mp-r-sm);
+  background: var(--mp-surface-2);
+  font-size: .93rem;
+  text-align: left;
+  color: var(--mp-ink);
+  cursor: pointer;
+}
+.map-page .mp-observe__body .identifier-option:has(input:checked) { border-color: var(--mp-brand); }
+.map-page .mp-observe__body .identifier-option input { width: 17px; height: 17px; margin: 0; accent-color: var(--mp-brand); }
+.map-page .mp-observe__body .identifier-option__hint { grid-column: 2; font-size: .8rem; color: var(--mp-ink-2); }
 
 /* ---------- the challenge screen ---------- */
 /* Only in the capsule while the player is actually in a challenge, so the

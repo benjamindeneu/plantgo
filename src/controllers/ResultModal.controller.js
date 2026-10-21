@@ -13,6 +13,11 @@ import { getMissionsDoneToday, markMissionDone } from "../data/missionsDone.js";
 import { openInatUpload } from "./InatUpload.controller.js";
 import { t } from "../language/i18n.js";
 
+// Below this the identifier is guessing: the result is shown as tentative and
+// not saved. Each identifier sends its own (identify.identifier.min_score);
+// this is for an answer without one.
+const DEFAULT_MIN_SCORE = 0.2;
+
 /**
  * Add this observation's points to the running event pass and turn any tier
  * it crossed into a card for the result modal, naming what the tier gave.
@@ -57,12 +62,15 @@ export function ResultModal() {
       await view.initLoading({ photos, currentTotalPoints });
     },
 
-    async showResult({ identify, points, trivia = null, lat, lon, accuracy = null, observedAt = null, files = [], plantnetImageCode, clientTimings = {}, timings: serverTimings = null }) {
+    async showResult({ identify, points, trivia = null, lat, lon, accuracy = null, observedAt = null, files = [], clientTimings = {}, timings: serverTimings = null }) {
       const timings = clientTimings;
       const speciesName = identify?.name || t("result.unknownSpecies");
       const speciesVernacularName = identify?.vernacularName || t("result.noCommonName");
       const baseTotal = Number(points?.total ?? 0);
-      const plantnet_identify_score = Number(identify?.score ?? 0);
+      const score = Number(identify?.score ?? 0);
+      // Who named it: shown beside the score, and saved with the observation
+      const identifier = identify?.identifier || null;
+      const who = { identifier, fallback: !!identify?.fallback };
       const detail = (points?.detail && typeof points.detail === "object") ? points.detail : {};
 
       const lang = document.documentElement.lang || "en";
@@ -79,7 +87,6 @@ export function ResultModal() {
           files,
           identify,
           lat, lon, accuracy, observedAt,
-          plantnetImageCode,
           onUploaded: (url) => view.markInatUploaded(url),
         }));
       };
@@ -87,8 +94,8 @@ export function ResultModal() {
       // Low confidence — show tentative result, do not save observation.
       // Posting it to iNaturalist (where the player can correct it) is still
       // offered, and saves an unscored one then.
-      if (plantnet_identify_score < 0.2) {
-        await view.showLowConfidenceUI({ speciesName, speciesVernacularName, speciesScore: plantnet_identify_score });
+      if (score < (identifier?.min_score ?? DEFAULT_MIN_SCORE)) {
+        await view.showLowConfidenceUI({ speciesName, speciesVernacularName, speciesScore: score, ...who });
         offerInat(null);
         return;
       }
@@ -143,8 +150,8 @@ export function ResultModal() {
           userId: user.uid,
           speciesName,
           lat, lon,
-          plantnetImageCode,
-          plantnet_identify_score,
+          identifier,
+          identify_score: score,
           gbif_id: identify?.gbif_id ?? null,
           vernacularName: identify?.vernacularName || null,
           pointsMap: detail,
@@ -220,7 +227,8 @@ export function ResultModal() {
         await view.showResultUI({
           speciesName,
           speciesVernacularName,
-          speciesScore: plantnet_identify_score,
+          speciesScore: score,
+          ...who,
           baseTotal: nearbyPoints,
           detail,
           badges,
@@ -244,7 +252,8 @@ export function ResultModal() {
       await view.showResultUI({
         speciesName,
         speciesVernacularName,
-        speciesScore: plantnet_identify_score,
+        speciesScore: score,
+        ...who,
         baseTotal,
         detail,
         badges,

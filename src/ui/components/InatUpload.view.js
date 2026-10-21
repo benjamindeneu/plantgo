@@ -27,7 +27,7 @@ function placedAccuracy(lat, zoom) {
 
 /**
  * The popup that posts an observation to iNaturalist: the photos, the species
- * (Pl@ntNet's suggestion, or the player's pick from iNat's catalogue), the
+ * (the identifier's suggestion, or the player's pick from iNat's catalogue), the
  * spot on a map, and the few fields iNat asks about. The controller owns the
  * state and the calls; this only draws it and reports what the player does.
  */
@@ -279,7 +279,7 @@ export function createInatUploadView({ photos = [] } = {}) {
       fillThumb(thumb, photo);
     },
     showSpeciesReset(show) { qs(".mp-inat__species-reset").hidden = !show; },
-    /** The "I confirm" box: only offered on Pl@ntNet's own suggestion. */
+    /** The "I confirm" box: only offered on the identifier's own suggestion. */
     setConfirm({ visible, checked }) {
       qs(".mp-inat__confirm").hidden = !visible;
       qs(".mp-inat__confirm input").checked = !!checked;

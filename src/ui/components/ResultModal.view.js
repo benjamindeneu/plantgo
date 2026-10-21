@@ -336,6 +336,27 @@ export function createResultModalView({ showLevel = true } = {}) {
     });
   }
 
+  /**
+   * "confidence 57% · FlorID": the score as a percentage, like the history
+   * shows it, and who gave it. When the player's pick does not run here and
+   * the local default named the plant instead, a note under it says so.
+   */
+  function setScoreLine({ speciesScore, identifier = null, fallback = false }) {
+    const line = qs("#speciesScoreLine");
+    const pct = speciesScore == null || Number.isNaN(Number(speciesScore))
+      ? ""
+      : `${Math.round(Number(speciesScore) * 100)}%`;
+    line.textContent = `${t("result.confidence").trim()} ${pct}${identifier?.name ? ` · ${identifier.name}` : ""}`;
+
+    qs("#speciesNameDiv .identifier-fallback")?.remove();
+    if (fallback && identifier?.name) {
+      const note = document.createElement("div");
+      note.className = "identifier-fallback muted small-text";
+      note.textContent = t("identify.identifier.fallback", { name: identifier.name });
+      line.after(note);
+    }
+  }
+
   // Update static UI labels + existing detail line labels (no animation restart)
   function refreshI18n() {
     // data-i18n elements handled globally by setLanguage()
@@ -392,6 +413,7 @@ export function createResultModalView({ showLevel = true } = {}) {
       qs("#speciesNameLine").textContent = "";
       qs("#speciesVernacularNameLine").textContent = "";
       qs("#speciesScoreLine").textContent = "";
+      qs("#speciesNameDiv .identifier-fallback")?.remove();
       qs("#loadingTrack").style.display = "block";
 
       const obsBadge = qs("#obsBadge");
@@ -416,22 +438,22 @@ export function createResultModalView({ showLevel = true } = {}) {
       qs("#speciesNameDiv").appendChild(msg);
     },
 
-    async showLowConfidenceUI({ speciesName, speciesVernacularName, speciesScore }) {
+    async showLowConfidenceUI({ speciesName, speciesVernacularName, speciesScore, identifier = null, fallback = false }) {
       await this.showNoPointsUI({
-        speciesName, speciesVernacularName, speciesScore,
+        speciesName, speciesVernacularName, speciesScore, identifier, fallback,
         title: t("result.lowConfidence.title"),
         message: t("result.lowConfidence.message"),
       });
     },
 
     /** A species named, no points shown, and a line saying why. */
-    async showNoPointsUI({ speciesName, speciesVernacularName, speciesScore, title, message }) {
+    async showNoPointsUI({ speciesName, speciesVernacularName, speciesScore, identifier = null, fallback = false, title, message }) {
       qs("#loadingTrack").style.display = "none";
       qs("#resultTitle").textContent = title;
 
       qs("#speciesNameLine").innerHTML = speciesName ? `<em>${escapeHtml(speciesName)}</em>` : escapeHtml(t("result.unknownSpecies"));
       qs("#speciesVernacularNameLine").innerHTML = speciesVernacularName ? `<strong>${escapeHtml(speciesVernacularName)}</strong>` : escapeHtml(t("result.noCommonName"));
-      qs("#speciesScoreLine").textContent = `${t("result.confidence")} ${speciesScore ?? ""}`;
+      setScoreLine({ speciesScore, identifier, fallback });
 
       qs(".result-points").style.display = "none";
       qs("#finalTotalWrap").style.display = "none";
@@ -478,12 +500,11 @@ export function createResultModalView({ showLevel = true } = {}) {
       btn.replaceWith(a);
     },
 
-    async showResultUI({ speciesName, speciesVernacularName, speciesScore, baseTotal, detail, badges, currentTotalBefore, finalTotal, isNearbyDuplicate = false, trivia = null, debugData = null }) {
+    async showResultUI({ speciesName, speciesVernacularName, speciesScore, identifier = null, fallback = false, baseTotal, detail, badges, currentTotalBefore, finalTotal, isNearbyDuplicate = false, trivia = null, debugData = null }) {
       const loading = qs("#loadingTrack");
       const title = qs("#resultTitle");
       const speciesLine = qs("#speciesNameLine");
       const speciesVernacularLine = qs("#speciesVernacularNameLine");
-      const speciesScoreLine = qs("#speciesScoreLine");
       const badgeEl = qs("#obsBadge");
       const counterEl = qs("#pointsCounter");
       const valueWrapper = counterEl.parentElement; // .value
@@ -504,8 +525,7 @@ export function createResultModalView({ showLevel = true } = {}) {
         ? `<strong>${speciesVernacularName}</strong>`
         : t("result.noCommonName");
 
-      speciesScoreLine.textContent =
-        `${t("result.confidence")} ${speciesScore ?? ""}`;
+      setScoreLine({ speciesScore, identifier, fallback });
 
       // Debug block — only visible when debug mode is on
       const existingDebug = qs("#speciesNameDiv .mission-debug-section");
@@ -551,8 +571,9 @@ export function createResultModalView({ showLevel = true } = {}) {
           timingRows,
           ...(serverTimingRows ? ["── server timings ───────────", serverTimingRows] : []),
           "── identify ─────────────────",
+          `identifier:        ${debugData.identify?.identifier?.name ?? "none"} (asked: ${debugData.identify?.requested_identifier ?? "?"})`,
           `gbif_id:           ${debugData.identify?.gbif_id ?? "none"}`,
-          `plantnet_gbif_id:  ${debugData.identify?.plantnet_gbif_id ?? "none"}`,
+          `source_gbif_id:    ${debugData.identify?.source_gbif_id ?? "none"}`,
           `raw: ${JSON.stringify(debugData.identify?.raw ?? null, null, 2)}`,
         ].join("\n");
 

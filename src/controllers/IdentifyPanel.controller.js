@@ -1,11 +1,13 @@
 // src/controllers/IdentifyPanel.controller.js
-import { identifyPlant, resizeImage } from "../api/plantgo.js";
+import { identifyPlant, resizeImages } from "../api/plantgo.js";
 import { ResultModal } from "../controllers/ResultModal.controller.js";
+import { attachIdentifierPicker } from "./IdentifierPicker.controller.js";
 import { createIdentifyPanelView } from "../ui/components/IdentifyPanel.view.js";
 import { getCurrentUser, getUserTotalPoints } from "../data/user.repo.js";
 import { getCurrentPosition } from "../data/geo.service.js";
 import { t } from "../language/i18n.js";
 import { debugMode } from "../data/debugMode.js";
+import { identifierChoice } from "../data/identifierChoice.js";
 
 /**
  * @param {object} [hooks]
@@ -20,6 +22,7 @@ export function IdentifyPanel({ onFilesChange, onSubmit } = {}) {
 
   view.onFilesChange((files) => { chosen = files; onFilesChange?.(files); });
   view.onClear(() => { chosen = []; view.setFeedback(""); onFilesChange?.([]); });
+  attachIdentifierPicker(view);
 
   view.onIdentify(async () => {
     if (!chosen.length) return view.setFeedback(t("identify.feedback.addOnePhoto"));
@@ -33,7 +36,6 @@ export function IdentifyPanel({ onFilesChange, onSubmit } = {}) {
     // made from the result says the same.
     const observedAt = new Date();
 
-    const file = files[0];
     const photoUrls = files.map((f) => URL.createObjectURL(f));
 
     // preload level/progress
@@ -65,26 +67,25 @@ export function IdentifyPanel({ onFilesChange, onSubmit } = {}) {
     try {
       const lang = document.documentElement.lang || "en";
       const tResize = performance.now();
-      const { file: resizedFile, debugInfo: resizeDebugInfo } = await resizeImage(file);
+      const { files: resizedFiles, debugInfo: resizeDebugInfo } = await resizeImages(files);
       timings.resize = Math.round(performance.now() - tResize);
       timings.resizeDebugInfo = resizeDebugInfo;
 
       const tIdentify = performance.now();
-      const result = await identifyPlant({ file: resizedFile, lat, lon, model: "best", lang, skipResize: true, debug: debugMode.get() });
+      const result = await identifyPlant({
+        files: resizedFiles, lat, lon,
+        identifier: identifierChoice.get(),
+        model: "best", lang, skipResize: true, debug: debugMode.get(),
+      });
       timings.identify = Math.round(performance.now() - tIdentify);
-
-      const bestRaw = result?.identify?.raw || null;
-      const plantnetImageCode =
-        bestRaw?.images?.[0]?.id || bestRaw?.imageCode || bestRaw?.image?.id || "";
 
       await modal.showResult({
         ...result,
         lat, lon, accuracy,
         observedAt,
-        // The originals, all of them: only the first went to Pl@ntNet, but an
-        // iNaturalist post takes every photo.
+        // The originals, all of them: identification takes the first few,
+        // resized, but an iNaturalist post takes every photo at full size.
         files,
-        plantnetImageCode,
         photoCount: files.length,
         clientTimings: timings,
       });

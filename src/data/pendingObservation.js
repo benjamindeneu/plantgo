@@ -51,7 +51,7 @@ export async function claimPendingObservation(uid) {
   if (!obs || !uid) return null;
   try { localStorage.removeItem(KEY); } catch { /* noop */ }
 
-  const [{ addObservationAndDiscovery }, { getMissionsDoneToday, markMissionDone }] = await Promise.all([
+  const [{ addObservationAndDiscovery, LEGACY_IDENTIFIER }, { getMissionsDoneToday, markMissionDone }] = await Promise.all([
     import("./observations.js"),
     import("./missionsDone.js"),
   ]);
@@ -66,8 +66,9 @@ export async function claimPendingObservation(uid) {
     speciesName: obs.speciesName,
     lat: obs.lat,
     lon: obs.lon,
-    plantnetImageCode: obs.plantnetImageCode || "",
-    plantnet_identify_score: obs.score,
+    // A stash from before identifiers were recorded was Pl@ntNet's
+    identifier: obs.identifier || LEGACY_IDENTIFIER,
+    identify_score: obs.score,
     gbif_id: obs.gbif_id ?? null,
     vernacularName: obs.vernacularName || null,
     pointsMap: obs.pointsMap || {},

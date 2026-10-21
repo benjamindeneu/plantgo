@@ -5,14 +5,18 @@ import { createMissionMapView } from "../ui/components/MissionMap.view.js";
 import { createIdentifyPanelView } from "../ui/components/IdentifyPanel.view.js";
 import { createResultModalView } from "../ui/components/ResultModal.view.js";
 import { SpeciesDetail } from "../ui/components/SpeciesDetail.view.js";
-import { fetchMissionById, identifyPlant, resizeImage, missionRasterTileUrl } from "../api/plantgo.js";
+import { fetchMissionById, identifyPlant, resizeImages, missionRasterTileUrl } from "../api/plantgo.js";
+import { attachIdentifierPicker } from "./IdentifierPicker.controller.js";
+import { identifierChoice } from "../data/identifierChoice.js";
 import { getCurrentPosition, watchPosition, distanceMeters } from "../data/geo.service.js";
 import { pointInExtent } from "../data/extent.geo.js";
 import { missionBonusFor } from "../data/missionBonus.js";
 import { stashPendingObservation } from "../data/pendingObservation.js";
 
-// Below this Pl@ntNet is guessing, and the app does not score it either.
-const MIN_SCORE = 0.2;
+// Below this the identifier is guessing, and the app does not score it either.
+// Each identifier sends its own (identify.identifier.min_score); this is for
+// an answer without one.
+const DEFAULT_MIN_SCORE = 0.2;
 
 function uiLang() {
   return (document.documentElement.lang || "en").split("-")[0];
@@ -143,6 +147,7 @@ export function MissionShowcase({ missionId }) {
   // --- the camera -----------------------------------------------------------
 
   const identify = createIdentifyPanelView();
+  attachIdentifierPicker(identify);
   let chosen = [];
   identify.onFilesChange((files) => {
     chosen = files;
@@ -182,8 +187,12 @@ export function MissionShowcase({ missionId }) {
 
     let result;
     try {
-      const { file } = await resizeImage(files[0]);
-      result = await identifyPlant({ file, lat, lon, model: "best", lang: uiLang(), skipResize: true });
+      const { files: resized } = await resizeImages(files);
+      result = await identifyPlant({
+        files: resized, lat, lon,
+        identifier: identifierChoice.get(),
+        model: "best", lang: uiLang(), skipResize: true,
+      });
     } catch (e) {
       modal.showError(e?.message || t("identify.feedback.failed"));
       return;
@@ -193,9 +202,11 @@ export function MissionShowcase({ missionId }) {
     const speciesName = found.name || t("result.unknownSpecies");
     const speciesVernacularName = found.vernacularName || t("result.noCommonName");
     const score = Number(found.score ?? 0);
+    // Who named it, for the score line and for the observation if one is claimed
+    const who = { identifier: found.identifier || null, fallback: !!found.fallback };
 
-    if (score < MIN_SCORE) {
-      await modal.showLowConfidenceUI({ speciesName, speciesVernacularName, speciesScore: score });
+    if (score < (found.identifier?.min_score ?? DEFAULT_MIN_SCORE)) {
+      await modal.showLowConfidenceUI({ speciesName, speciesVernacularName, speciesScore: score, ...who });
       return;
     }
 
@@ -207,12 +218,11 @@ export function MissionShowcase({ missionId }) {
 
     // Kept for the visitor's account, if they make one. A wrong plant is
     // still a real observation — it just earns no mission.
-    const raw = found.raw || null;
     stashPendingObservation({
       speciesName,
       vernacularName: found.vernacularName || null,
       lat, lon,
-      plantnetImageCode: raw?.images?.[0]?.id || raw?.imageCode || raw?.image?.id || "",
+      identifier: found.identifier ? { id: found.identifier.id, name: found.identifier.name } : null,
       score,
       gbif_id: found.gbif_id ?? null,
       pointsMap: detail,
@@ -225,7 +235,7 @@ export function MissionShowcase({ missionId }) {
 
     if (!matched) {
       await modal.showNoPointsUI({
-        speciesName, speciesVernacularName, speciesScore: score,
+        speciesName, speciesVernacularName, speciesScore: score, ...who,
         title: t("showcase.result.miss.title"),
         message: t("showcase.result.miss.body", { species: found.vernacularName || speciesName, mission: missionName }),
       });
@@ -244,6 +254,7 @@ export function MissionShowcase({ missionId }) {
       speciesName,
       speciesVernacularName,
       speciesScore: score,
+      ...who,
       baseTotal,
       detail,
       badges,

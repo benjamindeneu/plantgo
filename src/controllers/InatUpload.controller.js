@@ -11,7 +11,7 @@ import {
 } from "../api/inaturalist.js";
 import { canonicalName, inatTaxonForSuggestion, gbifKeyForInatTaxon, slimTaxon } from "../data/inatTaxa.service.js";
 import { PLANTAE } from "../api/inaturalist.js";
-import { setObservationInat, setObservationInatPhotos, addUnscoredObservation } from "../data/observations.js";
+import { setObservationInat, setObservationInatPhotos, addUnscoredObservation, LEGACY_IDENTIFIER } from "../data/observations.js";
 import { resizeImage } from "../api/plantgo.js";
 import { t } from "../language/i18n.js";
 
@@ -59,7 +59,7 @@ function writeGeoprivacy(value) {
  * @param {string|null} ctx.observationId the PlantGo observation to link, or
  *   null for a low-confidence result, which gets an unscored one on upload.
  * @param {File[]} ctx.files the player's original photos
- * @param {object} ctx.identify identify's answer: name, vernacularName, gbif_id, score
+ * @param {object} ctx.identify identify's answer: name, vernacularName, gbif_id, score, identifier
  * @param {(url: string) => void} [ctx.onUploaded] fires once the observation exists
  */
 export function openInatUpload({
@@ -71,7 +71,6 @@ export function openInatUpload({
   lon,
   accuracy = null,
   observedAt = null,
-  plantnetImageCode = "",
   onUploaded,
 }) {
   const locale = document.documentElement.lang || "en";
@@ -82,11 +81,13 @@ export function openInatUpload({
   const score = Number(identify?.score ?? 0);
   const pct = Math.round(score * 100);
   const suggestedName = canonicalName(identify?.name);
+  // Whose suggestion it is; an answer without one came from before identifiers were named
+  const identifier = identify?.identifier || LEGACY_IDENTIFIER;
 
   const state = {
-    suggested: undefined, // iNat taxon for Pl@ntNet's name: undefined while looking, null if none
+    suggested: undefined, // iNat taxon for the identifier's name: undefined while looking, null if none
     picked: null,         // the player's own pick, when it differs from the suggestion
-    confirmed: false,     // the player vouched for Pl@ntNet's suggestion themselves
+    confirmed: false,     // the player vouched for the identifier's suggestion themselves
     gbifKey: null,        // Promise of the GBIF id for `picked`
     position: { lat, lon, accuracy, moved: false },
     uuid: newUuid(),
@@ -134,17 +135,18 @@ export function openInatUpload({
 
   /**
    * Where the identification came from, which is what iNat's computer-vision
-   * flag is set from: an untouched suggestion is Pl@ntNet's, one the player
-   * confirmed or replaced is theirs.
+   * flag is set from: an untouched suggestion is the identifier's ("auto"),
+   * one the player confirmed or replaced is theirs. Uploads from before
+   * identifiers were named stored "plantnet" for "auto".
    */
   function idSource() {
     if (state.picked) return "corrected";
     if (!suggestedName) return "none";
-    return state.confirmed ? "confirmed" : "plantnet";
+    return state.confirmed ? "confirmed" : "auto";
   }
 
   /**
-   * The card says whose identification is going to iNat: Pl@ntNet's
+   * The card says whose identification is going to iNat: the identifier's
    * automatic suggestion, or the player's own once they confirm or replace it.
    * The line under it says how it will be sent, and how to switch back.
    */
@@ -153,12 +155,12 @@ export function openInatUpload({
     const onSuggestion = !state.picked && !!suggestedName;
     const origin = state.picked || state.confirmed
       ? { kind: "human", text: t("inat.species.originHuman") }
-      : onSuggestion ? { kind: "auto", text: t("inat.species.originAuto", { pct }) } : null;
+      : onSuggestion ? { kind: "auto", text: t("inat.species.originAuto", { pct, identifier: identifier.name }) } : null;
     const plain = { name: identify?.vernacularName || suggestedName, sci: identify?.vernacularName ? suggestedName : "" };
 
     if (state.picked) {
       const item = itemOf(tx);
-      const note = suggestedName ? t("inat.species.plantnetWas", { name: suggestedName }) : "";
+      const note = suggestedName ? t("inat.species.plantnetWas", { name: suggestedName, identifier: identifier.name }) : "";
       view.setSpecies({ name: item.name, sci: item.sci, photo: tx.photo, origin, note });
     } else if (!suggestedName) {
       view.setSpecies({ name: t("result.unknownSpecies"), note: t("inat.species.none"), noteKind: "warn" });
@@ -235,7 +237,7 @@ export function openInatUpload({
 
   view.onPick((taxon) => {
     view.closeSearch();
-    // Picking what Pl@ntNet already said is not a correction.
+    // Picking what the identifier already said is not a correction.
     if (state.suggested && taxon.id === state.suggested.id) {
       state.picked = null;
       state.gbifKey = null;
@@ -294,8 +296,8 @@ export function openInatUpload({
       captive_flag: fields.captive,
       description: fields.notes || undefined,
       // iNat's own flag for an ID that came from computer vision: true only
-      // for Pl@ntNet's suggestion as it was, not one the player checked.
-      owners_identification_from_vision: idSource() === "plantnet",
+      // for the identifier's suggestion as it was, not one the player checked.
+      owners_identification_from_vision: idSource() === "auto",
     };
 
     let obs = null;
@@ -335,8 +337,8 @@ export function openInatUpload({
           userId,
           speciesName: identify?.name || t("result.unknownSpecies"),
           lat, lon,
-          plantnetImageCode,
-          plantnet_identify_score: score,
+          identifier,
+          identify_score: score,
           gbif_id: identify?.gbif_id ?? null,
           vernacularName: identify?.vernacularName || null,
           inat,

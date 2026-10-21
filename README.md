@@ -53,13 +53,15 @@ Tapping a pin or row opens a **species detail** screen in the sheet (a photo str
 
 ### 📷 Identify & score
 
-The camera button opens the device camera. The photo is resized client-side (≤ 1280 px), sent with the GPS fix to `/api/identify`, and a **result modal** walks through what happened:
+The camera button opens the device camera. The photos (up to 5) are resized client-side (≤ 1280 px), sent with the GPS fix to `/api/identify`, and a **result modal** walks through what happened:
 
-1. Pl@ntNet identification (score < 0.2 → shown as tentative, **not saved**).
+1. Identification by the chosen **identifier** (score below that identifier's `min_score`, 0.2 for now → shown as tentative, **not saved**).
 2. Base points from the backend, broken down by factor.
 3. Bonus badges: mission accomplished, new species discovery, daily quest completed, achievement badges unlocked.
 4. Animated level-progress bar and confetti on level-up.
 5. Description and trivia, polled from the backend while it generates them.
+
+**Identifiers.** Which service names the plant depends on where the player is, like the SDM models: **FlorID** (WSL, image + place + date) in Switzerland, where it is the default, and **Pl@ntNet** everywhere. The gear beside *Identify* / *Clear* opens the list of identifiers available here, with *Auto* (the local default) first. The pick is kept on the device (`plantgo_identifier`). A pick that doesn't run where the player is gets the local default for that request, and the result says so. Each observation stores `identifier: {id, name}` and `identify_score`. Older ones have only `plantnet_identify_score` and are read as Pl@ntNet's.
 
 ### 🐞 Share on iNaturalist
 
@@ -297,11 +299,12 @@ Base URL is set in [`src/api/config.js`](src/api/config.js) (`API_BASE_URL`). Th
 
 | Endpoint | Used for |
 |---|---|
-| `POST /api/identify` | Pl@ntNet identification + scoring (multipart: `image`, `lat`, `lon`, `model`, `lang`) |
+| `POST /api/identify` | Identification + scoring (multipart: `image` ×1–5, `lat`, `lon`, `identifier` (`auto` or an id), `model` (SDM for points), `lang`). `identify.identifier` names who identified it; `fallback` is true when the requested one doesn't run here |
 | `GET /api/v2/missions/map` | Mission pins + zones for a radius around a point |
 | `GET /api/missions/{id}` | Mission detail: metrics, description, trivia |
 | `POST /api/prediction` | Species predicted around a point ("Around you", Species Hunt) |
 | `GET /api/sdm/available_models` | SDM models available at a location |
+| `GET /api/identify/available_models` | Image identifiers available at a location and the default (same shape as the SDM one, plus `min_score`) |
 | `POST /api/description/{gbif_id}` | Species description + habitat (cached-or-null; generated in background) |
 | `POST /api/trivia/{gbif_id}` | Species trivia (same async pattern) |
 | `GET /api/species/{gbif_id}/images` | Photo gallery: up to 12 organ-balanced Pl@ntNet photos (author, licence, thumb/medium/full URLs), served from the backend's cache |

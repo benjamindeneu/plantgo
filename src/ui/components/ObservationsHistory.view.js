@@ -194,8 +194,9 @@ export function createObservationsHistoryView({ onOpenSpecies } = {}) {
 
     const bits = [];
     if (when) bits.push(formatDateTime(when));
-    if (obs.plantnet_identify_score != null) {
-      bits.push(`${t("result.confidence").trim()} ${Math.round(Number(obs.plantnet_identify_score) * 100)}%`);
+    if (obs.identify_score != null) {
+      const by = obs.identifier?.name ? ` · ${obs.identifier.name}` : "";
+      bits.push(`${t("result.confidence").trim()} ${Math.round(Number(obs.identify_score) * 100)}%${by}`);
     }
     el.querySelector(".mp-obs-card__meta").textContent = bits.join(" · ");
     el.querySelector(".rarity-label").textContent = t(`result.rarity.${rarity}`);

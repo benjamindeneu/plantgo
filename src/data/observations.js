@@ -21,6 +21,18 @@ import { applyActiveChallengeScore, applySpeciesHuntScore } from "./challenges.j
 
 const NEARBY_RADIUS_M = 100;
 
+/**
+ * Who named the plant on observations saved before identifiers were
+ * recorded: Pl@ntNet was the only one then. Readers use it for docs without
+ * an `identifier`; nothing writes it back.
+ */
+export const LEGACY_IDENTIFIER = Object.freeze({ id: "plantnet", name: "Pl@ntNet" });
+
+/** The identifier as an observation stores it: what it was, not its settings. */
+function identifierDoc(identifier) {
+  return identifier?.id ? { id: identifier.id, name: identifier.name || identifier.id } : null;
+}
+
 function haversineMeters(lat1, lon1, lat2, lon2) {
   const R = 6371000;
   const toRad = d => d * Math.PI / 180;
@@ -72,8 +84,8 @@ export async function addObservationAndDiscovery({
   speciesName,
   lat,
   lon,
-  plantnetImageCode,
-  plantnet_identify_score,
+  identifier = null, // { id, name } of the identifier that named it (identify.identifier)
+  identify_score,    // that identifier's confidence, 0..1
   gbif_id,
   vernacularName = null, // the common name identify gave, kept for the herbarium
   pointsMap,      // backend points.detail (mapping)
@@ -96,8 +108,8 @@ export async function addObservationAndDiscovery({
       speciesName,
       observedAt: serverTimestamp(),
       location: new GeoPoint(lat, lon),
-      plantnetImageCode,
-      plantnet_identify_score,
+      identifier: identifierDoc(identifier),
+      identify_score: identify_score ?? null,
       total_points: nearbyPoints,
       points: { "points.baseObs": nearbyPoints },
       gbif_id: gbif_id ?? null,
@@ -130,8 +142,8 @@ export async function addObservationAndDiscovery({
     speciesName,
     observedAt: serverTimestamp(),
     location: new GeoPoint(lat, lon),
-    plantnetImageCode,
-    plantnet_identify_score,
+    identifier: identifierDoc(identifier),
+    identify_score: identify_score ?? null,
     total_points: basePoints, // BASE only
     points: pointsMap || {},
     gbif_id: gbif_id ?? null,
@@ -216,7 +228,7 @@ export async function addObservationAndDiscovery({
 
 /**
  * What the player changed before posting to iNaturalist, as stored beside —
- * never over — what Pl@ntNet and the GPS said. Only the parts they changed.
+ * never over — what the identifier and the GPS said. Only the parts they changed.
  */
 function correctionDoc(c) {
   const out = {};
@@ -257,8 +269,8 @@ export async function setObservationInatPhotos(userId, observationId, photosUplo
 }
 
 /**
- * An observation Pl@ntNet was not confident enough to score (below 0.2),
- * saved only because the player posted it to iNaturalist and the link needs a
+ * An observation its identifier was not confident enough to score (below its
+ * min_score), saved only because the player posted it to iNaturalist and the link needs a
  * home. It is worth nothing and touches nothing else — no discovery, no
  * counters, no challenge — or any photo plus an upload would pay.
  *
@@ -269,8 +281,8 @@ export async function addUnscoredObservation({
   speciesName,
   lat,
   lon,
-  plantnetImageCode = "",
-  plantnet_identify_score,
+  identifier = null,
+  identify_score,
   gbif_id,
   vernacularName = null,
   inat,
@@ -280,8 +292,8 @@ export async function addUnscoredObservation({
     speciesName,
     observedAt: serverTimestamp(),
     location: new GeoPoint(lat, lon),
-    plantnetImageCode,
-    plantnet_identify_score,
+    identifier: identifierDoc(identifier),
+    identify_score: identify_score ?? null,
     total_points: 0,
     points: {},
     gbif_id: gbif_id ?? null,

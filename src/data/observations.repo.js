@@ -3,6 +3,7 @@ import { db } from "../../firebase-config.js";
 import {
   collection, doc, getDoc, getDocs, query, orderBy, limit, startAfter
 } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { LEGACY_IDENTIFIER } from "./observations.js";
 
 const PAGE_SIZE = 20;
 
@@ -13,7 +14,11 @@ function docToEntry(d) {
     speciesName: data.speciesName || null,
     gbif_id: data.gbif_id ?? null,
     observedAt: data.observedAt || null,
-    plantnet_identify_score: data.plantnet_identify_score ?? null,
+    // Observations from before identifiers were recorded hold Pl@ntNet's score
+    // under its own name, and nothing saying who identified them
+    identify_score: data.identify_score ?? data.plantnet_identify_score ?? null,
+    identifier: data.identifier
+      ?? (data.plantnet_identify_score != null ? LEGACY_IDENTIFIER : null),
     total_points: data.total_points ?? 0,
     points: data.points || {},
     bonus: data.bonus || {},

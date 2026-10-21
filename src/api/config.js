@@ -10,6 +10,7 @@ export const DESCRIPTION_PROXY_BASE = `${API_BASE_URL}description`; // /api/desc
 export const TRIVIA_PROXY_BASE = `${API_BASE_URL}trivia`;           // /api/trivia/<gbif_id>
 export const SPECIES_IMAGES_BASE = `${API_BASE_URL}species`;      // /api/species/<gbif_id>/images
 export const SDM_MODELS_URL = `${API_BASE_URL}sdm/available_models`;
+export const IDENTIFIER_MODELS_URL = `${API_BASE_URL}identify/available_models`; // image identifiers here
 // Mapped Missions v2. The catalogue is precomputed offline, so the map
 // endpoint is a spatial lookup rather than the per-request raster pipeline v1
 // ran — same response shape, so nothing downstream of the fetch changed.
