@@ -29,6 +29,9 @@ export function IdentifyPanel({ onFilesChange, onSubmit } = {}) {
     // same — a run that read `chosen` after either would find it empty.
     const files = chosen.slice();
     onSubmit?.();
+    // When the plant was seen, as far as the app can tell: now. An iNat post
+    // made from the result says the same.
+    const observedAt = new Date();
 
     const file = files[0];
     const photoUrls = files.map((f) => URL.createObjectURL(f));
@@ -46,11 +49,12 @@ export function IdentifyPanel({ onFilesChange, onSubmit } = {}) {
     const t0 = performance.now();
 
     // geolocate
-    let lat, lon;
+    let lat, lon, accuracy;
     try {
       const pos = await getCurrentPosition();
       lat = pos.coords.latitude;
       lon = pos.coords.longitude;
+      accuracy = pos.coords.accuracy;
     } catch {
       modal.showError(t("identify.feedback.locationDenied"));
       return;
@@ -75,7 +79,11 @@ export function IdentifyPanel({ onFilesChange, onSubmit } = {}) {
 
       await modal.showResult({
         ...result,
-        lat, lon,
+        lat, lon, accuracy,
+        observedAt,
+        // The originals, all of them: only the first went to Pl@ntNet, but an
+        // iNaturalist post takes every photo.
+        files,
         plantnetImageCode,
         photoCount: files.length,
         clientTimings: timings,

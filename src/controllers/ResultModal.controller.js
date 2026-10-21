@@ -10,6 +10,7 @@ import { addEventXp, activeEvent, tierToken } from "../data/events.js";
 import { fetchDescription, fetchTrivia } from "../api/plantgo.js";
 import { missionBonusFor } from "../data/missions.repo.js";
 import { getMissionsDoneToday, markMissionDone } from "../data/missionsDone.js";
+import { openInatUpload } from "./InatUpload.controller.js";
 import { t } from "../language/i18n.js";
 
 /**
@@ -56,7 +57,7 @@ export function ResultModal() {
       await view.initLoading({ photos, currentTotalPoints });
     },
 
-    async showResult({ identify, points, trivia = null, lat, lon, plantnetImageCode, clientTimings = {}, timings: serverTimings = null }) {
+    async showResult({ identify, points, trivia = null, lat, lon, accuracy = null, observedAt = null, files = [], plantnetImageCode, clientTimings = {}, timings: serverTimings = null }) {
       const timings = clientTimings;
       const speciesName = identify?.name || t("result.unknownSpecies");
       const speciesVernacularName = identify?.vernacularName || t("result.noCommonName");
@@ -66,9 +67,29 @@ export function ResultModal() {
 
       const lang = document.documentElement.lang || "en";
 
-      // Low confidence — show tentative result, do not save observation
+      // Posting to iNaturalist needs a player (the link is stored on their
+      // observation) and the photos, which only this run still holds.
+      // `observationId` null means "none saved yet": the upload makes one.
+      const offerInat = (observationId) => {
+        const user = auth.currentUser;
+        if (!user || !files.length) return;
+        view.setInatAction(() => openInatUpload({
+          userId: user.uid,
+          observationId,
+          files,
+          identify,
+          lat, lon, accuracy, observedAt,
+          plantnetImageCode,
+          onUploaded: (url) => view.markInatUploaded(url),
+        }));
+      };
+
+      // Low confidence — show tentative result, do not save observation.
+      // Posting it to iNaturalist (where the player can correct it) is still
+      // offered, and saves an unscored one then.
       if (plantnet_identify_score < 0.2) {
         await view.showLowConfidenceUI({ speciesName, speciesVernacularName, speciesScore: plantnet_identify_score });
+        offerInat(null);
         return;
       }
 
@@ -137,6 +158,7 @@ export function ResultModal() {
         discoveryBonus = obsResult.discoveryBonus;
         isNearbyDuplicate = obsResult.isNearbyDuplicate;
         nearbyPoints = obsResult.nearbyPoints ?? 0;
+        if (obsResult.observationId) offerInat(obsResult.observationId);
       }
 
       // Check if this observation completed any daily quests (+ relevé / perfect day badges)

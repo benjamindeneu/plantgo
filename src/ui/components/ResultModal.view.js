@@ -4,6 +4,7 @@ import { debugMode } from "../../data/debugMode.js";
 import confetti from "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.4/dist/confetti.module.mjs";
 import { calcFromLevel, calcToLevel, animateProgress, fireLevelUpConfetti } from "../levelProgress.js";
 import { badgeImg } from "./BadgeArt.view.js";
+import { INAT_MARK } from "./organIcons.js";
 
 // The base observation points every find is worth. It leads the points list
 // and is written as a plain figure rather than "+100": it is what you started
@@ -445,6 +446,36 @@ export function createResultModalView({ showLevel = true } = {}) {
     /** A closing block under everything else — the mission page's invitation. */
     appendOutro(node) {
       qs(".result-body").appendChild(node);
+    },
+
+    /** The iNaturalist button beside Done. What it opens is the controller's business. */
+    setInatAction(onClick) {
+      let btn = qs("#inatBtn");
+      if (!btn) {
+        btn = document.createElement("button");
+        btn.type = "button";
+        btn.id = "inatBtn";
+        btn.className = "secondary inat-btn";
+        btn.innerHTML = `${INAT_MARK}<span data-i18n="inat.button.upload"></span>`;
+        btn.querySelector("span").textContent = t("inat.button.upload");
+        qs(".result-actions").prepend(btn);
+      }
+      btn.onclick = onClick;
+    },
+
+    /** Once posted, the button becomes the way to the observation over there. */
+    markInatUploaded(url) {
+      const btn = qs("#inatBtn");
+      if (!btn) return;
+      const a = document.createElement("a");
+      a.id = "inatBtn";
+      a.className = "mp-detail__link inat-link";
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.innerHTML = `${INAT_MARK}<span data-i18n="inat.button.view"></span>`;
+      a.querySelector("span").textContent = t("inat.button.view");
+      btn.replaceWith(a);
     },
 
     async showResultUI({ speciesName, speciesVernacularName, speciesScore, baseTotal, detail, badges, currentTotalBefore, finalTotal, isNearbyDuplicate = false, trivia = null, debugData = null }) {

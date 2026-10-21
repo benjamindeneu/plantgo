@@ -148,9 +148,10 @@ export async function checkRetroactiveBadges(userId) {
   const userData = userSnap.data() || {};
   const obsCol = collection(db, "users", userId, "observations");
 
-  // Count all observations
+  // Count all observations, less the unscored ones kept only for an iNat link
   const totalObsSnap = await getCountFromServer(obsCol);
-  const obsCount = totalObsSnap.data().count;
+  const unscoredSnap = await getCountFromServer(query(obsCol, where("lowConfidence", "==", true)));
+  const obsCount = totalObsSnap.data().count - unscoredSnap.data().count;
 
   // Count mission observations
   const missionObsSnap = await getCountFromServer(query(obsCol, where("bonus.mission", ">", 0)));

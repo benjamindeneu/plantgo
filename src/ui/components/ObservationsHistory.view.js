@@ -1,5 +1,6 @@
 // src/ui/components/ObservationsHistory.view.js
 import { attachPhoto } from "./SpeciesRow.view.js";
+import { INAT_MARK } from "./organIcons.js";
 import { MISSION_BONUS_BY_TIER } from "../../data/missions.repo.js";
 import { trackNavHeight } from "../navHeight.js";
 import { t } from "../../language/i18n.js";
@@ -210,6 +211,8 @@ export function createObservationsHistoryView({ onOpenSpecies } = {}) {
     if (discovery > 0) tag(t("result.badge.newSpecies"), "chance");
     if (mission > 0) tag(t("result.badge.missionAccomplished"), missionTierOf(mission) || "common");
     if (obs.nearbyDuplicate) tag(t("result.badge.nearbyDuplicate"), "pheno");
+    if (obs.lowConfidence) tag(t("observations.card.lowConfidence"), "pheno");
+    if (obs.inat?.id) tag("iNaturalist", "inat");
 
     // --- the breakdown: same rows, same order, same classes as the modal ---
     const details = el.querySelector(".mp-obs-card__details");
@@ -248,16 +251,42 @@ export function createObservationsHistoryView({ onOpenSpecies } = {}) {
     totalSpans[0].textContent = t("result.total");
     totalSpans[1].textContent = t("result.ptsShort");
 
+    // --- what the player corrected when posting to iNaturalist --------------
+    // Shown beside the automatic answer, which is what the points were paid on.
+    const fix = obs.userCorrection;
+    if (fix?.speciesName) {
+      const p = document.createElement("p");
+      p.className = "mp-obs-card__correction";
+      p.innerHTML = `<span></span> <em></em>`;
+      p.querySelector("span").textContent = t("observations.card.yourId");
+      p.querySelector("em").textContent = fix.vernacularName ? `${fix.speciesName} (${fix.vernacularName})` : fix.speciesName;
+      el.querySelector(".mp-obs-card__foot").before(p);
+    }
+
     // --- foot: where, and the way to the species --------------------------
     const foot = el.querySelector(".mp-obs-card__foot");
-    const lat = obs.location?.latitude;
-    const lon = obs.location?.longitude;
-    if (lat != null && lon != null) {
+    const coords = (latitude, longitude, label) => {
       const a = document.createElement("a");
       a.className = "mp-obs-card__coords";
-      a.href = `geo:${lat},${lon}?q=${lat},${lon}`;
+      a.href = `geo:${latitude},${longitude}?q=${latitude},${longitude}`;
       a.innerHTML = `${PIN_ICON}<span></span>`;
-      a.querySelector("span").textContent = `${Number(lat).toFixed(5)}, ${Number(lon).toFixed(5)}`;
+      const text = `${Number(latitude).toFixed(5)}, ${Number(longitude).toFixed(5)}`;
+      a.querySelector("span").textContent = label ? `${label} ${text}` : text;
+      foot.appendChild(a);
+    };
+    const lat = obs.location?.latitude;
+    const lon = obs.location?.longitude;
+    if (lat != null && lon != null) coords(lat, lon);
+    if (fix?.location?.latitude != null) {
+      coords(fix.location.latitude, fix.location.longitude, t("observations.card.correctedPosition"));
+    }
+    if (obs.inat?.url) {
+      const a = document.createElement("a");
+      a.className = "mp-detail__link mp-obs-card__inat";
+      a.href = obs.inat.url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.innerHTML = `${INAT_MARK}<span>iNaturalist</span>`;
       foot.appendChild(a);
     }
     if (name && onOpenSpecies) {

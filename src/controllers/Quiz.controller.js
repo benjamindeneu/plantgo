@@ -47,6 +47,8 @@ async function getTodaySpecies(userId) {
   for (const doc of snap.docs) {
     const data = doc.data();
     if (!data.gbif_id || !data.speciesName) continue;
+    // Not validated, so not something to be quizzed (and paid) on.
+    if (data.lowConfidence) continue;
     if (seen.has(data.speciesName)) continue;
     seen.add(data.speciesName);
     items.push({ gbif_id: Number(data.gbif_id), name: data.speciesName, vernacular: data.vernacularName || null });

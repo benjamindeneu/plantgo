@@ -47,7 +47,10 @@ function computeInventoryProgress(observations) {
   return maxCluster;
 }
 
-function computeQuestProgress(observations) {
+function computeQuestProgress(all) {
+  // An unscored observation (kept only to hold an iNaturalist link) earns
+  // nothing, quests included.
+  const observations = all.filter(o => !o.lowConfidence);
   const observationsCount = observations.length;
   const inventoryCount = computeInventoryProgress(observations);
   const missionCount = observations.filter(o => (o.bonus?.mission ?? 0) > 0).length;

@@ -18,7 +18,10 @@ function docToEntry(d) {
     points: data.points || {},
     bonus: data.bonus || {},
     nearbyDuplicate: data.nearbyDuplicate || false,
+    lowConfidence: data.lowConfidence || false,
     location: data.location || null,
+    inat: data.inat || null,
+    userCorrection: data.userCorrection || null,
   };
 }
 

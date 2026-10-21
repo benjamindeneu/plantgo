@@ -42,6 +42,9 @@ async function hasNearbyObservation(userId, speciesName, lat, lon) {
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   for (const d of snap.docs) {
     const data = d.data();
+    // An unscored observation earned nothing, so it cannot make a later,
+    // confident one of the same plant a duplicate.
+    if (data.lowConfidence) continue;
     // Only consider observations made today
     const obsDate = data.observedAt?.toDate?.();
     if (!obsDate || obsDate < startOfToday) continue;
@@ -209,4 +212,85 @@ export async function addObservationAndDiscovery({
     hasEpicObs: basePoints >= 1000,
     hasLegendaryObs: basePoints >= 1500,
   };
+}
+
+/**
+ * What the player changed before posting to iNaturalist, as stored beside —
+ * never over — what Pl@ntNet and the GPS said. Only the parts they changed.
+ */
+function correctionDoc(c) {
+  const out = {};
+  if (c.speciesName) {
+    out.speciesName = c.speciesName;
+    out.gbif_id = c.gbif_id ?? null;
+    out.inat_taxon_id = c.inat_taxon_id ?? null;
+    if (c.vernacularName) out.vernacularName = c.vernacularName;
+  }
+  if (c.location) {
+    out.location = new GeoPoint(c.location.lat, c.location.lon);
+    out.positional_accuracy = c.positional_accuracy ?? null;
+  }
+  out.correctedAt = serverTimestamp();
+  return out;
+}
+
+function inatDoc(inat) {
+  return { ...inat, uploaded_at: serverTimestamp() };
+}
+
+/**
+ * Link an observation to its copy on iNaturalist, with the player's
+ * corrections if they made any. The automatic species and position stay as
+ * they were: they are what the points were paid on.
+ */
+export async function setObservationInat(userId, observationId, { inat, userCorrection = null }) {
+  const data = { inat: inatDoc(inat) };
+  if (userCorrection) data.userCorrection = correctionDoc(userCorrection);
+  await updateDoc(doc(db, "users", userId, "observations", observationId), data);
+}
+
+/** How many of the photos reached iNaturalist, written as they go up. */
+export async function setObservationInatPhotos(userId, observationId, photosUploaded) {
+  await updateDoc(doc(db, "users", userId, "observations", observationId), {
+    "inat.photos_uploaded": photosUploaded,
+  });
+}
+
+/**
+ * An observation Pl@ntNet was not confident enough to score (below 0.2),
+ * saved only because the player posted it to iNaturalist and the link needs a
+ * home. It is worth nothing and touches nothing else — no discovery, no
+ * counters, no challenge — or any photo plus an upload would pay.
+ *
+ * Returns the new observation's id.
+ */
+export async function addUnscoredObservation({
+  userId,
+  speciesName,
+  lat,
+  lon,
+  plantnetImageCode = "",
+  plantnet_identify_score,
+  gbif_id,
+  vernacularName = null,
+  inat,
+  userCorrection = null,
+}) {
+  const data = {
+    speciesName,
+    observedAt: serverTimestamp(),
+    location: new GeoPoint(lat, lon),
+    plantnetImageCode,
+    plantnet_identify_score,
+    total_points: 0,
+    points: {},
+    gbif_id: gbif_id ?? null,
+    vernacularName: vernacularName || null,
+    bonus: { discovery: 0, mission: 0 },
+    lowConfidence: true,
+    inat: inatDoc(inat),
+  };
+  if (userCorrection) data.userCorrection = correctionDoc(userCorrection);
+  const ref = await addDoc(collection(db, "users", userId, "observations"), data);
+  return ref.id;
 }

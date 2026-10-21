@@ -61,6 +61,31 @@ The camera button opens the device camera. The photo is resized client-side (≤
 4. Animated level-progress bar and confetti on level-up.
 5. Description and trivia, polled from the backend while it generates them.
 
+### 🐞 Share on iNaturalist
+
+A **Share on iNaturalist** button sits beside *Done* on the result modal, for any logged-in result, including a low-confidence one. It opens a popup where the player can:
+
+- correct the species, by searching iNaturalist's own plant catalogue (Latin or common name, in the UI language);
+- move the pin on a map to correct the location;
+- mark the plant as cultivated or captive, choose a location privacy level and add notes. Notes start empty because iNat shows them publicly.
+
+Then it posts every photo of the identification to the player's iNaturalist account.
+
+- **Auth.** The player pastes their personal token from `inaturalist.org/users/api_token`, in Settings or in the popup itself. It is a JWT that lasts 24 h and is kept in `localStorage` on the device only (`src/data/inatToken.js`). When it expires, the popup asks for a fresh one.
+- **No backend.** The browser calls `api.inaturalist.org` directly (`src/api/inaturalist.js`). iNat answers CORS for any origin, so the token and photos never touch our server.
+- **Species.**
+  - The iNat taxon for Pl@ntNet's answer is found by scientific name, including iNat synonyms (`src/data/inatTaxa.service.js`).
+  - A corrected species is mapped back to a GBIF id with a strict GBIF match, so PlantGo stays GBIF-keyed.
+  - A name iNat does not know is sent as `species_guess`.
+- **Order.**
+  1. Create the iNat observation (it carries a client `uuid`, so a lost answer can be recovered).
+  2. Write the link to Firestore at once.
+  3. Upload the photos one by one.
+
+  A failure can then only cost photos, which are retried on their own; it never creates a second observation.
+- **What PlantGo keeps.** The automatic Pl@ntNet species, GPS position and points stay as they were. The iNat link and the player's corrections are stored beside them (see the data model).
+  - A low-confidence result has no observation yet, so the upload creates one. It is worth 0 points and is flagged `lowConfidence`. It adds no discovery, counter or challenge score, and daily quests, the quiz and the badge scan skip it.
+
 ### 🌿 Herbarium (`plantdex.html`)
 
 Every species the player has discovered, with photo and common name. Tapping opens the same species sheet the map uses.
@@ -208,7 +233,8 @@ Key data modules:
 
 | File | Responsibility |
 |---|---|
-| `observations.js` | Save an observation, discovery, bonuses, counters, challenge scoring |
+| `observations.js` | Save an observation, discovery, bonuses, counters, challenge scoring; iNat link and unscored observations |
+| `inatToken.js` / `inatTaxa.service.js` | The pasted iNaturalist token; matching species between Pl@ntNet/GBIF names and iNat taxa |
 | `missions.repo.js` | Mission bonus tiers; persist "missions I'm standing in" for scoring |
 | `missionsDone.js` | Per-day record of accomplished missions |
 | `extent.geo.js` | Point-in-polygon test for mission zones |
@@ -240,7 +266,12 @@ users/{uid}/events/{eventId}                   xp, updatedAt   (tier is derived 
 users/{uid}/observations/{autoId}
   speciesName, gbif_id, vernacularName, observedAt, location (GeoPoint),
   plantnetImageCode, plantnet_identify_score,
-  total_points, points{...detail}, bonus{ discovery, mission }, nearbyDuplicate?
+  total_points, points{...detail}, bonus{ discovery, mission }, nearbyDuplicate?,
+  lowConfidence?         true = saved only to hold an iNat link; 0 points, no side effects
+  inat?                  { id, uuid, url, taxon_id, taxon_name, photos_uploaded, photos_total, uploaded_at }
+  userCorrection?        what the player corrected before posting to iNat, beside the automatic answer:
+                         { speciesName, gbif_id, inat_taxon_id, vernacularName?,
+                           location (GeoPoint), positional_accuracy, correctedAt }  (only the parts changed)
 
 users/{uid}/discoveries/{speciesName}
   discoveredAt, location, observationId, gbif_id, vernacularName
@@ -297,6 +328,8 @@ export const API_BASE_URL = "http://localhost:8111/api/";
 ```
 
 **Geolocation** requires a secure context — `localhost` is fine, but testing on a phone over LAN needs HTTPS or a tunnel.
+
+**iNaturalist token** (header menu → Settings): paste the personal token from `inaturalist.org/users/api_token` to enable *Share on iNaturalist*. It is valid for 24 h and stays on the device.
 
 **Debug mode** (header menu → Settings) adds `debug=true` to identify requests and shows timings and raw responses in the result modal.
 
