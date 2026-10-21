@@ -75,8 +75,10 @@ Then it posts every photo of the identification to the player's iNaturalist acco
 - **No backend.** The browser calls `api.inaturalist.org` directly (`src/api/inaturalist.js`). iNat answers CORS for any origin, so the token and photos never touch our server.
 - **Species.**
   - The iNat taxon for Pl@ntNet's answer is found by scientific name, including iNat synonyms (`src/data/inatTaxa.service.js`).
-  - A corrected species is mapped back to a GBIF id with a strict GBIF match, so PlantGo stays GBIF-keyed.
+  - A corrected species is mapped back to a GBIF id with a strict GBIF match, so PlantGo stays GBIF-keyed. A genus, family or "Plant" (the ways to say "not sure") is stored with its iNat id and rank only, as PlantGo keys nothing on those.
   - A name iNat does not know is sent as `species_guess`.
+  - Unsure players can post a genus, a family or just "Plant" (offered first in every search), which is how iNat expresses doubt.
+  - Pl@ntNet's suggestion left as it is goes up with iNat's computer-vision flag (`owners_identification_from_vision`). The card's badge says so (*Automatic suggestion*). Once the player ticks **I confirm this identification**, or picks a taxon themselves, the badge turns to *Your identification* and the flag is off. Unticking makes it automatic again.
 - **Order.**
   1. Create the iNat observation (it carries a client `uuid`, so a lost answer can be recovered).
   2. Write the link to Firestore at once.
@@ -268,9 +270,10 @@ users/{uid}/observations/{autoId}
   plantnetImageCode, plantnet_identify_score,
   total_points, points{...detail}, bonus{ discovery, mission }, nearbyDuplicate?,
   lowConfidence?         true = saved only to hold an iNat link; 0 points, no side effects
-  inat?                  { id, uuid, url, taxon_id, taxon_name, photos_uploaded, photos_total, uploaded_at }
+  inat?                  { id, uuid, url, taxon_id, taxon_name, photos_uploaded, photos_total, uploaded_at,
+                           id_source: "plantnet" (sent as computer vision) | "confirmed" | "corrected" | "none" }
   userCorrection?        what the player corrected before posting to iNat, beside the automatic answer:
-                         { speciesName, gbif_id, inat_taxon_id, vernacularName?,
+                         { speciesName, rank, gbif_id (species and below only), inat_taxon_id, vernacularName?,
                            location (GeoPoint), positional_accuracy, correctedAt }  (only the parts changed)
 
 users/{uid}/discoveries/{speciesName}

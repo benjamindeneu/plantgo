@@ -57,13 +57,16 @@ export async function inatMe(token) {
   return data?.results?.[0] || null;
 }
 
-/** Plants matching what the player types — Latin or common name, in `locale`. */
+/**
+ * Plants matching what the player types — Latin or common name, in `locale`.
+ * Species and below, plus genus and family for a player who is not sure.
+ */
 export async function inatAutocomplete(q, { locale, signal } = {}) {
   const params = new URLSearchParams({ q, taxon_id: PLANTAE, is_active: "true", per_page: "12" });
   if (locale) params.set("locale", locale);
   const data = await inat(`/taxa/autocomplete?${params}`, { signal });
-  // Species and below: rank_level 10 is species, 20 genus.
-  return (data?.results || []).filter((tx) => Number(tx.rank_level) <= 10);
+  // rank_level 10 is species, 20 genus, 30 family.
+  return (data?.results || []).filter((tx) => Number(tx.rank_level) <= 10 || tx.rank === "genus" || tx.rank === "family");
 }
 
 /** The full taxa search, which also reports the synonym a hit matched on. */

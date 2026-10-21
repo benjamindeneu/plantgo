@@ -5149,16 +5149,43 @@
 .v2 .mp-inat__textbtn[hidden] { display: none; }
 
 /* --- species --- */
+/* The card is the identification going to iNat, so it leads with whose it
+   is: a slate "automatic suggestion" badge, or a green "your identification"
+   one once the player confirms or replaces it — and the card turns green too. */
 .v2 .mp-inat__species {
   display: grid;
-  grid-template-columns: 56px 1fr auto;
+  grid-template-columns: 56px 1fr;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
+  gap: 10px 12px;
+  padding: 10px 12px 12px;
   background: var(--mp-surface);
   border: 1px solid var(--mp-line);
   border-radius: var(--mp-r-md);
+  transition: border-color 200ms var(--mp-ease), background 200ms var(--mp-ease);
 }
+.v2 .mp-inat__species:has(.mp-inat__origin[data-kind="human"]:not([hidden])) {
+  border-color: color-mix(in srgb, var(--mp-brand) 40%, var(--mp-line));
+  background: linear-gradient(120deg, color-mix(in srgb, var(--mp-brand) 8%, var(--mp-surface)), var(--mp-surface) 70%);
+}
+.v2 .mp-inat__origin {
+  --tone: #56627a;
+  grid-column: 1 / -1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px 3px 8px;
+  border-radius: 999px;
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 12%, transparent);
+  font-family: var(--mp-ui);
+  font-size: .74rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.v2 .mp-inat__origin[data-kind="human"] { --tone: var(--mp-brand-text); }
+.v2 .mp-inat__origin[hidden] { display: none; }
+.v2 .mp-inat__origin-icon { display: grid; }
 .v2 .mp-inat__species .mp-row__thumb { width: 56px; height: 56px; }
 .v2 .mp-inat__species-text { min-width: 0; display: grid; gap: 2px; }
 .v2 .mp-inat__species-name {
@@ -5171,12 +5198,39 @@
 .v2 .mp-inat__species-sci { font-family: var(--mp-display); font-style: italic; font-size: .85rem; color: var(--mp-ink-2); }
 .v2 .mp-inat__species-sci[hidden] { display: none; }
 .v2 .mp-inat__species-note { font-family: var(--mp-ui); font-size: .74rem; font-weight: 600; color: var(--mp-ink-2); }
+.v2 .mp-inat__species-note[hidden] { display: none; }
 .v2 .mp-inat__species-note[data-kind="warn"] { color: #cc6316; }
-.v2 .mp-inat__species-note[data-kind="corrected"] { color: var(--mp-brand-text); }
+.v2 .mp-inat__species-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.v2 .mp-inat__species-actions[hidden] { display: none; }
+/* A tick box in a pill: ticked, the identification is the player's own. */
+.v2 .mp-inat__confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 13px 6px 10px;
+  border-radius: 999px;
+  background: var(--mp-surface-2);
+  border: 1px solid var(--mp-line);
+  font-family: var(--mp-ui);
+  font-size: .83rem;
+  font-weight: 600;
+  color: var(--mp-ink);
+  cursor: pointer;
+  user-select: none;
+  transition: background 200ms var(--mp-ease), border-color 200ms var(--mp-ease), color 200ms var(--mp-ease);
+}
+.v2 .mp-inat__confirm[hidden] { display: none; }
+.v2 .mp-inat__confirm:hover { background: var(--mp-soft); }
+.v2 .mp-inat__confirm input { flex: none; width: 17px; height: 17px; margin: 0; accent-color: var(--mp-brand); }
+.v2 .mp-inat__confirm:has(input:checked) {
+  color: var(--mp-brand-text);
+  background: var(--mp-soft);
+  border-color: color-mix(in srgb, var(--mp-brand) 40%, var(--mp-line));
+}
 /* Same pill as the observation card's "View species". */
 .v2 .mp-inat__change {
   width: auto;
-  margin: 0;
+  margin: 0 0 0 auto;
   padding: 7px 14px;
   color: var(--mp-brand-text);
   background: var(--mp-soft);
@@ -5193,7 +5247,10 @@
 .v2 .mp-inat__change[hidden] { display: none; }
 .v2 .mp-inat__search { display: grid; gap: 8px; }
 .v2 .mp-inat__search[hidden] { display: none; }
-.v2 .mp-inat__search .mp-search { flex: none; }
+/* The search pill with its way out beside it. */
+.v2 .mp-inat__search-bar { display: flex; align-items: center; gap: 12px; }
+.v2 .mp-inat__search-bar .mp-search { flex: 1 1 auto; }
+.v2 .mp-inat__search-cancel { flex: none; font-size: .86rem; text-decoration: none; }
 .v2 .mp-inat__search-status { margin: 0 4px; font-family: var(--mp-ui); font-size: .82rem; color: var(--mp-ink-2); }
 .v2 .mp-inat__search-status:empty { display: none; }
 /* max-content rows: a row is overflow:hidden, which would otherwise let the

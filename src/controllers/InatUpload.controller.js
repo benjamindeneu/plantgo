@@ -10,6 +10,7 @@ import {
   inatObservationUrl,
 } from "../api/inaturalist.js";
 import { canonicalName, inatTaxonForSuggestion, gbifKeyForInatTaxon, slimTaxon } from "../data/inatTaxa.service.js";
+import { PLANTAE } from "../api/inaturalist.js";
 import { setObservationInat, setObservationInatPhotos, addUnscoredObservation } from "../data/observations.js";
 import { resizeImage } from "../api/plantgo.js";
 import { t } from "../language/i18n.js";
@@ -85,6 +86,7 @@ export function openInatUpload({
   const state = {
     suggested: undefined, // iNat taxon for Pl@ntNet's name: undefined while looking, null if none
     picked: null,         // the player's own pick, when it differs from the suggestion
+    confirmed: false,     // the player vouched for Pl@ntNet's suggestion themselves
     gbifKey: null,        // Promise of the GBIF id for `picked`
     position: { lat, lon, accuracy, moved: false },
     uuid: newUuid(),
@@ -118,19 +120,64 @@ export function openInatUpload({
   }
 
   // --- species ---------------------------------------------------------------
+  // Unsure of the species is said on iNat by naming less: a genus, a family,
+  // or just "Plant" (Plantae), which puts the observation in front of plant
+  // identifiers. This is that last choice, offered first in every search.
+  const PLANTS = { id: PLANTAE, name: "Plantae", rank: "kingdom", rank_level: 70, common_name: t("inat.species.plant"), photo: null };
+  const unsureItem = { name: t("inat.search.unsure"), sci: "Plantae", photo: null, taxon: PLANTS };
+
+  const isGroup = (tx) => ["genus", "family"].includes(tx.rank);
+  /** The Latin line: a genus or family says which it is, so it is not read as a species. */
+  const sciOf = (tx) => (isGroup(tx) ? `${t(`inat.rank.${tx.rank}`)} ${tx.name}` : tx.name);
+  /** A taxon as a row or card: common name first, the Latin under it when it adds something. */
+  const itemOf = (tx) => ({ name: tx.common_name || tx.name, sci: tx.common_name || isGroup(tx) ? sciOf(tx) : "", photo: tx.photo, taxon: tx });
+
+  /**
+   * Where the identification came from, which is what iNat's computer-vision
+   * flag is set from: an untouched suggestion is Pl@ntNet's, one the player
+   * confirmed or replaced is theirs.
+   */
+  function idSource() {
+    if (state.picked) return "corrected";
+    if (!suggestedName) return "none";
+    return state.confirmed ? "confirmed" : "plantnet";
+  }
+
+  /**
+   * The card says whose identification is going to iNat: Pl@ntNet's
+   * automatic suggestion, or the player's own once they confirm or replace it.
+   * The line under it says how it will be sent, and how to switch back.
+   */
   function renderSpecies() {
     const tx = state.picked || state.suggested;
+    const onSuggestion = !state.picked && !!suggestedName;
+    const origin = state.picked || state.confirmed
+      ? { kind: "human", text: t("inat.species.originHuman") }
+      : onSuggestion ? { kind: "auto", text: t("inat.species.originAuto", { pct }) } : null;
+    const plain = { name: identify?.vernacularName || suggestedName, sci: identify?.vernacularName ? suggestedName : "" };
+
     if (state.picked) {
-      view.setSpecies({ name: tx.common_name || tx.name, sci: tx.common_name ? tx.name : "", photo: tx.photo, note: t("inat.species.yourChoice"), noteKind: "corrected" });
+      const item = itemOf(tx);
+      const note = suggestedName ? t("inat.species.plantnetWas", { name: suggestedName }) : "";
+      view.setSpecies({ name: item.name, sci: item.sci, photo: tx.photo, origin, note });
     } else if (!suggestedName) {
       view.setSpecies({ name: t("result.unknownSpecies"), note: t("inat.species.none"), noteKind: "warn" });
     } else if (state.suggested === undefined) {
-      view.setSpecies({ name: identify?.vernacularName || suggestedName, sci: identify?.vernacularName ? suggestedName : "", note: t("inat.species.matching") });
+      view.setSpecies({ ...plain, origin, note: t("inat.species.matching") });
     } else if (state.suggested) {
-      view.setSpecies({ name: tx.common_name || tx.name, sci: tx.common_name ? tx.name : "", photo: tx.photo, note: t("inat.species.fromPlantnet", { pct }) });
+      view.setSpecies({ name: tx.common_name || tx.name, sci: tx.common_name ? tx.name : "", photo: tx.photo, origin });
     } else {
-      view.setSpecies({ name: identify?.vernacularName || suggestedName, sci: identify?.vernacularName ? suggestedName : "", note: t("inat.species.sentAsName"), noteKind: "warn" });
+      view.setSpecies({ ...plain, origin, note: t("inat.species.sentAsName"), noteKind: "warn" });
     }
+
+    view.setConfirm({ visible: onSuggestion, checked: state.confirmed });
+    view.setChangeLabel(suggestedName || state.picked ? "inat.species.change" : "inat.species.suggestName");
+    view.setSpeciesHint(
+      state.picked ? t("inat.species.pickedHint")
+        : !onSuggestion ? ""
+        : state.confirmed ? t("inat.species.humanHint")
+        : t("inat.species.autoHint"),
+    );
     view.showSpeciesReset(!!state.picked);
   }
 
@@ -140,12 +187,22 @@ export function openInatUpload({
       .then((taxon) => { state.suggested = taxon; renderSpecies(); });
   }
   renderSpecies();
-  if (!suggestedName) view.openSearch();
 
-  view.onChangeSpecies(() => view.openSearch());
+  const openSearch = () => {
+    view.openSearch();
+    view.setSearchResults([unsureItem]);
+  };
+  if (!suggestedName) openSearch();
+
+  view.onChangeSpecies(openSearch);
+  view.onConfirm((checked) => {
+    state.confirmed = checked;
+    renderSpecies();
+  });
   view.onResetSpecies(() => {
     state.picked = null;
     state.gbifKey = null;
+    state.confirmed = false;
     renderSpecies();
   });
 
@@ -156,7 +213,7 @@ export function openInatUpload({
     clearTimeout(searchTimer);
     searchCtrl?.abort();
     if (q.length < 2) {
-      view.setSearchResults([]);
+      view.setSearchResults([unsureItem]);
       view.setSearchStatus("");
       return;
     }
@@ -166,11 +223,11 @@ export function openInatUpload({
       try {
         const taxa = (await inatAutocomplete(q, { locale, signal: ctrl.signal })).map(slimTaxon);
         if (ctrl.signal.aborted) return;
-        view.setSearchResults(taxa);
+        view.setSearchResults([unsureItem, ...taxa.map(itemOf)]);
         view.setSearchStatus(taxa.length ? "" : t("inat.search.none"));
       } catch (e) {
         if (e?.name === "AbortError") return;
-        view.setSearchResults([]);
+        view.setSearchResults([unsureItem]);
         view.setSearchStatus(t("inat.search.failed"));
       }
     }, SEARCH_DEBOUNCE_MS);
@@ -182,10 +239,16 @@ export function openInatUpload({
     if (state.suggested && taxon.id === state.suggested.id) {
       state.picked = null;
       state.gbifKey = null;
+      // Finding it again by hand is checking it.
+      state.confirmed = true;
     } else {
       state.picked = taxon;
-      // Asked now, so it is in hand by the time the link is written.
-      state.gbifKey = gbifKeyForInatTaxon(taxon);
+      state.confirmed = false;
+      // A species is filed under its GBIF id like every other in PlantGo;
+      // asked now, so it is in hand by the time the link is written. A genus,
+      // family or "Plants" is not something PlantGo keys anything on, so it
+      // keeps its iNat id and rank only.
+      state.gbifKey = Number(taxon.rank_level) <= 10 ? gbifKeyForInatTaxon(taxon) : null;
     }
     renderSpecies();
   });
@@ -202,6 +265,7 @@ export function openInatUpload({
     const c = {};
     if (state.picked) {
       c.speciesName = state.picked.name;
+      c.rank = state.picked.rank || null;
       c.inat_taxon_id = state.picked.id;
       c.vernacularName = state.picked.common_name || null;
       c.gbif_id = await (state.gbifKey || Promise.resolve(null)).catch(() => null);
@@ -229,6 +293,9 @@ export function openInatUpload({
       geoprivacy: fields.geoprivacy,
       captive_flag: fields.captive,
       description: fields.notes || undefined,
+      // iNat's own flag for an ID that came from computer vision: true only
+      // for Pl@ntNet's suggestion as it was, not one the player checked.
+      owners_identification_from_vision: idSource() === "plantnet",
     };
 
     let obs = null;
@@ -253,6 +320,7 @@ export function openInatUpload({
       url: state.created.url,
       taxon_id: taxon?.id ?? null,
       taxon_name: taxon?.name || suggestedName || null,
+      id_source: idSource(),
       photos_uploaded: 0,
       photos_total: files.length,
     };

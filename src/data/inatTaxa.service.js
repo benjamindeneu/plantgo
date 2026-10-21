@@ -74,6 +74,7 @@ export function slimTaxon(tx) {
     id: tx.id,
     name: tx.name,
     rank: tx.rank || null,
+    rank_level: tx.rank_level ?? null,
     common_name: capitalise(tx.preferred_common_name),
     photo: tx.default_photo?.square_url || null,
   };
@@ -104,7 +105,7 @@ export async function inatTaxonForSuggestion({ gbif_id, name, locale = "en" }) {
 }
 
 /**
- * The GBIF id for a taxon the player picked on iNat, so a correction is kept
+ * The GBIF id for a species the player picked on iNat, so a correction is kept
  * on the same key as everything else. Only an exact match counts; a fuzzy one
  * would file the correction under some other plant. Synonyms resolve to the
  * accepted taxon, as identify does for Pl@ntNet's answers.

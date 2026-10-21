@@ -3,6 +3,9 @@ import { t, translateDom } from "../../language/i18n.js";
 import { INAT_MARK } from "./organIcons.js";
 
 const SEARCH_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M10 3a7 7 0 0 1 5.6 11.2l4.6 4.6-1.4 1.4-4.6-4.6A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg>`;
+// Who the identification is from: a spark for the machine, a person for the player.
+const AUTO_ICON = `<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M12 2l2 6 6 2-6 2-2 6-2-6-6-2 6-2zM19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg>`;
+const HUMAN_ICON = `<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M12 12a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zm0 2c-4.4 0-8 2.2-8 5v2h16v-2c0-2.8-3.6-5-8-5z"/></svg>`;
 const CLEAR_ICON = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M18.3 5.7 12 12l6.3 6.3-1.4 1.4L10.6 13.4 4.3 19.7l-1.4-1.4L9.2 12 2.9 5.7l1.4-1.4 6.3 6.3 6.3-6.3z"/></svg>`;
 
 // The same imagery the map page is drawn on, so the place looks familiar.
@@ -51,20 +54,31 @@ export function createInatUploadView({ photos = [] } = {}) {
         <section class="mp-inat__section">
           <h3 class="mp-inat__label" data-i18n="inat.species.label"></h3>
           <div class="mp-inat__species">
+            <span class="mp-inat__origin" hidden><span class="mp-inat__origin-icon"></span><span class="mp-inat__origin-text"></span></span>
             <span class="mp-row__thumb"><span class="mp-row__leaf" aria-hidden="true">🌿</span></span>
-            <span class="mp-inat__species-text">
+            <div class="mp-inat__species-text">
               <span class="mp-inat__species-name"></span>
               <span class="mp-inat__species-sci"></span>
               <span class="mp-inat__species-note"></span>
-            </span>
-            <button class="mp-inat__change" type="button" data-i18n="inat.species.change"></button>
+            </div>
+            <div class="mp-inat__species-actions">
+              <label class="mp-inat__confirm" hidden>
+                <input type="checkbox">
+                <span data-i18n="inat.species.confirm"></span>
+              </label>
+              <button class="mp-inat__change" type="button" data-i18n="inat.species.change"></button>
+            </div>
           </div>
+          <p class="mp-inat__hint mp-inat__species-hint" hidden></p>
           <div class="mp-inat__search" hidden>
-            <label class="mp-search">
-              <span class="mp-search__icon">${SEARCH_ICON}</span>
-              <input class="mp-search__input" type="search" autocomplete="off" autocorrect="off" spellcheck="false" data-i18n-placeholder="inat.search.placeholder">
-              <button class="mp-search__clear" type="button" hidden>${CLEAR_ICON}</button>
-            </label>
+            <div class="mp-inat__search-bar">
+              <label class="mp-search">
+                <span class="mp-search__icon">${SEARCH_ICON}</span>
+                <input class="mp-search__input" type="search" autocomplete="off" autocorrect="off" spellcheck="false" data-i18n-placeholder="inat.search.placeholder">
+                <button class="mp-search__clear" type="button" hidden>${CLEAR_ICON}</button>
+              </label>
+              <button class="mp-inat__textbtn mp-inat__search-cancel" type="button" data-i18n="inat.search.cancel"></button>
+            </div>
             <p class="mp-inat__search-status" role="status"></p>
             <div class="mp-list mp-inat__results"></div>
           </div>
@@ -165,6 +179,21 @@ export function createInatUploadView({ photos = [] } = {}) {
     searchInput.focus();
   });
 
+  // Leaving the search changes nothing: the card keeps what it showed.
+  function closeSearch() {
+    search.hidden = true;
+    qs(".mp-inat__species-actions").hidden = false;
+    searchInput.value = "";
+    searchClear.hidden = true;
+    results.replaceChildren();
+    qs(".mp-inat__search-status").textContent = "";
+  }
+  qs(".mp-inat__search-cancel").addEventListener("click", closeSearch);
+  searchInput.addEventListener("keydown", (e) => {
+    // Escape while searching leaves the search, not the whole popup.
+    if (e.key === "Escape") { e.stopPropagation(); closeSearch(); }
+  });
+
   function fillThumb(thumb, url) {
     if (!url) return;
     const img = new Image();
@@ -175,7 +204,8 @@ export function createInatUploadView({ photos = [] } = {}) {
     thumb.appendChild(img);
   }
 
-  function resultRow(tx) {
+  /** One search result: `{ name, sci, photo, taxon }`, already worded by the controller. */
+  function resultRow(item) {
     const b = document.createElement("button");
     b.type = "button";
     b.className = "mp-row mp-inat__result";
@@ -185,10 +215,10 @@ export function createInatUploadView({ photos = [] } = {}) {
         <span class="mp-row__head"><span class="mp-row__name"></span></span>
         <span class="mp-row__sci"></span>
       </span>`;
-    b.querySelector(".mp-row__name").textContent = tx.common_name || tx.name;
-    b.querySelector(".mp-row__sci").textContent = tx.common_name ? tx.name : "";
-    fillThumb(b.querySelector(".mp-row__thumb"), tx.photo);
-    b.addEventListener("click", () => onPick?.(tx));
+    b.querySelector(".mp-row__name").textContent = item.name;
+    b.querySelector(".mp-row__sci").textContent = item.sci || "";
+    fillThumb(b.querySelector(".mp-row__thumb"), item.photo);
+    b.addEventListener("click", () => onPick?.(item.taxon));
     return b;
   }
 
@@ -223,8 +253,18 @@ export function createInatUploadView({ photos = [] } = {}) {
     setAccount(text) { qs(".mp-inat__account").textContent = text || ""; },
 
     // --- species ---
-    /** noteKind: "" | "warn" | "corrected" */
-    setSpecies({ name, sci = "", photo = null, note = "", noteKind = "" }) {
+    /**
+     * noteKind: "" | "warn". origin: { kind: "auto" | "human", text } for the
+     * badge saying whose identification this is, or null for none.
+     */
+    setSpecies({ name, sci = "", photo = null, note = "", noteKind = "", origin = null }) {
+      const badge = qs(".mp-inat__origin");
+      badge.hidden = !origin;
+      if (origin) {
+        badge.dataset.kind = origin.kind;
+        qs(".mp-inat__origin-icon").innerHTML = origin.kind === "human" ? HUMAN_ICON : AUTO_ICON;
+        qs(".mp-inat__origin-text").textContent = origin.text;
+      }
       qs(".mp-inat__species-name").textContent = name || "";
       const sciEl = qs(".mp-inat__species-sci");
       sciEl.textContent = sci;
@@ -232,27 +272,42 @@ export function createInatUploadView({ photos = [] } = {}) {
       const noteEl = qs(".mp-inat__species-note");
       noteEl.textContent = note;
       noteEl.dataset.kind = noteKind;
+      noteEl.hidden = !note;
       const thumb = qs(".mp-inat__species .mp-row__thumb");
       thumb.classList.remove("has-photo");
       thumb.querySelector("img")?.remove();
       fillThumb(thumb, photo);
     },
     showSpeciesReset(show) { qs(".mp-inat__species-reset").hidden = !show; },
+    /** The "I confirm" box: only offered on Pl@ntNet's own suggestion. */
+    setConfirm({ visible, checked }) {
+      qs(".mp-inat__confirm").hidden = !visible;
+      qs(".mp-inat__confirm input").checked = !!checked;
+    },
+    onConfirm(cb) {
+      const box = qs(".mp-inat__confirm input");
+      box.addEventListener("change", () => cb(box.checked));
+    },
+    /** The line under the card: how the identification will be sent, and how to change that. */
+    setSpeciesHint(text) {
+      const el = qs(".mp-inat__species-hint");
+      el.textContent = text || "";
+      el.hidden = !text;
+    },
     openSearch() {
       search.hidden = false;
-      qs(".mp-inat__change").hidden = true;
+      qs(".mp-inat__species-actions").hidden = true;
       searchInput.focus();
     },
-    closeSearch() {
-      search.hidden = true;
-      qs(".mp-inat__change").hidden = false;
-      searchInput.value = "";
-      searchClear.hidden = true;
-      results.replaceChildren();
-      qs(".mp-inat__search-status").textContent = "";
-    },
+    closeSearch,
     setSearchStatus(text) { qs(".mp-inat__search-status").textContent = text || ""; },
-    setSearchResults(taxa) { results.replaceChildren(...taxa.map(resultRow)); },
+    setSearchResults(items) { results.replaceChildren(...items.map(resultRow)); },
+    /** "Edit identification", or "Add identification" when there is none yet. */
+    setChangeLabel(key) {
+      const btn = qs(".mp-inat__change");
+      btn.dataset.i18n = key;
+      btn.textContent = t(key);
+    },
     onChangeSpecies(cb) { qs(".mp-inat__change").addEventListener("click", cb); },
     onResetSpecies(cb) { qs(".mp-inat__species-reset").addEventListener("click", cb); },
     onSearchInput(cb) { onSearch = cb; },
