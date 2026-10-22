@@ -60,6 +60,9 @@ function writeGeoprivacy(value) {
  *   null for a low-confidence result, which gets an unscored one on upload.
  * @param {File[]} ctx.files the player's original photos
  * @param {object} ctx.identify identify's answer: name, vernacularName, gbif_id, score, identifier
+ * @param {boolean} [ctx.lowConfidence] the score is under the identifier's
+ *   min_score: the observation goes up unidentified unless the player takes
+ *   the suggestion.
  * @param {(url: string) => void} [ctx.onUploaded] fires once the observation exists
  */
 export function openInatUpload({
@@ -67,6 +70,7 @@ export function openInatUpload({
   observationId,
   files = [],
   identify = {},
+  lowConfidence = false,
   lat,
   lon,
   accuracy = null,
@@ -83,11 +87,15 @@ export function openInatUpload({
   const suggestedName = canonicalName(identify?.name);
   // Whose suggestion it is; an answer without one came from before identifiers were named
   const identifier = identify?.identifier || LEGACY_IDENTIFIER;
+  // A suggestion under the identifier's threshold is set aside: the player
+  // can still take it, but by default nothing is claimed for them.
+  const canWithhold = lowConfidence && !!suggestedName;
 
   const state = {
     suggested: undefined, // iNat taxon for the identifier's name: undefined while looking, null if none
     picked: null,         // the player's own pick, when it differs from the suggestion
     confirmed: false,     // the player vouched for the identifier's suggestion themselves
+    unknown: canWithhold, // sent with no identification, the low-confidence suggestion set aside
     gbifKey: null,        // Promise of the GBIF id for `picked`
     position: { lat, lon, accuracy, moved: false },
     uuid: newUuid(),
@@ -141,7 +149,7 @@ export function openInatUpload({
    */
   function idSource() {
     if (state.picked) return "corrected";
-    if (!suggestedName) return "none";
+    if (!suggestedName || state.unknown) return "none";
     return state.confirmed ? "confirmed" : "auto";
   }
 
@@ -152,7 +160,7 @@ export function openInatUpload({
    */
   function renderSpecies() {
     const tx = state.picked || state.suggested;
-    const onSuggestion = !state.picked && !!suggestedName;
+    const onSuggestion = !state.picked && !state.unknown && !!suggestedName;
     const origin = state.picked || state.confirmed
       ? { kind: "human", text: t("inat.species.originHuman") }
       : onSuggestion ? { kind: "auto", text: t("inat.species.originAuto", { pct, identifier: identifier.name }) } : null;
@@ -162,6 +170,9 @@ export function openInatUpload({
       const item = itemOf(tx);
       const note = suggestedName ? t("inat.species.plantnetWas", { name: suggestedName, identifier: identifier.name }) : "";
       view.setSpecies({ name: item.name, sci: item.sci, photo: tx.photo, origin, note });
+    } else if (state.unknown) {
+      const note = t("inat.species.lowConfidence", { name: suggestedName, pct, identifier: identifier.name });
+      view.setSpecies({ name: t("result.unknownSpecies"), note, noteKind: "warn" });
     } else if (!suggestedName) {
       view.setSpecies({ name: t("result.unknownSpecies"), note: t("inat.species.none"), noteKind: "warn" });
     } else if (state.suggested === undefined) {
@@ -173,14 +184,20 @@ export function openInatUpload({
     }
 
     view.setConfirm({ visible: onSuggestion, checked: state.confirmed });
-    view.setChangeLabel(suggestedName || state.picked ? "inat.species.change" : "inat.species.suggestName");
+    view.setChangeLabel(onSuggestion || state.picked ? "inat.species.change" : "inat.species.suggestName");
     view.setSpeciesHint(
       state.picked ? t("inat.species.pickedHint")
+        : state.unknown ? t("inat.species.unknownHint")
         : !onSuggestion ? ""
         : state.confirmed ? t("inat.species.humanHint")
         : t("inat.species.autoHint"),
     );
-    view.showSpeciesReset(!!state.picked);
+    // Low confidence: the button swaps between the suggestion and none at all
+    if (canWithhold) {
+      view.showSpeciesReset(true, state.unknown ? "inat.species.useSuggestion" : "inat.species.sendUnknown");
+    } else {
+      view.showSpeciesReset(!!state.picked);
+    }
   }
 
   if (suggestedName) {
@@ -202,6 +219,7 @@ export function openInatUpload({
     renderSpecies();
   });
   view.onResetSpecies(() => {
+    state.unknown = canWithhold && !state.unknown;
     state.picked = null;
     state.gbifKey = null;
     state.confirmed = false;
@@ -237,6 +255,7 @@ export function openInatUpload({
 
   view.onPick((taxon) => {
     view.closeSearch();
+    state.unknown = false;
     // Picking what the identifier already said is not a correction.
     if (state.suggested && taxon.id === state.suggested.id) {
       state.picked = null;
@@ -281,12 +300,14 @@ export function openInatUpload({
 
   async function createObservation(token) {
     view.setStatus(t("inat.progress.creating"));
-    const taxon = state.picked || state.suggested || null;
+    // Unknown sends neither taxon nor name, which iNat shows as "Unknown"
+    const taxon = state.unknown ? null : state.picked || state.suggested || null;
+    const guess = state.unknown ? null : taxon?.name || suggestedName || null;
     const fields = view.getFields();
     const pos = state.position;
     const observation = {
       uuid: state.uuid,
-      species_guess: taxon?.name || suggestedName || undefined,
+      species_guess: guess || undefined,
       taxon_id: taxon?.id ?? undefined,
       observed_on_string: isoWithOffset(observedAt || new Date()),
       latitude: pos.lat,
@@ -321,7 +342,7 @@ export function openInatUpload({
       uuid: state.created.uuid,
       url: state.created.url,
       taxon_id: taxon?.id ?? null,
-      taxon_name: taxon?.name || suggestedName || null,
+      taxon_name: guess,
       id_source: idSource(),
       photos_uploaded: 0,
       photos_total: files.length,

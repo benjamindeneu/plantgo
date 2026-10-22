@@ -278,7 +278,13 @@ export function createInatUploadView({ photos = [] } = {}) {
       thumb.querySelector("img")?.remove();
       fillThumb(thumb, photo);
     },
-    showSpeciesReset(show) { qs(".mp-inat__species-reset").hidden = !show; },
+    /** The text button under the card; `key` names where it goes. */
+    showSpeciesReset(show, key = "inat.species.reset") {
+      const btn = qs(".mp-inat__species-reset");
+      btn.hidden = !show;
+      btn.dataset.i18n = key;
+      btn.textContent = t(key);
+    },
     /** The "I confirm" box: only offered on the identifier's own suggestion. */
     setConfirm({ visible, checked }) {
       qs(".mp-inat__confirm").hidden = !visible;

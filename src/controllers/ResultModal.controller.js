@@ -71,6 +71,7 @@ export function ResultModal() {
       // Who named it: shown beside the score, and saved with the observation
       const identifier = identify?.identifier || null;
       const who = { identifier, fallback: !!identify?.fallback };
+      const lowConfidence = score < (identifier?.min_score ?? DEFAULT_MIN_SCORE);
       const detail = (points?.detail && typeof points.detail === "object") ? points.detail : {};
 
       const lang = document.documentElement.lang || "en";
@@ -86,6 +87,7 @@ export function ResultModal() {
           observationId,
           files,
           identify,
+          lowConfidence,
           lat, lon, accuracy, observedAt,
           onUploaded: (url) => view.markInatUploaded(url),
         }));
@@ -94,7 +96,7 @@ export function ResultModal() {
       // Low confidence — show tentative result, do not save observation.
       // Posting it to iNaturalist (where the player can correct it) is still
       // offered, and saves an unscored one then.
-      if (score < (identifier?.min_score ?? DEFAULT_MIN_SCORE)) {
+      if (lowConfidence) {
         await view.showLowConfidenceUI({ speciesName, speciesVernacularName, speciesScore: score, ...who });
         offerInat(null);
         return;
