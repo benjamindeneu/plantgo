@@ -113,6 +113,7 @@
   "missions.status.locateError": "Standort- oder Missionsfehler.",
   "missions.modelUsed": "Artenverbreitungsmodell",
   "missions.chooseModel": "Modell",
+  "missions.chooseRaster": "Quelle der Missionskarte",
   "missions.model.loading": "Verfügbare Modelle für Ihren Standort werden geladen…",
   "missions.model.auto": "Auto",
   "missions.model.group.default": "Bestes Modell für Ihren Standort",

@@ -518,6 +518,12 @@ export function createMissionMapView({ topInset = () => 0 } = {}) {
      * walk to, so the pins would be answering a question nobody asked — and
      * they cover the one marker that tab is about.
      */
+    /** Take every pin off — the missions were drawn from another raster. */
+    clearPins() {
+      missionsById.clear();
+      syncPins();
+    },
+
     setPinsVisible(visible) {
       pinsVisible = visible;
       if (!map) return;

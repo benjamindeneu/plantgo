@@ -1,7 +1,8 @@
 // src/controllers/MissionMap.controller.js
 import { createMissionMapView } from "../ui/components/MissionMap.view.js";
 import { distanceMeters, getCurrentPosition, watchPosition } from "../data/geo.service.js";
-import { fetchMapMissions, missionRasterTileUrl, speciesRasterTileUrl } from "../api/plantgo.js";
+import { fetchMapMissions, rasterTileUrl } from "../api/plantgo.js";
+import { rasterChoice } from "../data/rasterChoice.js";
 import { t } from "../language/i18n.js";
 
 const MOVE_DEBOUNCE_MS = 500;
@@ -49,7 +50,7 @@ export function MissionMapPanel() {
   // whatever the last response happened to contain.
   const knownMissions = new Map();
 
-  const listeners = { loading: [], missions: [], position: [], open: [] };
+  const listeners = { loading: [], missions: [], position: [], open: [], raster: [] };
   const emit = (name, value) => { for (const cb of listeners[name]) cb(value); };
 
   function missionKey(mission) {
@@ -81,8 +82,11 @@ export function MissionMapPanel() {
         radius_m: vp.radius_m,
         limit: 300,
         lang: uiLang(),
+        raster: rasterChoice.get(),
       });
       if (inFlight !== token) return; // a newer request already won
+      // Which raster source answered, and whether the pick had to fall back.
+      emit("raster", { raster: data?.raster ?? null, fallback: !!data?.fallback });
 
       lastFetchAt = { lat: vp.lat, lon: vp.lon };
       const missions = Array.isArray(data?.missions) ? data.missions : [];
@@ -132,15 +136,13 @@ export function MissionMapPanel() {
   /**
    * The tile template for a species' probability surface, whichever kind it is.
    *
-   * A mission spells its area and raster id out of its own id. A prediction has
-   * no mission id, so the backend hands those two down as fields — see the
-   * `/prediction` response. Null when this area has no raster for the species,
-   * which is what the detail screen keys its toggle off.
+   * Missions and predictions both carry it (`raster_tiles`); older ones spell
+   * it out of their id or raster fields — see `rasterTileUrl`. Null when this
+   * area has no raster for the species, which is what the detail screen keys
+   * its toggle off.
    */
   function rasterUrlFor(species) {
-    if (!species) return null;
-    return missionRasterTileUrl(species.id)
-      ?? speciesRasterTileUrl(species.raster_area, species.raster_id);
+    return rasterTileUrl(species);
   }
 
   function paintRaster() {
@@ -257,6 +259,20 @@ export function MissionMapPanel() {
     invalidate: () => view.invalidate(),
     stop: () => { stopWatch(); stopWatch = () => {}; },
 
+    /**
+     * Start over from the raster source now picked: the missions on the map
+     * were drawn from another catalogue, so they all come off, and the ground
+     * on screen is asked again.
+     */
+    reload() {
+      clearMission();
+      knownMissions.clear();
+      view.clearPins();
+      lastFetchAt = null;
+      emit("missions", []);
+      loadMissions(view.getViewport(), { force: true });
+    },
+
     /** Everything the map has loaded so far, zones included. */
     getMissions: () => [...knownMissions.values()],
     getUserPosition: () => userPos,
@@ -291,6 +307,8 @@ export function MissionMapPanel() {
     onLoading(cb) { listeners.loading.push(cb); },
     onMissions(cb) { listeners.missions.push(cb); },
     onPosition(cb) { listeners.position.push(cb); },
+    /** Each answer's raster source: `{ raster: {id, name} | null, fallback }`. */
+    onRaster(cb) { listeners.raster.push(cb); },
     /** A pin was tapped; the page decides what to show. */
     onOpen(cb) { listeners.open.push(cb); },
     onBackgroundClick(cb) { view.onBackgroundClick(cb); },

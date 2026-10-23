@@ -113,6 +113,7 @@
   "missions.status.locateError": "Erreur de localisation ou de mission.",
   "missions.modelUsed": "Modèle de distribution d'espèces",
   "missions.chooseModel": "Modèle",
+  "missions.chooseRaster": "Source de la carte des missions",
   "missions.model.loading": "Chargement des modèles disponibles pour votre position…",
   "missions.model.auto": "Auto",
   "missions.model.group.default": "Meilleur pour votre position",

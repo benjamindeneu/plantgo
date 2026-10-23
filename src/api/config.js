@@ -11,6 +11,8 @@ export const TRIVIA_PROXY_BASE = `${API_BASE_URL}trivia`;           // /api/triv
 export const SPECIES_IMAGES_BASE = `${API_BASE_URL}species`;      // /api/species/<gbif_id>/images
 export const SDM_MODELS_URL = `${API_BASE_URL}sdm/available_models`;
 export const IDENTIFIER_MODELS_URL = `${API_BASE_URL}identify/available_models`; // image identifiers here
+// Where this server answers from, for the paths it hands out (tiles it draws itself).
+export const API_ORIGIN = new URL(API_BASE_URL).origin;
 // Mapped Missions v2. The catalogue is precomputed offline, so the map
 // endpoint is a spatial lookup rather than the per-request raster pipeline v1
 // ran — same response shape, so nothing downstream of the fetch changed.
@@ -18,6 +20,7 @@ export const API_V2_BASE_URL = API_BASE_URL.replace(/api\/$/, "api/v2/");
 export const MAP_MISSIONS_URL = `${API_V2_BASE_URL}missions/map`;   // /api/v2/missions/map
 export const MISSION_DETAIL_BASE = `${API_BASE_URL}missions`;       // /api/missions/<mission_id>
 export const MISSION_ONE_BASE = `${API_V2_BASE_URL}missions/one`;   // /api/v2/missions/one/<mission_id>
+export const RASTER_MODELS_URL = `${API_V2_BASE_URL}rasters/available_models`; // mission raster sources here
 
 // GeoPl@ntNet species probability tiles, used as a Leaflet overlay behind a
 // selected mission. Same host the backend reads mission extents from.

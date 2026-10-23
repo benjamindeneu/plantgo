@@ -4293,6 +4293,9 @@
   gap: 8px;
   margin-bottom: 8px;
 }
+/* The missions' raster picker uses the same bar, and is hidden where only one
+   source is built. */
+.map-page .mp-around-bar[hidden] { display: none; }
 
 /* A native <select> wearing v2 chrome. The real control is stretched over the
    pill at zero opacity, so the platform's own picker opens — which on a phone

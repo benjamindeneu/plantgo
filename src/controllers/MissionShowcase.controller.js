@@ -5,7 +5,7 @@ import { createMissionMapView } from "../ui/components/MissionMap.view.js";
 import { createIdentifyPanelView } from "../ui/components/IdentifyPanel.view.js";
 import { createResultModalView } from "../ui/components/ResultModal.view.js";
 import { SpeciesDetail } from "../ui/components/SpeciesDetail.view.js";
-import { fetchMissionById, identifyPlant, resizeImages, missionRasterTileUrl } from "../api/plantgo.js";
+import { fetchMissionById, identifyPlant, resizeImages, rasterTileUrl } from "../api/plantgo.js";
 import { attachIdentifierPicker } from "./IdentifierPicker.controller.js";
 import { identifierChoice } from "../data/identifierChoice.js";
 import { getCurrentPosition, watchPosition, distanceMeters } from "../data/geo.service.js";
@@ -83,7 +83,7 @@ export function MissionShowcase({ missionId }) {
 
   function render() {
     let fullRaster = false;
-    const rasterUrl = missionRasterTileUrl(mission.id);
+    const rasterUrl = rasterTileUrl(mission);
     const detail = SpeciesDetail(mission, {
       rasterAvailable: !!rasterUrl,
       rasterOn: fullRaster,

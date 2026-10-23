@@ -9,7 +9,8 @@ import { createChallengeScreenView, markFound } from "../ui/components/Challenge
 import { createInfoSheet } from "../ui/components/InfoSheet.view.js";
 import { missionsAtPoint } from "../data/extent.geo.js";
 import { distanceMeters, getCurrentPosition } from "../data/geo.service.js";
-import { fetchPredictions, fetchMissionDetail, fetchAvailableModels } from "../api/plantgo.js";
+import { fetchPredictions, fetchMissionDetail, fetchAvailableModels, fetchAvailableRasters } from "../api/plantgo.js";
+import { rasterChoice } from "../data/rasterChoice.js";
 import { watchActiveChallenge, isEnded, isSpeciesFound } from "../data/activeChallenge.js";
 import { persistMissionsHere } from "../data/missions.repo.js";
 import { watchMissionsDoneToday } from "../data/missionsDone.js";
@@ -56,6 +57,9 @@ export function MapPage() {
   // asking for it before the around tab is opened would spend a request on a
   // control nobody has looked at.
   let aroundModelsLoaded = false;
+  // Same for the raster sources the missions can be drawn from, fetched at the
+  // first fix: the picker only shows where there is more than one.
+  let missionRastersLoaded = false;
   // Which list is on screen. A row fetches its own photo, so rebuilding the
   // list is not free — and this runs on every GPS fix. Only an actual change
   // to *which* missions are valid is worth a rebuild.
@@ -167,6 +171,36 @@ export function MapPage() {
     if (aroundAt && distanceMeters(aroundAt, pos) > AROUND_STALE_M) aroundLoaded = false;
     position = pos;
     renderValid();
+    loadMissionRasters(pos);
+  });
+
+  // What the server drew the missions on screen from — the pick, or what it
+  // fell back to where the pick is not built.
+  map.onRaster((used) => view.setMissionRasterUsed(used));
+
+  /** Which raster sources this location offers the missions. Fetched once. */
+  async function loadMissionRasters(pos) {
+    if (missionRastersLoaded) return;
+    missionRastersLoaded = true;
+    try {
+      const data = await fetchAvailableRasters({ lat: pos.lat, lon: pos.lon });
+      view.setMissionRasters({
+        models: data?.models ?? [],
+        defaultModel: data?.default_model ?? null,
+        selected: rasterChoice.get(),
+      });
+    } catch (e) {
+      missionRastersLoaded = false;
+      console.warn("[MapPage] raster list failed:", e?.message || e);
+    }
+  }
+
+  // Another raster is another catalogue: every pin comes off and the ground
+  // on screen is asked again. Predictions draw their overlay from it too.
+  view.onMissionRasterChange((id) => {
+    rasterChoice.set(id);
+    aroundLoaded = false;
+    map.reload();
   });
 
   // --- around you: one reading, taken where the player stands ---------------
@@ -181,7 +215,7 @@ export function MapPage() {
       }));
       const selected = view.getAroundModel();
       const { predictions, model: usedModel } = await fetchPredictions({
-        lat: pos.lat, lon: pos.lon, lang: uiLang(), model: selected,
+        lat: pos.lat, lon: pos.lon, lang: uiLang(), model: selected, raster: rasterChoice.get(),
       });
       // rank 0 is the model's best match.
       aroundSpecies = [...(predictions ?? [])].sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999));

@@ -1,5 +1,5 @@
 // src/api/plantgo.js
-import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE, TRIVIA_PROXY_BASE, SPECIES_IMAGES_BASE, SDM_MODELS_URL, IDENTIFIER_MODELS_URL, MAP_MISSIONS_URL, MISSION_DETAIL_BASE, MISSION_ONE_BASE, GPN_TILE_BASE } from "./config.js";
+import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE, TRIVIA_PROXY_BASE, SPECIES_IMAGES_BASE, SDM_MODELS_URL, IDENTIFIER_MODELS_URL, MAP_MISSIONS_URL, MISSION_DETAIL_BASE, MISSION_ONE_BASE, GPN_TILE_BASE, API_ORIGIN, RASTER_MODELS_URL } from "./config.js";
 
 async function http(url, opts = {}) {
   const res = await fetch(url, opts);
@@ -125,11 +125,11 @@ export async function fetchMissions({ lat, lon, model = "best", limit = 10, lang
  * Fetch species predictions for a given location (used by Species Hunt challenge creation).
  * Returns { model, predictions: [{ gbif_id, name, vernacular_name, score, is_flowering, is_fruiting }] }
  */
-export async function fetchPredictions({ lat, lon, model = "best", limit = 10, lang = "en" }) {
+export async function fetchPredictions({ lat, lon, model = "best", raster = "auto", limit = 10, lang = "en" }) {
   return http(PREDICTION_PROXY_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ lat, lon, model, limit, lang })
+    body: JSON.stringify({ lat, lon, model, raster, limit, lang })
   });
 }
 
@@ -142,15 +142,19 @@ export async function fetchPredictions({ lat, lon, model = "best", limit = 10, l
  * fix. Descriptions and trivia are still per-mission, from fetchMissionDetail.
  * Pass `extent: false` for the pins alone.
  *
- * Returns { area, model, has_rasters, has_extents, missions: [{ id, gbif_id,
- *   name, vernacular_name, lat, lon, extent, metrics, grade, is_flowering,
- *   is_fruiting }] }
+ * `raster` picks the raster source the missions come from ("auto", or an id
+ * from fetchAvailableRasters); the answer's `raster` names the one used, and
+ * `fallback` says the pick is not built here.
+ *
+ * Returns { area, model, raster, fallback, has_rasters, has_extents,
+ *   missions: [{ id, gbif_id, name, vernacular_name, lat, lon, extent,
+ *   metrics, grade, is_flowering, is_fruiting, raster_tiles }] }
  */
-export async function fetchMapMissions({ lat, lon, radius_m = 2000, limit = 20, model = "best", lang = "en", extent = true, largeScale = false }) {
+export async function fetchMapMissions({ lat, lon, radius_m = 2000, limit = 20, model = "best", raster = "auto", lang = "en", extent = true, largeScale = false }) {
   // `large_scale` opens the coarse rungs of the ladder (z7, z6). They are
   // always in the catalogue — the cascade tests finer peaks against them — but
   // a z6 zone covers hundreds of square kilometres, so a request has to ask.
-  const qs = new URLSearchParams({ lat, lon, radius_m, limit, model, lang, extent, large_scale: largeScale });
+  const qs = new URLSearchParams({ lat, lon, radius_m, limit, model, raster, lang, extent, large_scale: largeScale });
   return httpWithTimeout(`${MAP_MISSIONS_URL}?${qs}`, {}, 60_000);
 }
 
@@ -201,6 +205,24 @@ export function missionRasterTileUrl(missionId) {
 }
 
 /**
+ * Leaflet tile template for whatever a mission or a prediction shows.
+ *
+ * The server says where the tiles live (`raster_tiles`): GeoPl@ntNet's own
+ * host, or a path on this server for rasters it draws itself. Items from
+ * before that field (cached lists, old builds) fall back to spelling the
+ * GeoPl@ntNet URL out of their id or their raster fields. Null when there is
+ * no raster for the species here.
+ */
+export function rasterTileUrl(item) {
+  if (!item) return null;
+  const template = item.raster_tiles;
+  if (typeof template === "string" && template) {
+    return template.startsWith("/") ? `${API_ORIGIN}${template}` : template;
+  }
+  return missionRasterTileUrl(item.id) ?? speciesRasterTileUrl(item.raster_area, item.raster_id);
+}
+
+/**
  * Leaflet tile template for one species' probability raster in one area.
  *
  * Missions spell their area and raster id out of their own id; predictions
@@ -239,6 +261,14 @@ export async function fetchAvailableModels({ lat, lon }) {
  */
 export async function fetchAvailableIdentifiers({ lat, lon }) {
   return http(`${IDENTIFIER_MODELS_URL}?lat=${lat}&lon=${lon}`);
+}
+
+/**
+ * Fetch the raster sources whose missions are built at a location, and the
+ * default one. Same shape as fetchAvailableModels: { location, models, default_model }.
+ */
+export async function fetchAvailableRasters({ lat, lon }) {
+  return http(`${RASTER_MODELS_URL}?lat=${lat}&lon=${lon}`);
 }
 
 /**

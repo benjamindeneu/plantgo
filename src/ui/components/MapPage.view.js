@@ -50,6 +50,17 @@ export function createMapPageView() {
         </div>
         <div class="mp-sheet__scroll">
           <section id="paneMissions">
+            <!-- Which raster source the map's missions come from. Only shown
+                 where more than one is built: elsewhere there is no choice. -->
+            <div class="mp-around-bar" id="missionsRasterBar" hidden>
+              <label class="mp-select" id="missionsRasterWrap">
+                <span class="mp-select__label" id="missionsRasterLabel"></span>
+                <select class="mp-select__input" id="missionsRaster"></select>
+                <svg class="mp-select__caret" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+                  <path fill="currentColor" d="M7 10l5 5 5-5z"/>
+                </svg>
+              </label>
+            </div>
             <div id="missionsSpinner" class="mp-spinner" hidden aria-hidden="true"></div>
             <div id="missionsList" class="mp-list"></div>
           </section>
@@ -118,6 +129,9 @@ export function createMapPageView() {
   const aroundSpinner = q("#aroundSpinner");
   const missionsList = q("#missionsList");
   const aroundList = q("#aroundList");
+  const missionsRasterBar = q("#missionsRasterBar");
+  const missionsRasterSelect = q("#missionsRaster");
+  const missionsRasterLabel = q("#missionsRasterLabel");
   const aroundModelSelect = q("#aroundModel");
   const aroundModelLabel = q("#aroundModelLabel");
   const aroundModelUsed = q("#aroundModelUsed");
@@ -135,6 +149,10 @@ export function createMapPageView() {
   let infoCb = null;
   let aroundRefreshCb = null;
   let aroundModelCb = null;
+  let missionsRasterCb = null;
+  // The source the server actually used, when it is not the pick (a pick not
+  // built here falls back): the pill names what is on the map.
+  let missionsRasterFallbackName = "";
   // The name the backend reported for the list on screen, kept so the line can
   // be re-rendered in a new language without refetching.
   let aroundModelUsedName = "";
@@ -205,6 +223,11 @@ export function createMapPageView() {
   aroundModelSelect.addEventListener("change", () => {
     syncAroundModelLabel();
     aroundModelCb?.(aroundModelSelect.value);
+  });
+  missionsRasterSelect.addEventListener("change", () => {
+    missionsRasterFallbackName = "";
+    syncMissionsRasterLabel();
+    missionsRasterCb?.(missionsRasterSelect.value);
   });
   observeBtn.addEventListener("click", () => observeCb?.());
   observeClose.addEventListener("click", () => closeObserveSheet());
@@ -343,21 +366,33 @@ export function createMapPageView() {
    */
   function setAroundModels({ models = [], defaultModel = null } = {}) {
     const previous = aroundModelSelect.value;
+    fillModelSelect(aroundModelSelect, { models, defaultModel, autoValue: "best" });
+    const keep = previous && previous !== "best"
+      && [...aroundModelSelect.options].some((o) => o.value === previous);
+    aroundModelSelect.value = keep ? previous : "best";
+    syncAroundModelLabel();
+  }
+
+  /**
+   * "Auto (<default>)" first, then every model offered here — shared by the
+   * around-you model picker and the missions' raster picker.
+   */
+  function fillModelSelect(select, { models, defaultModel, autoValue }) {
     const defaultName = defaultModel
       ? (models.find((m) => m.id === defaultModel)?.name ?? defaultModel)
       : null;
 
-    aroundModelSelect.replaceChildren();
+    select.replaceChildren();
 
     const auto = document.createElement("optgroup");
     auto.label = t("missions.model.group.default");
     const autoOpt = document.createElement("option");
-    autoOpt.value = "best";
+    autoOpt.value = autoValue;
     autoOpt.textContent = defaultName
       ? `${t("missions.model.auto")} (${defaultName})`
       : t("missions.model.auto");
     auto.appendChild(autoOpt);
-    aroundModelSelect.appendChild(auto);
+    select.appendChild(auto);
 
     if (models.length) {
       const group = document.createElement("optgroup");
@@ -368,13 +403,29 @@ export function createMapPageView() {
         opt.textContent = m.name;
         group.appendChild(opt);
       }
-      aroundModelSelect.appendChild(group);
+      select.appendChild(group);
     }
+  }
 
-    const keep = previous && previous !== "best"
-      && [...aroundModelSelect.options].some((o) => o.value === previous);
-    aroundModelSelect.value = keep ? previous : "best";
-    syncAroundModelLabel();
+  /**
+   * Fill the missions' raster picker from what is built here. `selected` is
+   * the player's stored pick; one not offered here shows as Auto, and is kept
+   * by the caller for when it is.
+   */
+  let missionsRasterOffer = { models: [], defaultModel: null };
+  function setMissionRasters({ models = [], defaultModel = null, selected = "auto" } = {}) {
+    missionsRasterOffer = { models, defaultModel };
+    fillModelSelect(missionsRasterSelect, { models, defaultModel, autoValue: "auto" });
+    const offered = [...missionsRasterSelect.options].some((o) => o.value === selected);
+    missionsRasterSelect.value = offered ? selected : "auto";
+    missionsRasterBar.hidden = models.length < 2;
+    syncMissionsRasterLabel();
+  }
+
+  function syncMissionsRasterLabel() {
+    const opt = missionsRasterSelect.selectedOptions[0];
+    missionsRasterLabel.textContent = missionsRasterFallbackName
+      || (opt ? opt.textContent : t("missions.model.auto"));
   }
 
   // The pill shows the chosen model's own name; the native <select> behind it
@@ -399,6 +450,8 @@ export function createMapPageView() {
     aroundRefreshBtn.title = t("missions.refresh.around");
     aroundModelSelect.setAttribute("aria-label", t("missions.chooseModel"));
     syncAroundModelLabel();
+    missionsRasterSelect.setAttribute("aria-label", t("missions.chooseRaster"));
+    setMissionRasters({ ...missionsRasterOffer, selected: missionsRasterSelect.value || "auto" });
     syncAroundModelUsed();
     observeLabel.textContent = t("map.observe");
     observeClose.setAttribute("aria-label", t("common.close"));
@@ -444,6 +497,13 @@ export function createMapPageView() {
     },
 
     setAroundModels,
+    setMissionRasters,
+
+    /** The source that drew the missions on screen, when the pick fell back. */
+    setMissionRasterUsed({ raster = null, fallback = false } = {}) {
+      missionsRasterFallbackName = fallback && raster?.name ? raster.name : "";
+      syncMissionsRasterLabel();
+    },
 
     getAroundModel: () => aroundModelSelect.value || "best",
 
@@ -496,6 +556,7 @@ export function createMapPageView() {
 
     onAroundRefresh(cb) { aroundRefreshCb = cb; },
     onAroundModelChange(cb) { aroundModelCb = cb; },
+    onMissionRasterChange(cb) { missionsRasterCb = cb; },
 
     onObserve(cb) { observeCb = cb; },
     onObserveSheetClose(cb) { sheetCloseCb = cb; },
