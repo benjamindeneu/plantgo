@@ -19,8 +19,7 @@ function App() {
   const header = Header({
     user: null,
     level: 1,
-    menuVariant: "herbarium", // shows "🏠 Main" as primary nav
-    onBackHome: () => { location.href = "./index.html"; },
+    current: "admin",
     onLogout: async () => {
       try {
         stopLevel();

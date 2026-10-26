@@ -8,18 +8,11 @@ export function renderChecking(container, msg) {
 
 /**
  * One section per tool. Each is a heading, a line saying what the button
- * will do, the button, and a status line that reports how it went.
+ * will do, the button, and a status line that reports how it went. The field
+ * lab (Lab.view.js) is built from the same sections.
  */
-export function renderAdmin(container, { onResetQuiz, eventOptions = [], eventValue = "", onEventChange }) {
+export function renderAdmin(container, { eventOptions = [], eventValue = "", onEventChange }) {
   container.innerHTML = "";
-  container.appendChild(section({
-    title: t("admin.quiz.title"),
-    desc: t("admin.quiz.desc"),
-    action: t("admin.quiz.reset"),
-    done: t("admin.quiz.done"),
-    error: t("admin.quiz.error"),
-    run: onResetQuiz,
-  }));
   container.appendChild(choiceSection({
     title: t("admin.event.title"),
     desc: t("admin.event.desc"),
@@ -59,7 +52,7 @@ function choiceSection({ title, desc, options, value, onChange }) {
   return el;
 }
 
-function section({ title, desc, action, done, error, run }) {
+export function section({ title, desc, action, done, error, run }) {
   const el = document.createElement("section");
   el.className = "mp-admin__section";
   el.innerHTML = `
@@ -83,7 +76,7 @@ function section({ title, desc, action, done, error, run }) {
       status.textContent = done;
     } catch (e) {
       console.error("Admin action failed", e);
-      status.textContent = error;
+      status.textContent = typeof error === "function" ? error(e) : error;
       status.classList.add("mp-admin__status--error");
     } finally {
       status.hidden = false;

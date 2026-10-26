@@ -3,13 +3,14 @@ import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 import { t } from "../language/i18n.js";
-import { isAdmin, resetQuiz } from "../data/user.repo.js";
+import { isAdmin } from "../data/user.repo.js";
 import { EVENTS, eventSim } from "../data/events.js";
 import { renderChecking, renderAdmin } from "../ui/components/Admin.view.js";
 
 /**
- * The admin page. Anyone without the flag is sent back to the front page:
- * the tools here are all about undoing what the app has recorded.
+ * The admin page. Anyone without the flag is sent back to the front page.
+ * Tools for trying the app out as a player (the quiz generator) are in the field
+ * lab, which admins can open too.
  */
 export function AdminController(container) {
   renderChecking(container, t("admin.checking"));
@@ -27,7 +28,6 @@ export function AdminController(container) {
     }
 
     renderAdmin(container, {
-      onResetQuiz: () => resetQuiz(userId),
       eventOptions: EVENTS.map((e) => ({ value: e.id, label: `${e.emoji} ${t(e.nameKey)}` })),
       eventValue: eventSim.get(),
       onEventChange: (id) => {

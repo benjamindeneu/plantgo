@@ -1,5 +1,6 @@
 // src/ui/components/Herbarium.view.js
 import { attachPhoto } from "./SpeciesRow.view.js";
+import { createSearchField, fold } from "./SearchField.js";
 import { getVernacularName } from "../../data/vernacular.service.js";
 import { trackNavHeight } from "../navHeight.js";
 import { t } from "../../language/i18n.js";
@@ -27,13 +28,6 @@ function formatDate(d) {
   }
 }
 
-/** Case- and accent-blind, so "erable" finds "Érable" and "acer" finds Acer. */
-function fold(s) {
-  return String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-}
-
-const SEARCH_ICON = `<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M10 3a7 7 0 0 1 5.6 11.2l4.6 4.6-1.4 1.4-4.6-4.6A7 7 0 1 1 10 3zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg>`;
-const CLEAR_ICON = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M18.3 5.7 12 12l6.3 6.3-1.4 1.4L10.6 13.4 4.3 19.7l-1.4-1.4L9.2 12 2.9 5.7l1.4-1.4 6.3 6.3 6.3-6.3z"/></svg>`;
 const CHEVRON_ICON = `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M9.3 6.3 8 7.6l4.4 4.4L8 16.4l1.3 1.3 5.7-5.7z"/></svg>`;
 const CARET_ICON = `<svg class="mp-select__caret" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>`;
 
@@ -64,11 +58,6 @@ export function createHerbariumView({ onOpen } = {}) {
     </div>
 
     <div class="mp-herb__tools">
-      <label class="mp-search">
-        <span class="mp-search__icon">${SEARCH_ICON}</span>
-        <input class="mp-search__input" type="search" autocomplete="off" autocorrect="off" spellcheck="false">
-        <button class="mp-search__clear" type="button" hidden>${CLEAR_ICON}</button>
-      </label>
       <label class="mp-select mp-herb__sort">
         <span class="mp-select__label"></span>
         <select class="mp-select__input"></select>
@@ -83,8 +72,6 @@ export function createHerbariumView({ onOpen } = {}) {
   const q = (sel) => root.querySelector(sel);
   const subtitleEl = q(".mp-hero__subtitle");
   const countEl = q(".mp-hero__count-n");
-  const searchInput = q(".mp-search__input");
-  const clearBtn = q(".mp-search__clear");
   const sortSelect = q(".mp-select__input");
   const sortLabel = q(".mp-select__label");
   const statusEl = q(".mp-herb__status");
@@ -92,6 +79,9 @@ export function createHerbariumView({ onOpen } = {}) {
 
   let entries = [];
   let query = "";
+
+  const search = createSearchField({ onInput: (text) => { query = text; render(); } });
+  q(".mp-herb__tools").prepend(search.element);
   let sort = "newest";
   let loaded = false;
 
@@ -102,9 +92,7 @@ export function createHerbariumView({ onOpen } = {}) {
   // --- static labels ---------------------------------------------------------
   function labels() {
     q(".mp-hero__title").textContent = t("herbarium.title");
-    searchInput.placeholder = t("herbarium.search.placeholder");
-    searchInput.setAttribute("aria-label", t("herbarium.search.placeholder"));
-    clearBtn.setAttribute("aria-label", t("herbarium.search.clear"));
+    search.setLabels({ placeholder: t("herbarium.search.placeholder"), clear: t("herbarium.search.clear") });
     sortSelect.setAttribute("aria-label", t("herbarium.sort.label"));
     sortSelect.replaceChildren(...SORTS.map((k) => {
       const o = document.createElement("option");
@@ -225,18 +213,6 @@ export function createHerbariumView({ onOpen } = {}) {
   }
 
   // --- controls -------------------------------------------------------------
-  searchInput.addEventListener("input", () => {
-    query = searchInput.value;
-    clearBtn.hidden = !query;
-    render();
-  });
-  clearBtn.addEventListener("click", () => {
-    searchInput.value = "";
-    query = "";
-    clearBtn.hidden = true;
-    searchInput.focus();
-    render();
-  });
   sortSelect.addEventListener("change", () => {
     sort = sortSelect.value;
     sortLabel.textContent = t(`herbarium.sort.${sort}`);

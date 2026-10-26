@@ -7,10 +7,8 @@ import { applyEventTheme } from "../data/events.js";
 import { Header } from "../controllers/Header.controller.js";
 import { MapPage } from "../controllers/MapPage.controller.js";
 import { ChallengeModal } from "../controllers/ChallengeModal.controller.js";
-import { openSettingsModal } from "../controllers/SettingsModal.controller.js";
 import { LocationGate } from "../ui/components/LocationGate.js";
 import { listenUserLevel } from "../user/level.js";
-import { isAdmin } from "../data/user.repo.js";
 import { debugMode } from "../data/debugMode.js";
 import { claimPendingObservation } from "../data/pendingObservation.js";
 import { Modal } from "../ui/components/Modal.js";
@@ -35,18 +33,12 @@ function App() {
   const header = Header({
     user: null,
     level: 1,
-    onBadges: () => { location.href = "./badges.html"; },
-    onAvatar: () => { location.href = "./avatar.html"; },
-    onQuiz: () => { location.href = "./quiz.html"; },
-    onHerbarium: () => { location.href = "./plantdex.html"; },
-    onObservations: () => { location.href = "./observations.html"; },
+    current: "map",
     onChallenge: () => {
       // Creating or joining lands the player on the challenge screen; the tab
       // itself appears on its own as soon as Firestore reports the pointer.
       document.body.appendChild(ChallengeModal({ onJoined: () => panel?.showChallenge() }));
     },
-    onSettings: () => openSettingsModal(),
-    onAdmin: () => { location.href = "./admin.html"; },
     onLogout: async () => {
       try {
         stopLevel();
@@ -72,7 +64,6 @@ function App() {
     header.setUser(user);
     stopLevel();
     stopLevel = listenUserLevel(user.uid, (lvl) => header.setLevel(lvl));
-    isAdmin(user.uid).then((admin) => header.setAdmin(admin)).catch(() => {});
 
     // `onAuthStateChanged` fires again on token refresh, and a second call
     // used to build a second map — whose `start()` recentred on the GPS fix —
@@ -84,6 +75,11 @@ function App() {
 
     panel = MapPage();
     mount.replaceChildren(panel.element);
+    // Joining a challenge from another page's menu lands here: open its tab.
+    if (location.hash === "#challenge") {
+      history.replaceState(null, "", location.pathname + location.search);
+      panel.showChallenge();
+    }
     // Leaflet measures its container on init, so size it before starting.
     requestAnimationFrame(() => {
       panel.invalidate();

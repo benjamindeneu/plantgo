@@ -10,20 +10,47 @@
 import { t } from "../../language/i18n.js";
 import { avatarImg } from "./Avatar.view.js";
 
+/**
+ * Every page the menu leads to, in menu order, in groups: the map and what
+ * hangs off it, then the player's own collection. `id` is what a page passes
+ * as `current`.
+ */
+export const MENU_PAGES = [
+  [
+    { id: "map",          icon: "🗺️", key: "header.map",          href: "./index.html" },
+    { id: "species",      icon: "🌼", key: "header.species",      href: "./species.html" },
+    { id: "challenge",    icon: "🏁", key: "header.challenge" },  // a modal, not a page
+  ],
+  [
+    { id: "herbarium",    icon: "📗", key: "header.herbarium",    href: "./plantdex.html" },
+    { id: "observations", icon: "📋", key: "header.observations", href: "./observations.html" },
+    { id: "badges",       icon: "🏅", key: "header.badges",       href: "./badges.html" },
+    { id: "avatar",       icon: "🧑", key: "header.avatar",       href: "./avatar.html" },
+    { id: "quiz",         icon: "🌿", key: "header.quiz",         href: "./quiz.html" },
+  ],
+];
+
+/**
+ * The same menu on every page, so any page is one tap from any other rather
+ * than two by way of the map. The page on screen is marked rather than left
+ * out, so the list never reshuffles from one page to the next.
+ */
 export function createHeaderView({
   user,
   level = 1,
-  menuVariant = "main", // "main" | "herbarium"
+  current = null, // a MENU_PAGES id, "lab" or "admin"
 } = {}) {
-  const isHerbarium = menuVariant === "herbarium";
+  const pageItems = MENU_PAGES.map((group) => group.map((p) =>
+    `<button class="menu-item" role="menuitem" type="button" data-page="${p.id}"></button>`
+  ).join("")).join(`<div class="menu-divider"></div>`);
 
   const root = document.createElement("header");
   root.className = "nav";
   root.innerHTML = `
-    <div class="brandmark" id="brandmark">
+    <a class="brandmark" id="brandmark" href="./index.html">
       <img src="./assets/plantgo_logo2.png" alt="PlantGo logo" class="brand-logo">
       <img src="./assets/plantgo_titleimage_1.png" alt="PlantGo" class="brand-title">
-    </div>
+    </a>
     <div class="user-area">
       <div class="user-info">
         <a class="user-avatar" id="userAvatar" href="./avatar.html"></a>
@@ -45,69 +72,52 @@ export function createHeaderView({
       </button>
 
       <div id="userMenu" class="menu" role="menu">
-        ${isHerbarium ? `
-          <button class="menu-item menu-item--back" role="menuitem" id="menuHome">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M10 12.5L5.5 8 10 3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <span id="menuHomeLabel">Back to Main</span>
-          </button>
-        ` : `
-          <button class="menu-item" role="menuitem" id="menuHerbarium">📗 Herbarium</button>
-          <button class="menu-item" role="menuitem" id="menuObservations">📋 Observations</button>
-          <button class="menu-item" role="menuitem" id="menuBadges">🏅 Badges</button>
-          <button class="menu-item" role="menuitem" id="menuAvatar">🧑 Avatar</button>
-          <button class="menu-item" role="menuitem" id="menuChallenge">🏁 Challenge</button>
-          <button class="menu-item" role="menuitem" id="menuQuiz">🌿 Quiz</button>
-          <div class="menu-divider"></div>
-          <button class="menu-item" role="menuitem" id="menuSettings">⚙ Settings</button>
-          <button class="menu-item" role="menuitem" id="menuAdmin" hidden>🛡 Admin</button>
-          <div class="lang-wrapper">
-            <select class="lang-select" id="langSelect" aria-label="Language">
-              <option value="en">🇬🇧 EN</option>
-              <option value="fr">🇫🇷 FR</option>
-              <option value="de">🇩🇪 DE</option>
-              <option value="it">🇮🇹 IT</option>
-              <option value="es">🇪🇸 ES</option>
-              <option value="pt">🇵🇹 PT</option>
-            </select>
-          </div>
-          <div class="menu-divider"></div>
-          <button class="menu-item danger" role="menuitem" id="menuLogout">🚪 Log out</button>
-        `}
+        ${pageItems}
+        <div class="menu-divider"></div>
+        <button class="menu-item" role="menuitem" type="button" id="menuSettings"></button>
+        <button class="menu-item" role="menuitem" type="button" id="menuLab" data-page="lab" hidden></button>
+        <button class="menu-item" role="menuitem" type="button" id="menuAdmin" data-page="admin" hidden></button>
+        <div class="lang-wrapper">
+          <select class="lang-select" id="langSelect" aria-label="Language">
+            <option value="en">🇬🇧 EN</option>
+            <option value="fr">🇫🇷 FR</option>
+            <option value="de">🇩🇪 DE</option>
+            <option value="it">🇮🇹 IT</option>
+            <option value="es">🇪🇸 ES</option>
+            <option value="pt">🇵🇹 PT</option>
+          </select>
+        </div>
+        <div class="menu-divider"></div>
+        <button class="menu-item danger" role="menuitem" type="button" id="menuLogout"></button>
       </div>
     </div>
   `;
 
   const btn = root.querySelector("#menuBtn");
   const menu = root.querySelector("#userMenu");
-  //const brandEl = root.querySelector("#brandmark");
   const levelEl = root.querySelector("#levelNumber");
   const levelLabelEl = root.querySelector("#levelLabel");
   const nameEl = root.querySelector(".user-name");
-  const primaryNavBtn = root.querySelector(isHerbarium ? "#menuHome" : "#menuHerbarium");
-  const primaryNavLabel = root.querySelector("#menuHomeLabel");
   const logoutBtn = root.querySelector("#menuLogout");
   const langSelect = root.querySelector("#langSelect");
-  const challengeMenuBtn = root.querySelector("#menuChallenge");
-  const badgesMenuBtn = root.querySelector("#menuBadges");
-  const avatarMenuBtn = root.querySelector("#menuAvatar");
   const avatarEl = root.querySelector("#userAvatar");
-  const quizMenuBtn = root.querySelector("#menuQuiz");
   const settingsMenuBtn = root.querySelector("#menuSettings");
-  const observationsMenuBtn = root.querySelector("#menuObservations");
   const adminMenuBtn = root.querySelector("#menuAdmin");
+  const labMenuBtn = root.querySelector("#menuLab");
+  const pageButtons = [...root.querySelectorAll("[data-page]")];
+
+  for (const b of pageButtons) {
+    if (b.dataset.page !== current) continue;
+    b.classList.add("is-current");
+    b.setAttribute("aria-current", "page");
+  }
 
   // callbacks set by controller
   let onMenuToggle = null;
-  let onPrimaryNav = null;
+  let onPage = null;
   let onLogout = null;
   let onLanguageChange = null;
-  let onChallenge = null;
-  let onBadges = null;
-  let onAvatar = null;
-  let onQuiz = null;
   let onSettings = null;
-  let onObservations = null;
-  let onAdmin = null;
 
   function toggleMenu(force) {
     const willOpen = force !== undefined ? force : !menu.classList.contains("show");
@@ -118,91 +128,54 @@ export function createHeaderView({
 
   // Apply translated strings (called on init + after language changes)
   function refreshI18n() {
-    //if (brandEl) brandEl.textContent = `🌿 ${t("app.title")}`;
-
     // fallback user label if no displayName
     if (!user?.displayName) nameEl.textContent = t("header.user");
 
-    if (levelLabelEl) levelLabelEl.textContent = t("header.levelShort");
+    levelLabelEl.textContent = t("header.levelShort");
 
-    if (isHerbarium) {
-      // back button has an SVG inside — only update the text span
-      if (primaryNavLabel) primaryNavLabel.textContent = t("header.main");
-    } else if (primaryNavBtn) {
-      primaryNavBtn.textContent = `📗 ${t("header.herbarium")}`;
+    for (const p of MENU_PAGES.flat()) {
+      root.querySelector(`[data-page="${p.id}"]`).textContent = `${p.icon} ${t(p.key)}`;
     }
-
-    if (logoutBtn) logoutBtn.textContent = `🚪 ${t("header.logout")}`;
-
-    if (langSelect) langSelect.setAttribute("aria-label", t("header.language"));
-
-    if (challengeMenuBtn) { challengeMenuBtn.textContent = `🏁 ${t("header.challenge")}`; }
-    if (badgesMenuBtn) { badgesMenuBtn.textContent = `🏅 ${t("header.badges")}`; }
-    if (avatarMenuBtn) { avatarMenuBtn.textContent = `🧑 ${t("header.avatar")}`; }
-    if (avatarEl) avatarEl.setAttribute("aria-label", t("header.avatar"));
-    if (quizMenuBtn) { quizMenuBtn.textContent = `🌿 ${t("header.quiz")}`; }
-    if (observationsMenuBtn) { observationsMenuBtn.textContent = `📋 ${t("header.observations")}`; }
-    if (adminMenuBtn) { adminMenuBtn.textContent = `🛡 ${t("header.admin")}`; }
+    settingsMenuBtn.textContent = `⚙ ${t("settings.title")}`;
+    labMenuBtn.textContent = `🧪 ${t("header.lab")}`;
+    adminMenuBtn.textContent = `🛡 ${t("header.admin")}`;
+    logoutBtn.textContent = `🚪 ${t("header.logout")}`;
+    langSelect.setAttribute("aria-label", t("header.language"));
+    avatarEl.setAttribute("aria-label", t("header.avatar"));
   }
 
   document.addEventListener("i18n:changed", () => {
     refreshI18n();
   });
-  
+
   // local UI wiring (no business logic)
   btn.addEventListener("click", () => toggleMenu());
   document.addEventListener("click", (e) => {
     if (!root.contains(e.target)) toggleMenu(false);
   });
 
-  primaryNavBtn?.addEventListener("click", () => {
-    toggleMenu(false);
-    if (onPrimaryNav) onPrimaryNav();
-  });
+  // The page already on screen only closes the menu: reloading it would
+  // throw away whatever the player was looking at.
+  for (const b of pageButtons) {
+    b.addEventListener("click", () => {
+      toggleMenu(false);
+      if (b.dataset.page !== current) onPage?.(b.dataset.page);
+    });
+  }
 
-  logoutBtn?.addEventListener("click", () => {
+  logoutBtn.addEventListener("click", () => {
     toggleMenu(false);
     if (onLogout) onLogout();
   });
 
   // language dropdown -> emit to controller
-  langSelect?.addEventListener("change", () => {
+  langSelect.addEventListener("change", () => {
     if (onLanguageChange) onLanguageChange(langSelect.value);
   });
 
-  challengeMenuBtn?.addEventListener("click", () => {
-    toggleMenu(false);
-    if (onChallenge) onChallenge();
-  });
-
-  badgesMenuBtn?.addEventListener("click", () => {
-    toggleMenu(false);
-    if (onBadges) onBadges();
-  });
-
-  avatarMenuBtn?.addEventListener("click", () => {
-    toggleMenu(false);
-    if (onAvatar) onAvatar();
-  });
-
-  quizMenuBtn?.addEventListener("click", () => {
-    toggleMenu(false);
-    if (onQuiz) onQuiz();
-  });
-
-  settingsMenuBtn?.addEventListener("click", () => {
+  settingsMenuBtn.addEventListener("click", () => {
     toggleMenu(false);
     if (onSettings) onSettings();
-  });
-
-  observationsMenuBtn?.addEventListener("click", () => {
-    toggleMenu(false);
-    if (onObservations) onObservations();
-  });
-
-  adminMenuBtn?.addEventListener("click", () => {
-    toggleMenu(false);
-    if (onAdmin) onAdmin();
   });
 
   // initial i18n render
@@ -222,31 +195,30 @@ export function createHeaderView({
     // The chip stays empty until the avatar is known, so a page never
     // flashes the default outfit before the player's own.
     setAvatar(avatar) {
-      if (avatarEl) avatarEl.innerHTML = avatar ? avatarImg(avatar, { className: "av user-avatar__svg", small: true, px: 28 }) : "";
+      avatarEl.innerHTML = avatar ? avatarImg(avatar, { className: "av user-avatar__svg", small: true, px: 28 }) : "";
     },
-    // The admin tab is there only for an admin; everyone else never sees it.
+    // The admin tab is there only for an admin, the field lab for a field
+    // tester (or an admin); everyone else never sees either.
     setAdmin(isAdmin) {
-      if (adminMenuBtn) adminMenuBtn.hidden = !isAdmin;
+      adminMenuBtn.hidden = !isAdmin;
+    },
+    setLab(visible) {
+      labMenuBtn.hidden = !visible;
     },
 
     // allow controller to set/get lang UI state
     setLanguageValue(lang) {
-      if (langSelect) langSelect.value = lang;
+      langSelect.value = lang;
     },
 
     // let controller re-apply translated strings after setLanguage(...)
     refreshI18n,
 
     setOnMenuToggle(cb) { onMenuToggle = cb; },
-    setOnPrimaryNav(cb) { onPrimaryNav = cb; },
+    /** Another page's entry (a MENU_PAGES id, "lab" or "admin") was picked. */
+    setOnPage(cb) { onPage = cb; },
     setOnLogout(cb) { onLogout = cb; },
     setOnLanguageChange(cb) { onLanguageChange = cb; },
-    setOnChallenge(cb) { onChallenge = cb; },
-    setOnBadges(cb) { onBadges = cb; },
-    setOnAvatar(cb) { onAvatar = cb; },
-    setOnQuiz(cb) { onQuiz = cb; },
     setOnSettings(cb) { onSettings = cb; },
-    setOnObservations(cb) { onObservations = cb; },
-    setOnAdmin(cb) { onAdmin = cb; },
   };
 }

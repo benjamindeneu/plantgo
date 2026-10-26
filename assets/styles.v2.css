@@ -191,6 +191,8 @@
   -webkit-backdrop-filter: blur(14px) saturate(170%);
 }
 
+/* A link home to the map, like every app's logo. */
+.v2 .brandmark { text-decoration: none; }
 .v2 .brand-logo { height: 30px; width: auto; }
 .v2 .brand-title { height: 20px; width: auto; }
 
@@ -411,6 +413,11 @@
   border-radius: var(--mp-r-md);
   box-shadow: var(--mp-lift-2);
   animation: mp-menu-in 180ms var(--mp-ease);
+  /* Every page is in it, so on a short phone it scrolls rather than running
+     off the bottom of the screen. */
+  max-height: calc(100dvh - 90px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .v2 .menu.show { display: block; }
 @keyframes mp-menu-in {
@@ -448,9 +455,24 @@
   filter: none;
 }
 .v2 #userMenu .menu-item[hidden] { display: none; }
+/* The page on screen: marked where it sits, so the menu reads the same on
+   every page and says where you are. */
+.v2 #userMenu .menu-item.is-current,
+.v2 #userMenu .menu-item.is-current:hover {
+  background: var(--mp-soft);
+  color: var(--mp-brand-text);
+  font-weight: 600;
+  cursor: default;
+}
+.v2 #userMenu .menu-item.is-current::after {
+  content: "";
+  width: 6px; height: 6px;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--mp-brand);
+}
 .v2 #userMenu .menu-item.danger { color: var(--mp-danger); }
 .v2 #userMenu .menu-item.danger:hover { background: var(--mp-danger-tint); color: var(--mp-danger); }
-.v2 #userMenu .menu-item--back { color: var(--mp-brand-text); font-weight: 600; }
 .v2 .menu-divider { height: 1px; margin: 6px 4px; background: var(--mp-line); border: 0; }
 
 .v2 .lang-wrapper { display: flex; justify-content: center; padding: 4px; }
@@ -4379,6 +4401,44 @@
   color: var(--mp-ink-2);
 }
 .map-page .mp-around-model[hidden] { display: none; }
+
+/* ---------- species page ---------- */
+/* The herbarium's search-and-sort strip, pinned to the top of the sheet's own
+   scroller rather than under the page header, and on the sheet's paper. */
+.map-page .mp-species__tools {
+  top: 0;
+  background: var(--mp-surface);
+}
+.map-page .mp-species__tools::after { background: linear-gradient(var(--mp-surface), transparent); }
+.map-page.is-event .mp-species__tools { background: var(--ev-sheet-top); }
+.map-page.is-event .mp-species__tools::after { background: linear-gradient(var(--ev-sheet-top), transparent); }
+/* No camera on this page, so nothing to clear at the foot of the list. */
+.map-page .mp-shell--species .mp-sheet__scroll {
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+/* "Names still being looked up — tap to refresh": a line of provenance
+   that happens to be tappable, not a button competing with the list. */
+.map-page .mp-species__pending {
+  display: block;
+  width: 100%;
+  margin: 0 0 9px;
+  padding: 0 2px;
+  text-align: left;
+  font-family: var(--mp-ui);
+  font-size: .7rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--mp-brand-text);
+  background: none;
+  border: 0;
+  box-shadow: none;
+  text-shadow: none;
+  cursor: pointer;
+}
+.map-page .mp-species__pending:hover { transform: none; filter: none; text-decoration: underline; }
+.map-page .mp-species__pending[hidden] { display: none; }
+/* Where the next page of rows is drawn from (SpeciesPage.view.js). */
+.map-page .mp-species__more { height: 1px; }
 
 /* ---------- species row ---------- */
 /* The grade is the row, not a chip on it: a legendary find should be visible

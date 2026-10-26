@@ -1,16 +1,10 @@
 // src/controllers/Quiz.controller.js
-import { auth, db } from "../../firebase-config.js";
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  orderBy,
-} from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { auth } from "../../firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
 
 import { fetchQuizQuestion } from "../api/plantgo.js";
 import { attachQuizPhotos } from "../data/quizPhoto.js";
+import { getTodaySpecies, QUIZ_SIZE } from "../data/quizSpecies.js";
 import { getVernacularName } from "../data/vernacular.service.js";
 import { t } from "../language/i18n.js";
 import {
@@ -26,45 +20,7 @@ import {
 } from "../ui/components/Quiz.view.js";
 
 const POINTS_PER_CORRECT = 200;
-const MAX_QUESTIONS = 10;
-
-// ── fetch today's unique species ──────────────────────────────────────────────
-async function getTodaySpecies(userId) {
-  const now = new Date();
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-  const obsRef = collection(db, "users", userId, "observations");
-  const q = query(
-    obsRef,
-    where("observedAt", ">=", startOfToday),
-    orderBy("observedAt", "desc")
-  );
-
-  const snap = await getDocs(q);
-
-  const seen = new Set();
-  const items = [];
-  for (const doc of snap.docs) {
-    const data = doc.data();
-    if (!data.gbif_id || !data.speciesName) continue;
-    // Not validated, so not something to be quizzed (and paid) on.
-    if (data.lowConfidence) continue;
-    if (seen.has(data.speciesName)) continue;
-    seen.add(data.speciesName);
-    items.push({ gbif_id: Number(data.gbif_id), name: data.speciesName, vernacular: data.vernacularName || null });
-  }
-
-  // Randomly pick up to MAX_QUESTIONS unique species
-  if (items.length > MAX_QUESTIONS) {
-    for (let i = items.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [items[i], items[j]] = [items[j], items[i]];
-    }
-    items.splice(MAX_QUESTIONS);
-  }
-
-  return items;
-}
+const MAX_QUESTIONS = QUIZ_SIZE;
 
 // ── controller ────────────────────────────────────────────────────────────────
 export function QuizController(container) {
@@ -85,6 +41,17 @@ export function QuizController(container) {
     // left mid-way, it picks up at the question it stopped on.
     if (progress?.finished) {
       showResults(container, progress, { animate: false });
+      return;
+    }
+    // Made in the field lab and not started yet: it is offered like a
+    // quiz unlocked for today, whatever was observed today.
+    if (progress?.generated && progress.items?.length) {
+      renderLanding(container, {
+        alreadyDone: false,
+        locked: false,
+        currentCount: progress.items.length,
+        onStart: () => startQuiz(userId, progress.items),
+      });
       return;
     }
     if (progress?.items?.length && (progress.results?.length ?? 0) < progress.items.length) {

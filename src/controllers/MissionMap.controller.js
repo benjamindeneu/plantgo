@@ -22,7 +22,13 @@ function uiLang() {
   return (document.documentElement.lang || "en").split("-")[0];
 }
 
-export function MissionMapPanel() {
+/**
+ * The mission map. `missions: false` leaves the pins out entirely — no fetch,
+ * no status about them — for a page that only paints one species' surface
+ * at a time (the species page). `zoom` is how close the first fix frames the
+ * player; the map's own default when left out.
+ */
+export function MissionMapPanel({ missions: withMissions = true, zoom } = {}) {
   const view = createMissionMapView();
   view.refreshI18n();
 
@@ -58,6 +64,7 @@ export function MissionMapPanel() {
   }
 
   async function loadMissions(vp, { force = false } = {}) {
+    if (!withMissions) { view.setStatus(""); return; }
     if (!vp) return;
     if (vp.zoom < MIN_FETCH_ZOOM) {
       view.setStatus(t("map.status.zoomIn"));
@@ -210,7 +217,7 @@ export function MissionMapPanel() {
     try {
       const pos = await getCurrentPosition();
       setPosition({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-      if (recenter) view.recenter(userPos.lat, userPos.lon);
+      if (recenter) view.recenter(userPos.lat, userPos.lon, zoom);
       view.invalidate();
       await loadMissions(view.getViewport(), { force });
     } catch (e) {

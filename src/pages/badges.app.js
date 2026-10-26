@@ -19,10 +19,7 @@ function App() {
   const header = Header({
     user: null,
     level: 1,
-    menuVariant: "herbarium", // shows "🏠 Main" as primary nav
-    onBackHome: () => { location.href = "./index.html"; },
-    onBadges: () => { location.href = "./badges.html"; },
-    onQuiz: () => { location.href = "./quiz.html"; },
+    current: "badges",
     onLogout: async () => {
       try {
         stopLevel();

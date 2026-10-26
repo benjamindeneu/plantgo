@@ -1,6 +1,7 @@
 // src/data/user.repo.js
 import { auth, db } from "../../firebase-config.js";
 import { doc, getDoc, updateDoc, increment, serverTimestamp, deleteField } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { fetchMe } from "../api/plantgo.js";
 
 function todayKey() {
   const d = new Date();
@@ -38,9 +39,15 @@ export async function saveQuizProgress(uid, progress) {
   });
 }
 
-/** Admin: today's lock and any quiz in progress go, so the quiz can be played again. */
-export async function resetQuiz(uid) {
-  await updateDoc(doc(db, "users", uid), { quiz_last_date: deleteField(), quiz_progress: deleteField() });
+/**
+ * Field lab: today's lock and any quiz in progress go, replaced by a quiz on
+ * `items` that has not been started — the quiz page offers it as today's.
+ */
+export async function generateQuiz(uid, items) {
+  await updateDoc(doc(db, "users", uid), {
+    quiz_last_date: deleteField(),
+    quiz_progress: { date: todayKey(), json: JSON.stringify({ items, generated: true }) },
+  });
 }
 
 /** The `admin` field on the user doc, and only `true` counts; absent is false. */
@@ -48,6 +55,19 @@ export async function isAdmin(uid) {
   if (!uid) return false;
   const snap = await getDoc(doc(db, "users", uid));
   return snap.data()?.admin === true;
+}
+
+/**
+ * Whether the signed-in player is a field tester. Asked of the server, which
+ * keeps the list (the user doc is the player's to write) and is the one that
+ * serves testers more; false when it cannot be asked.
+ */
+export async function isTester() {
+  try {
+    return (await fetchMe())?.tester === true;
+  } catch {
+    return false;
+  }
 }
 
 export async function getCurrentUser() {

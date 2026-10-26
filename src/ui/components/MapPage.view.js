@@ -1,5 +1,40 @@
 // src/ui/components/MapPage.view.js
 import { t } from "../../language/i18n.js";
+import { makeSheetResizable } from "../sheetResize.js";
+
+/**
+ * "Auto (<default>)" first, then every model offered here — shared by the
+ * around-you model picker, the missions' raster picker and the species page's.
+ */
+export function fillModelSelect(select, { models, defaultModel, autoValue }) {
+  const defaultName = defaultModel
+    ? (models.find((m) => m.id === defaultModel)?.name ?? defaultModel)
+    : null;
+
+  select.replaceChildren();
+
+  const auto = document.createElement("optgroup");
+  auto.label = t("missions.model.group.default");
+  const autoOpt = document.createElement("option");
+  autoOpt.value = autoValue;
+  autoOpt.textContent = defaultName
+    ? `${t("missions.model.auto")} (${defaultName})`
+    : t("missions.model.auto");
+  auto.appendChild(autoOpt);
+  select.appendChild(auto);
+
+  if (models.length) {
+    const group = document.createElement("optgroup");
+    group.label = t("missions.model.group.available");
+    for (const m of models) {
+      const opt = document.createElement("option");
+      opt.value = m.id;
+      opt.textContent = m.name;
+      group.appendChild(opt);
+    }
+    select.appendChild(group);
+  }
+}
 
 /**
  * The shell the mission map lives in.
@@ -264,82 +299,7 @@ export function createMapPageView() {
   }
 
   // --- sheet drag-resize ---
-  // The 44%/34% split above is only a default. Dragging the grab handle sets
-  // an explicit pixel height on the sheet (and lets the map claim whatever's
-  // left) which, being inline, outranks those percentages — so once the
-  // player has sized it once, it holds that size across tab switches too.
-  const SHEET_MIN_H = 140; // enough for the grab + head with a sliver of list
-  const MAP_MIN_H = 96;    // the map never fully disappears under the sheet
-  let dragPointerId = null;
-  let dragStartY = 0;
-  let dragStartHeight = 0;
-  let pendingHeight = null;
-  let dragRaf = null;
-
-  function clampSheetHeight(px) {
-    const max = Math.max(SHEET_MIN_H, root.getBoundingClientRect().height - MAP_MIN_H);
-    return Math.min(max, Math.max(SHEET_MIN_H, px));
-  }
-
-  function applySheetHeight(px) {
-    sheet.style.flex = `0 0 ${px}px`;
-    mapSlot.style.flex = "1 1 auto";
-  }
-
-  function flushDrag() {
-    dragRaf = null;
-    if (pendingHeight == null) return;
-    applySheetHeight(pendingHeight);
-    resizeCb?.();
-  }
-
-  function stepSheetHeight(deltaPx) {
-    applySheetHeight(clampSheetHeight(sheet.getBoundingClientRect().height + deltaPx));
-    resizeCb?.();
-    requestAnimationFrame(() => resizeCb?.());
-  }
-
-  // The pill is not the only handle. Anything inside the sheet marked
-  // `data-sheet-grab` starts the same drag — the detail screen's back bar
-  // uses it for the blank stretch between its two controls, which sits
-  // pinned right under the pill and is what a thumb reaching for the pill
-  // actually lands on. The pointer is captured by the pill's button
-  // regardless of which handle caught it, so the move/up listeners below
-  // stay in one place.
-  sheet.addEventListener("pointerdown", (e) => {
-    if (e.button != null && e.button !== 0) return;
-    if (dragPointerId !== null) return;
-    if (!(e.target instanceof Element) || !e.target.closest("[data-sheet-grab]")) return;
-    dragPointerId = e.pointerId;
-    dragStartY = e.clientY;
-    dragStartHeight = sheet.getBoundingClientRect().height;
-    sheet.classList.add("mp-sheet--dragging");
-    sheetGrab.setPointerCapture(e.pointerId);
-    e.preventDefault();
-  });
-
-  sheetGrab.addEventListener("pointermove", (e) => {
-    if (dragPointerId === null || e.pointerId !== dragPointerId) return;
-    pendingHeight = clampSheetHeight(dragStartHeight + (dragStartY - e.clientY));
-    if (dragRaf == null) dragRaf = requestAnimationFrame(flushDrag);
-  });
-
-  function endSheetDrag(e) {
-    if (dragPointerId === null || e.pointerId !== dragPointerId) return;
-    dragPointerId = null;
-    sheet.classList.remove("mp-sheet--dragging");
-    if (dragRaf != null) { cancelAnimationFrame(dragRaf); dragRaf = null; }
-    flushDrag();
-    requestAnimationFrame(() => resizeCb?.());
-  }
-  sheetGrab.addEventListener("pointerup", endSheetDrag);
-  sheetGrab.addEventListener("pointercancel", endSheetDrag);
-
-  // Arrow keys give keyboard users the same control once the handle is focused.
-  sheetGrab.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowUp") { e.preventDefault(); stepSheetHeight(24); }
-    else if (e.key === "ArrowDown") { e.preventDefault(); stepSheetHeight(-24); }
-  });
+  makeSheetResizable({ root, sheet, grab: sheetGrab, mapSlot, onResize: () => resizeCb?.() });
 
   /** Replace a list's contents, or stand an illustrated empty state in. */
   function fill(listEl, rows, { icon, text }) {
@@ -371,40 +331,6 @@ export function createMapPageView() {
       && [...aroundModelSelect.options].some((o) => o.value === previous);
     aroundModelSelect.value = keep ? previous : "best";
     syncAroundModelLabel();
-  }
-
-  /**
-   * "Auto (<default>)" first, then every model offered here — shared by the
-   * around-you model picker and the missions' raster picker.
-   */
-  function fillModelSelect(select, { models, defaultModel, autoValue }) {
-    const defaultName = defaultModel
-      ? (models.find((m) => m.id === defaultModel)?.name ?? defaultModel)
-      : null;
-
-    select.replaceChildren();
-
-    const auto = document.createElement("optgroup");
-    auto.label = t("missions.model.group.default");
-    const autoOpt = document.createElement("option");
-    autoOpt.value = autoValue;
-    autoOpt.textContent = defaultName
-      ? `${t("missions.model.auto")} (${defaultName})`
-      : t("missions.model.auto");
-    auto.appendChild(autoOpt);
-    select.appendChild(auto);
-
-    if (models.length) {
-      const group = document.createElement("optgroup");
-      group.label = t("missions.model.group.available");
-      for (const m of models) {
-        const opt = document.createElement("option");
-        opt.value = m.id;
-        opt.textContent = m.name;
-        group.appendChild(opt);
-      }
-      select.appendChild(group);
-    }
   }
 
   /**

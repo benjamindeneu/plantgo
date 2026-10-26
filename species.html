@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="color-scheme" content="light" />
+  <meta name="theme-color" content="#ffffff" />
+
+  <title data-i18n="speciesPage.pageTitle">PlantGo • Species</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet">
+
+  <!-- v1 still supplies a few components (the identify panel, the result
+       modal's internals). v2 is the design system and loads second so its
+       rules win. See assets/styles.v2.css. -->
+  <link rel="stylesheet" href="./assets/styles.css?v=20260909-1" />
+  <link rel="stylesheet" href="./assets/styles.v2.css?v=20261026-3" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="PlantGo" />
+</head>
+
+<body class="v2 map-page">
+  <header id="appHeader" class="nav"></header>
+
+  <main class="map-shell">
+    <div id="mapRoot" class="map-root"></div>
+  </main>
+
+  <!-- Root Firebase config + libs -->
+  <script type="module" src="./firebase-config.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js"></script>
+
+  <!-- Species page bootstrap + logic -->
+  <script type="module" src="./src/pages/species.app.js?v=20261026-1"></script>
+</body>
+</html>

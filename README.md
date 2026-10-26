@@ -94,6 +94,14 @@ Then it posts every photo of the identification to the player's iNaturalist acco
 
 Every species the player has discovered, with photo and common name. Tapping opens the same species sheet the map uses.
 
+### 🌼 Species (`species.html`)
+
+Every species the distribution maps cover in the player's country, under the same map and sheet as the front page (no pins, no camera). The list is everything the raster source picked for the missions (`/api/v2/species`, same `plantgo_raster` pick and picker) publishes for the country, not only the species missions are drawn from: SwissFMSDM's whole release, or every named raster in GeoPl@ntNet's country collection (2,629 for Switzerland, 4,364 for France). Common names are in the UI language; while the backend is still looking some up, a line says so and refreshes the list when tapped. The herbarium's search pill filters it by common, Latin or family name, a sort pill orders it, and rows are drawn 40 at a time as the list scrolls. Tapping a species opens the usual species screen and paints its probability surface over the whole map.
+
+### 🧪 Field lab (`lab.html`) — field testers
+
+Field testers are players picked to try what is not public yet; for now that is the **SwissFMSDM** distribution maps (10 m, Switzerland), a preliminary release that must not be redistributed. The backend keeps the list (`TESTER_UIDS` in its `.env`, by Firebase UID — not on the user doc, which the player can write) and is what enforces it: every API request carries the player's Firebase ID token (`src/api/session.js`), and for anyone not on the list SwissFMSDM does not exist — the source picker, the Swiss default, missions, the overlay, the species list and its tiles all fall back to GeoPl@ntNet, and any request naming it gets a 403. Testers' tile URLs carry a signed key, since Leaflet fetches tiles as plain images. The lab page (menu → 🧪 Field lab, for testers and admins) says what they have access to and holds the daily quiz reset. Admin (`admin.html`, the `admin` flag on the user doc) keeps the event simulator.
+
 ### 📜 Observations (`observations.html`)
 
 Paginated history of every observation (20 per page, infinite scroll) with its score breakdown and bonuses, plus running totals.
@@ -190,7 +198,7 @@ HTML page  →  src/pages/*.app.js   (bootstrap: i18n, header, auth guard, mount
                            geo, wiki, GBIF)   HTTP client)
 ```
 
-- **Pages** (`src/pages/`) initialise i18n, build the shared `Header`, guard on `onAuthStateChanged`, and mount one root controller.
+- **Pages** (`src/pages/`) initialise i18n, build the shared `Header`, guard on `onAuthStateChanged`, and mount one root controller. The header's menu is the same on every page and navigates by itself (`Header.view.js`'s `MENU_PAGES`): a page passes only `current`, its own id, which the menu marks, and its logout clean-up. Challenge opens its modal on any page; joining lands on the map's challenge tab (`index.html#challenge`).
 - **Controllers** own state and wire views to data. They return a DOM element (or an object with `element` plus lifecycle methods like `start()` / `stop()`).
 - **Views** (`src/ui/components/`) create DOM, expose setters and `on…` hooks, and never touch Firestore or the API.
 - **Data** (`src/data/`) wraps Firestore reads/writes and external services (Wikipedia thumbnails, GBIF vernacular names, geolocation). Wikipedia and GBIF lookups are cached in `localStorage` with a TTL.
@@ -208,6 +216,8 @@ Two stylesheets are loaded: `assets/styles.css` (v1, still used by a few compone
 plantgo-v2/
 ├── index.html              Front page — the mission map
 ├── plantdex.html           Herbarium
+├── species.html            Every species of the region, with its surface on the map
+├── lab.html                Field lab: what field testers get, and their tools
 ├── observations.html       Observation history
 ├── badges.html             Badges
 ├── avatar.html             Avatar editor
@@ -301,8 +311,10 @@ Base URL is set in [`src/api/config.js`](src/api/config.js) (`API_BASE_URL`). Th
 |---|---|
 | `POST /api/identify` | Identification + scoring (multipart: `image` ×1–5, `lat`, `lon`, `identifier` (`auto` or an id), `model` (SDM for points), `lang`). `identify.identifier` names who identified it; `fallback` is true when the requested one doesn't run here |
 | `GET /api/v2/missions/map` | Mission pins + zones for a radius around a point |
+| `GET /api/v2/species` | Every species the raster source maps in the country of a point (`lat`, `lon`, `raster`, `lang`): names, family, raster tiles, and `pending` (species whose GBIF id or names are still being looked up). Pre-fill with `scripts/warm_species_lists.py` in the backend |
 | `GET /api/missions/{id}` | Mission detail: metrics, description, trivia |
 | `POST /api/prediction` | Species predicted around a point ("Around you", Species Hunt) |
+| `GET /api/me` | The caller's roles from their ID token: `{ signed_in, tester }` |
 | `GET /api/sdm/available_models` | SDM models available at a location |
 | `GET /api/identify/available_models` | Image identifiers available at a location and the default (same shape as the SDM one, plus `min_score`) |
 | `POST /api/description/{gbif_id}` | Species description + habitat (cached-or-null; generated in background) |

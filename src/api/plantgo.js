@@ -1,8 +1,28 @@
 // src/api/plantgo.js
-import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE, TRIVIA_PROXY_BASE, SPECIES_IMAGES_BASE, SDM_MODELS_URL, IDENTIFIER_MODELS_URL, MAP_MISSIONS_URL, MISSION_DETAIL_BASE, MISSION_ONE_BASE, GPN_TILE_BASE, API_ORIGIN, RASTER_MODELS_URL } from "./config.js";
+import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY_URL, DESCRIPTION_PROXY_BASE, TRIVIA_PROXY_BASE, SPECIES_IMAGES_BASE, SDM_MODELS_URL, IDENTIFIER_MODELS_URL, MAP_MISSIONS_URL, MISSION_DETAIL_BASE, MISSION_ONE_BASE, GPN_TILE_BASE, API_ORIGIN, RASTER_MODELS_URL, SPECIES_LIST_URL, ME_URL } from "./config.js";
+
+// Where the signed-in player's Firebase ID token comes from, set by
+// api/session.js on the pages that have one. The server serves some sources
+// to field testers only and tells who is asking from this token. Unset (the
+// public mission page), requests go unsigned.
+let tokenProvider = null;
+
+/** `fn` returns the current ID token, or a promise of it, or null. */
+export function setTokenProvider(fn) {
+  tokenProvider = fn;
+}
+
+async function authHeaders() {
+  try {
+    const token = await tokenProvider?.();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch {
+    return {};      // a token that cannot be had is an unsigned request, not a failed one
+  }
+}
 
 async function http(url, opts = {}) {
-  const res = await fetch(url, opts);
+  const res = await fetch(url, { ...opts, headers: { ...(opts.headers || {}), ...(await authHeaders()) } });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
     throw new Error(`[${res.status}] at ${url} :: ${text}`);
@@ -249,6 +269,14 @@ export async function fetchQuizQuestion({ item, lang = "en" }) {
 }
 
 /**
+ * What the signed-in player may do, as the server sees it from their token:
+ * { signed_in, tester }. A field tester is served what is not public yet.
+ */
+export async function fetchMe() {
+  return http(ME_URL);
+}
+
+/**
  * Fetch available SDM models for a given location.
  */
 export async function fetchAvailableModels({ lat, lon }) {
@@ -269,6 +297,20 @@ export async function fetchAvailableIdentifiers({ lat, lon }) {
  */
 export async function fetchAvailableRasters({ lat, lon }) {
   return http(`${RASTER_MODELS_URL}?lat=${lat}&lon=${lon}`);
+}
+
+/**
+ * Every species the raster source's catalogue covers where the point is — the
+ * species page's list. `raster` as for fetchMapMissions ("auto", or an id
+ * from fetchAvailableRasters); the answer's `raster` names the source used
+ * and `fallback` says the pick is not built here.
+ *
+ * Returns { area, tdwg4, model, raster, fallback, species: [{ gbif_id, name,
+ *   vernacular_name, family, raster_area, raster_id, raster_tiles }] }
+ */
+export async function fetchSpeciesList({ lat, lon, raster = "auto", lang = "en" }) {
+  const qs = new URLSearchParams({ lat, lon, raster, lang });
+  return httpWithTimeout(`${SPECIES_LIST_URL}?${qs}`, {}, 30_000);
 }
 
 /**

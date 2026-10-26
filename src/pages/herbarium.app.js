@@ -23,11 +23,7 @@ function App() {
   const header = Header({
     user: null,
     level: 1,
-    menuVariant: "herbarium",
-    onBackHome: () => { location.href = "./index.html"; },
-    onBadges: () => { location.href = "./badges.html"; },
-    onQuiz: () => { location.href = "./quiz.html"; },
-    onObservations: () => { location.href = "./observations.html"; },
+    current: "herbarium",
     onLogout: async () => {
       try {
         stopLevel();

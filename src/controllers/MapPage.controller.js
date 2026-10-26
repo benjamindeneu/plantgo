@@ -67,6 +67,9 @@ export function MapPage() {
   let detailToken = 0;
   let challengeState = null;
   let challengeTimer = null;
+  // Asked to show the challenge before its tab exists: a challenge just
+  // joined is only reported by Firestore a moment later.
+  let challengeWanted = false;
   // Missions accomplished today. Live, because an observation made from this
   // very page has to grey its row and pin out without a reload.
   let missionsDone = new Set();
@@ -429,6 +432,7 @@ export function MapPage() {
       label: challengeLabel(state),
       title: challengeName(state),
     });
+    if (challengeWanted) view.setActiveTab("challenge");
 
     // Deliberately does not switch to the tab. A challenge that was already
     // running when the page opened should not take the map away from the
@@ -438,6 +442,8 @@ export function MapPage() {
   });
 
   view.onTabSwitch((tab) => {
+    // Any tab the player lands on settles the request, the challenge included.
+    challengeWanted = false;
     const isAround = tab === "around";
     // Pins are places to walk to; this tab is a reading taken where you are.
     // They would answer a question nobody asked and cover the one marker that
@@ -492,7 +498,10 @@ export function MapPage() {
   return {
     element: view.element,
     /** Jump to the challenge screen — called when the player joins or creates one. */
-    showChallenge: () => view.setActiveTab("challenge"),
+    showChallenge: () => {
+      challengeWanted = true;
+      view.setActiveTab("challenge");
+    },
     start: () => map.start(),
     invalidate: () => map.invalidate(),
     stop: () => {

@@ -32,8 +32,7 @@ function App() {
   const header = Header({
     user: null,
     level: 1,
-    menuVariant: "herbarium", // the map is home now; offer a way back to it
-    onBackHome: () => { location.href = "./index.html"; },
+    current: null,
     onLogout: async () => {
       try {
         stopLevel();

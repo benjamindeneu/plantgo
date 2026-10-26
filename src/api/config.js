@@ -10,6 +10,7 @@ export const DESCRIPTION_PROXY_BASE = `${API_BASE_URL}description`; // /api/desc
 export const TRIVIA_PROXY_BASE = `${API_BASE_URL}trivia`;           // /api/trivia/<gbif_id>
 export const SPECIES_IMAGES_BASE = `${API_BASE_URL}species`;      // /api/species/<gbif_id>/images
 export const SDM_MODELS_URL = `${API_BASE_URL}sdm/available_models`;
+export const ME_URL = `${API_BASE_URL}me`;                         // /api/me — the caller's roles
 export const IDENTIFIER_MODELS_URL = `${API_BASE_URL}identify/available_models`; // image identifiers here
 // Where this server answers from, for the paths it hands out (tiles it draws itself).
 export const API_ORIGIN = new URL(API_BASE_URL).origin;
@@ -21,6 +22,7 @@ export const MAP_MISSIONS_URL = `${API_V2_BASE_URL}missions/map`;   // /api/v2/m
 export const MISSION_DETAIL_BASE = `${API_BASE_URL}missions`;       // /api/missions/<mission_id>
 export const MISSION_ONE_BASE = `${API_V2_BASE_URL}missions/one`;   // /api/v2/missions/one/<mission_id>
 export const RASTER_MODELS_URL = `${API_V2_BASE_URL}rasters/available_models`; // mission raster sources here
+export const SPECIES_LIST_URL = `${API_V2_BASE_URL}species`;           // /api/v2/species — every species of a raster source here
 
 // GeoPl@ntNet species probability tiles, used as a Leaflet overlay behind a
 // selected mission. Same host the backend reads mission extents from.
