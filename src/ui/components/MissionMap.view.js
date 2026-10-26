@@ -14,9 +14,12 @@ const PIN_BOX_SLACK = 4; // room for the box-shadow around the pin shape
 // on each pan looked like the map reloading.
 const MAX_PINS = 400;
 // Pins whose map positions land within this many screen pixels of each other
-// merge into one. Just over a legendary pin's box, so two pins never overlap
-// and a merged one only appears where separate ones would have collided.
-const CLUSTER_RADIUS_PX = 48;
+// merge into one. Under a pin's width, so neighbouring pins may overlap a
+// little before they merge: at 48 (a whole legendary box) pins merged while
+// still clear of each other, and splitting a group took a zoom level more
+// than it looked like it should. Each halving of this splits groups one zoom
+// level earlier.
+const CLUSTER_RADIUS_PX = 24;
 // A merged pin carries the colour of the best mission in it.
 const TIER_RANK = { common: 0, rare: 1, epic: 2, legendary: 3 };
 
