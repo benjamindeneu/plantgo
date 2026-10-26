@@ -82,7 +82,7 @@ export function Header({
   el.setUser = (u) => {
     view.setUser(u);
     watchAvatar(u?.uid ?? null);
-    // The admin entry for an admin only; the field lab for a tester, or an admin.
+    // The admin entry for an admin only; the beta tester page for a tester, or an admin.
     if (!u?.uid) {
       view.setAdmin(false);
       view.setLab(false);

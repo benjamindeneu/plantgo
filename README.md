@@ -98,9 +98,9 @@ Every species the player has discovered, with photo and common name. Tapping ope
 
 Every species the distribution maps cover in the player's country, under the same map and sheet as the front page (no pins, no camera). The list is everything the raster source picked for the missions (`/api/v2/species`, same `plantgo_raster` pick and picker) publishes for the country, not only the species missions are drawn from: SwissFMSDM's whole release, or every named raster in GeoPl@ntNet's country collection (2,629 for Switzerland, 4,364 for France). Common names are in the UI language; while the backend is still looking some up, a line says so and refreshes the list when tapped. The herbarium's search pill filters it by common, Latin or family name, a sort pill orders it, and rows are drawn 40 at a time as the list scrolls. Tapping a species opens the usual species screen and paints its probability surface over the whole map.
 
-### 🧪 Field lab (`lab.html`) — field testers
+### 🧪 Beta tester (`lab.html`)
 
-Field testers are players picked to try what is not public yet; for now that is the **SwissFMSDM** distribution maps (10 m, Switzerland), a preliminary release that must not be redistributed. The backend keeps the list (`TESTER_UIDS` in its `.env`, by Firebase UID — not on the user doc, which the player can write) and is what enforces it: every API request carries the player's Firebase ID token (`src/api/session.js`), and for anyone not on the list SwissFMSDM does not exist — the source picker, the Swiss default, missions, the overlay, the species list and its tiles all fall back to GeoPl@ntNet, and any request naming it gets a 403. Testers' tile URLs carry a signed key, since Leaflet fetches tiles as plain images. The lab page (menu → 🧪 Field lab, for testers and admins) says what they have access to and holds the daily quiz reset. Admin (`admin.html`, the `admin` flag on the user doc) keeps the event simulator.
+Beta testers are players picked to try what is not public yet; for now that is the **SwissFMSDM** distribution maps (10 m, Switzerland), a preliminary release that must not be redistributed. The backend keeps the list (`TESTER_UIDS` in its `.env`, by Firebase UID — not on the user doc, which the player can write) and is what enforces it: every API request carries the player's Firebase ID token (`src/api/session.js`), and for anyone not on the list SwissFMSDM does not exist — the source picker, the Swiss default, missions, the overlay, the species list and its tiles all fall back to GeoPl@ntNet, and any request naming it gets a 403. Testers' tile URLs carry a signed key, since Leaflet fetches tiles as plain images. The lab page (menu → 🧪 Beta tester, for testers and admins) says what they have access to and holds the daily quiz reset. Admin (`admin.html`, the `admin` flag on the user doc) keeps the event simulator.
 
 ### 📜 Observations (`observations.html`)
 
@@ -217,7 +217,7 @@ plantgo-v2/
 ├── index.html              Front page — the mission map
 ├── plantdex.html           Herbarium
 ├── species.html            Every species of the region, with its surface on the map
-├── lab.html                Field lab: what field testers get, and their tools
+├── lab.html                Beta tester page: what beta testers get, and their tools
 ├── observations.html       Observation history
 ├── badges.html             Badges
 ├── avatar.html             Avatar editor

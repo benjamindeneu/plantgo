@@ -3,7 +3,7 @@ import { t } from "../../language/i18n.js";
 import { section } from "./Admin.view.js";
 
 /**
- * The field lab: what a field tester has that other players do not. A note
+ * The beta tester page: what a beta tester has that other players do not. A note
  * on the early access they have, then their tools — the same sections as the
  * admin page.
  */

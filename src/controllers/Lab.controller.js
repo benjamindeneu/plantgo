@@ -9,7 +9,7 @@ import { renderChecking } from "../ui/components/Admin.view.js";
 import { renderLab } from "../ui/components/Lab.view.js";
 
 /**
- * The field lab page, for field testers and admins. Anyone else is sent back
+ * The beta tester page, for beta testers and admins. Anyone else is sent back
  * to the front page. Nothing here is a secret — what testers are actually
  * served (SwissFMSDM) is decided by the server, not by this page.
  */

@@ -43,7 +43,7 @@ export function QuizController(container) {
       showResults(container, progress, { animate: false });
       return;
     }
-    // Made in the field lab and not started yet: it is offered like a
+    // Made on the beta tester page and not started yet: it is offered like a
     // quiz unlocked for today, whatever was observed today.
     if (progress?.generated && progress.items?.length) {
       renderLanding(container, {

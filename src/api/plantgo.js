@@ -3,7 +3,7 @@ import { SPECIES_PROXY_URL, IDENTIFY_PROXY_URL, PREDICTION_PROXY_URL, QUIZ_PROXY
 
 // Where the signed-in player's Firebase ID token comes from, set by
 // api/session.js on the pages that have one. The server serves some sources
-// to field testers only and tells who is asking from this token. Unset (the
+// to beta testers only and tells who is asking from this token. Unset (the
 // public mission page), requests go unsigned.
 let tokenProvider = null;
 
@@ -270,7 +270,7 @@ export async function fetchQuizQuestion({ item, lang = "en" }) {
 
 /**
  * What the signed-in player may do, as the server sees it from their token:
- * { signed_in, tester }. A field tester is served what is not public yet.
+ * { signed_in, tester }. A beta tester is served what is not public yet.
  */
 export async function fetchMe() {
   return http(ME_URL);

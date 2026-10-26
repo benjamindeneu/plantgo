@@ -197,8 +197,8 @@ export function createHeaderView({
     setAvatar(avatar) {
       avatarEl.innerHTML = avatar ? avatarImg(avatar, { className: "av user-avatar__svg", small: true, px: 28 }) : "";
     },
-    // The admin tab is there only for an admin, the field lab for a field
-    // tester (or an admin); everyone else never sees either.
+    // The admin tab is there only for an admin, the beta tester page for a
+    // beta tester (or an admin); everyone else never sees either.
     setAdmin(isAdmin) {
       adminMenuBtn.hidden = !isAdmin;
     },
