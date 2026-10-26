@@ -1860,7 +1860,6 @@
   border-top-color: rgba(255,255,255,.18);
 }
 .map-page.is-event .mp-detail__sci,
-.map-page.is-event .mp-detail__gallery-credit,
 .map-page.is-event .mp-detail__prose .mp-detail__muted,
 .map-page.is-event .mp-detail__prose .mp-detail__habitat,
 .map-page.is-event .mp-detail__prose .mp-detail__habitat .mp-detail__icon { color: rgba(255,255,255,.72); }
@@ -4879,8 +4878,6 @@
 }
 .v2 .mp-detail__badge--wiki { left: 7px; bottom: 7px; width: 24px; height: 24px; background: rgba(255,255,255,.92); }
 .v2 .mp-detail__badge--wiki img { width: 18px; height: 18px; display: block; }
-.v2 .mp-detail__gallery-credit { margin: 0; font-size: .78rem; }
-.v2 .mp-detail__gallery-credit[hidden] { display: none; }
 
 /* One photo full screen, above the species sheet (1200). */
 .v2 .mp-photo-viewer {

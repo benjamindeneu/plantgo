@@ -1,6 +1,6 @@
 // src/ui/components/SpeciesDetail.view.js
 import { getWikipediaSummaryHtml, getWikipediaImageInfo } from "../../data/wiki.service.js";
-import { fetchDescription, fetchTrivia, fetchSpeciesImages, photoProviderName } from "../../api/plantgo.js";
+import { fetchDescription, fetchTrivia, fetchSpeciesImages } from "../../api/plantgo.js";
 import { speciesImage, tierOf } from "./SpeciesRow.view.js";
 import { openPhotoViewer } from "./PhotoViewer.js";
 import { organIcon, WIKI_MARK, GBIF_MARK } from "./organIcons.js";
@@ -64,7 +64,6 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
         </div>
         <span class="mp-detail__gallery-fade" aria-hidden="true"></span>
       </div>
-      <p class="mp-detail__muted mp-detail__gallery-credit" hidden></p>
     </div>
 
     <div class="mp-detail__prose">
@@ -211,12 +210,13 @@ export function SpeciesDetail(species, { onBack, onRasterToggle, rasterAvailable
     fetchSpeciesImages({ gbif_id: gbifId, limit: 36 }).then((images) => {
       // Two rows: one photo would leave a half-empty column.
       if (!el.isConnected || images.length < 2) return;
-      fieldPhotos = images;
-      // Usually one provider; a topped-up gallery names both.
-      const providers = [...new Set(images.map((p) => photoProviderName(p.provider)))];
-      const credit = el.querySelector(".mp-detail__gallery-credit");
-      credit.textContent = t("map.detail.photosCredit", { source: providers.join(" & ") });
-      credit.hidden = false;
+      // Each photo is a GBIF occurrence; the viewer links it there beside
+      // its provider's page. A gallery cached before the occurrence key was
+      // kept falls back to the species' GBIF page.
+      fieldPhotos = images.map((p) => ({
+        ...p,
+        gbif: `https://www.gbif.org/${p.occurrence ? `occurrence/${p.occurrence}` : `species/${gbifId}`}`,
+      }));
 
       function tileFor(photo, index) {
         const tile = document.createElement("button");

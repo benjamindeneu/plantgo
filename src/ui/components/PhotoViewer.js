@@ -33,6 +33,7 @@ export function openPhotoViewer(images, index = 0, { onClose } = {}) {
       <figcaption class="mp-photo-viewer__caption">
         <span class="mp-photo-viewer__credit"></span>
         <a class="mp-photo-viewer__source" target="_blank" rel="noopener noreferrer" hidden></a>
+        <a class="mp-photo-viewer__source mp-photo-viewer__gbif" target="_blank" rel="noopener noreferrer" hidden></a>
         <span class="mp-photo-viewer__count"></span>
       </figcaption>
     </figure>
@@ -42,6 +43,7 @@ export function openPhotoViewer(images, index = 0, { onClose } = {}) {
   const img = overlay.querySelector(".mp-photo-viewer__img");
   const credit = overlay.querySelector(".mp-photo-viewer__credit");
   const source = overlay.querySelector(".mp-photo-viewer__source");
+  const gbif = overlay.querySelector(".mp-photo-viewer__gbif");
   const count = overlay.querySelector(".mp-photo-viewer__count");
   const closeBtn = overlay.querySelector(".mp-photo-viewer__close");
   const prevBtn = overlay.querySelector(".mp-photo-viewer__nav--prev");
@@ -62,6 +64,11 @@ export function openPhotoViewer(images, index = 0, { onClose } = {}) {
       source.textContent = t("photo.source", { source: photoProviderName(photo.provider) });
       source.hidden = false;
     } else source.hidden = true;
+    if (photo.gbif) {
+      gbif.href = photo.gbif;
+      gbif.textContent = t("photo.source", { source: "GBIF" });
+      gbif.hidden = false;
+    } else gbif.hidden = true;
     count.textContent = single ? "" : `${i + 1} / ${images.length}`;
   }
 
